@@ -1,0 +1,1343 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kongo — Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet" />
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{font-size:16px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+    body{font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--canvas);color:var(--ink);overflow:hidden}
+
+    :root{
+      --primary:#ea2804;--primary-deep:#c01f00;--primary-bg:rgba(234,40,4,0.08);
+      --ink:#171717;--body:#4d4d4d;--muted:#888;--ash:#a1a1a1;--stone:#bbb;
+      --canvas:#fafafa;--surface-card:#fff;--surface-soft:#f5f5f5;--surface-dark:#171717;
+      --hairline:#ebebeb;
+      --success:#0070f3;--warning:#f5a623;--danger:#ee0000;--info:#7928ca;
+      --sidebar-w:240px;--header-h:52px;
+      --radius-xs:4px;--radius-sm:6px;--radius-md:8px;--radius-lg:12px;--radius-xl:16px;--radius-full:9999px;
+      --shadow-card:0px 1px 1px rgba(0,0,0,0.04),0px 2px 2px rgba(0,0,0,0.06),inset 0 0 0 1px rgba(0,0,0,0.04);
+      --shadow-elevated:0px 2px 2px rgba(0,0,0,0.06),0px 8px 8px -4px rgba(0,0,0,0.06),inset 0 0 0 1px rgba(0,0,0,0.04);
+      --shadow-modal:0px 1px 1px rgba(0,0,0,0.04),0px 8px 16px -4px rgba(0,0,0,0.08),0px 24px 32px -8px rgba(0,0,0,0.12),inset 0 0 0 1px rgba(0,0,0,0.04);
+    }
+
+    a{color:inherit;text-decoration:none}
+    button{cursor:pointer;font-family:inherit;border:none;background:none;font-size:inherit}
+
+    ::-webkit-scrollbar{width:6px;height:6px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:var(--ash);border-radius:3px}
+    ::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+
+    .app{display:flex;width:100vw;height:100vh;overflow:hidden}
+
+    /* ── Sidebar ── */
+    .sidebar{width:var(--sidebar-w);background:var(--surface-card);border-right:1px solid var(--hairline);display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform .2s}
+    .sidebar-logo{height:var(--header-h);padding:0 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--hairline)}
+    .sidebar-logo-mark{width:28px;height:28px;background:var(--primary);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:600;flex-shrink:0}
+    .sidebar-logo-text{font-size:17px;font-weight:600;letter-spacing:-.02em;color:var(--ink)}
+    .sidebar-logo-text span{color:var(--primary)}
+    .sidebar-nav{flex:1;overflow-y:auto;padding:12px 10px}
+    .sidebar-nav-label{font-size:12px;color:var(--muted);padding:8px 10px 4px;letter-spacing:.03em;text-transform:uppercase}
+    .sidebar-item{display:flex;align-items:center;gap:10px;padding:0 10px;height:36px;border-radius:var(--radius-sm);font-size:14px;font-weight:400;color:var(--body);transition:all .1s;white-space:nowrap}
+    .sidebar-item:hover{background:var(--primary-bg);color:var(--primary)}
+    .sidebar-item.active{background:var(--primary-bg);color:var(--primary);font-weight:500}
+    .sidebar-item svg{flex-shrink:0;width:16px;height:16px}
+    .sidebar-item .badge{margin-left:auto;font-size:11px;padding:0 6px;border-radius:var(--radius-full);background:var(--surface-soft);color:var(--muted);line-height:18px}
+    .sidebar-item.active .badge{background:var(--primary-bg);color:var(--primary)}
+    .sidebar-footer{padding:12px 10px;border-top:1px solid var(--hairline);margin-top:auto}
+
+    /* ── Main ── */
+    .main{flex:1;margin-left:var(--sidebar-w);display:flex;flex-direction:column;height:100vh;min-width:0}
+
+    /* ── Header ── */
+    .header{height:var(--header-h);background:var(--surface-card);border-bottom:1px solid var(--hairline);display:flex;align-items:center;padding:0 24px;gap:16px;flex-shrink:0}
+    .header-bread{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--muted)}
+    .header-bread span{color:var(--ink)}
+    .header-search{position:relative;margin-left:auto;max-width:280px;width:100%}
+    .header-search input{width:100%;height:32px;padding:0 12px 0 32px;border:1px solid var(--hairline);border-radius:var(--radius-sm);font-size:13px;background:var(--canvas);color:var(--ink);outline:none;transition:border-color .15s}
+    .header-search input:focus{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-bg)}
+    .header-search input::placeholder{color:var(--stone)}
+    .header-search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--ash);pointer-events:none}
+    .header-actions{display:flex;align-items:center;gap:8px}
+    .header-btn{width:32px;height:32px;border-radius:var(--radius-sm);border:1px solid var(--hairline);background:var(--surface-card);display:flex;align-items:center;justify-content:center;color:var(--body);transition:all .15s}
+    .header-btn:hover{border-color:var(--ash);color:var(--ink)}
+    .header-avatar{width:28px;height:28px;border-radius:var(--radius-full);background:var(--surface-soft);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--body);flex-shrink:0}
+
+    /* ── Content ── */
+    .content{flex:1;overflow-y:auto;padding:24px}
+    .panel{display:none}
+    .panel.active{display:block}
+
+    /* ── Stats grid ── */
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+    .stat{background:var(--surface-card);border-radius:var(--radius-md);padding:20px;box-shadow:var(--shadow-card)}
+    .stat-label{font-size:13px;color:var(--muted);margin-bottom:4px;font-weight:400}
+    .stat-value{font-size:28px;font-weight:600;letter-spacing:-.04em;color:var(--ink);line-height:1.2}
+    .stat-change{font-size:12px;margin-top:6px;display:inline-flex;align-items:center;gap:2px}
+    .stat-change.up{color:var(--success)}
+    .stat-change.down{color:var(--danger)}
+
+    /* ── Section row ── */
+    .section-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+    @container (max-width:900px){.section-row{grid-template-columns:1fr}}
+    .card{background:var(--surface-card);border-radius:var(--radius-md);box-shadow:var(--shadow-card)}
+    .card-h{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--hairline)}
+    .card-h h3{font-size:15px;font-weight:500;color:var(--ink);letter-spacing:-.01em}
+    .card-h a{font-size:13px;color:var(--primary);font-weight:500}
+    .card-h a:hover{color:var(--primary-deep)}
+    .card-b{padding:16px 20px}
+
+    /* ── Tables ── */
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    thead th{padding:10px 16px;text-align:left;font-weight:500;color:var(--muted);border-bottom:1px solid var(--hairline);white-space:nowrap}
+    tbody td{padding:10px 16px;border-bottom:1px solid var(--hairline);color:var(--body);vertical-align:middle}
+    tbody tr:hover td{background:var(--canvas)}
+    .mono{font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+    .mono-id{font-size:12px;color:var(--ash);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+
+    /* ── Status pills ── */
+    .pill{display:inline-flex;align-items:center;gap:4px;padding:0 8px;height:22px;border-radius:var(--radius-sm);font-size:11px;font-weight:500;white-space:nowrap}
+    .pill-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+    .pill-active{background:rgba(0,112,243,0.1);color:var(--success)}
+    .pill-active .pill-dot{background:var(--success)}
+    .pill-pending{background:rgba(245,166,35,0.1);color:var(--warning)}
+    .pill-pending .pill-dot{background:var(--warning)}
+    .pill-suspended{background:rgba(238,0,0,0.08);color:var(--danger)}
+    .pill-suspended .pill-dot{background:var(--danger)}
+    .pill-info{background:rgba(121,40,202,0.1);color:var(--info)}
+    .pill-info .pill-dot{background:var(--info)}
+    .pill-success{background:rgba(0,112,243,0.1);color:var(--success)}
+    .pill-success .pill-dot{background:var(--success)}
+
+    /* ── Buttons ── */
+    .btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;transition:all .15s;white-space:nowrap}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-primary:hover{background:var(--primary-deep)}
+    .btn-secondary{border:1px solid var(--hairline);background:var(--surface-card);color:var(--body)}
+    .btn-secondary:hover{border-color:var(--ash);color:var(--ink)}
+    .btn-ghost{color:var(--body)}
+    .btn-ghost:hover{background:var(--surface-soft);color:var(--ink)}
+    .btn-sm{height:26px;padding:0 10px;font-size:12px}
+    .btn-icon{width:28px;height:28px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--radius-sm)}
+
+    /* ── Action bar ── */
+    .action-bar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+    .action-bar .search-inline{position:relative;max-width:240px;flex:1;min-width:160px}
+    .action-bar .search-inline input{width:100%;height:32px;padding:0 12px 0 32px;border:1px solid var(--hairline);border-radius:var(--radius-sm);font-size:13px;background:var(--surface-card);color:var(--ink);outline:none}
+    .action-bar .search-inline input:focus{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-bg)}
+    .action-bar .search-inline input::placeholder{color:var(--stone)}
+    .action-bar .search-inline svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--ash);pointer-events:none}
+    .filter-group{display:flex;gap:6px;flex-wrap:wrap}
+    .filter-chip{padding:0 10px;height:28px;border-radius:var(--radius-sm);border:1px solid var(--hairline);background:var(--surface-card);font-size:12px;color:var(--body);display:inline-flex;align-items:center;gap:4px;transition:all .1s}
+    .filter-chip:hover{border-color:var(--ash)}
+    .filter-chip.active{border-color:var(--primary);background:var(--primary-bg);color:var(--primary)}
+
+    /* ── Page header ── */
+    .page-h{margin-bottom:20px}
+    .page-h h2{font-size:20px;font-weight:600;letter-spacing:-.03em;color:var(--ink);margin-bottom:2px}
+    .page-h p{font-size:13px;color:var(--muted)}
+
+    /* ── Charts (CSS-only) ── */
+    .chart-bar{display:flex;align-items:flex-end;gap:6px;height:120px;padding:0 4px}
+    .chart-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+    .chart-bar-col .bar{width:100%;max-width:32px;border-radius:3px 3px 0 0;background:var(--primary-bg);transition:height .3s;position:relative;min-height:4px}
+    .chart-bar-col .bar.fill{background:var(--primary)}
+    .chart-bar-col .label{font-size:10px;color:var(--ash);white-space:nowrap}
+    .chart-line{position:relative;height:120px;padding:0}
+    .chart-line svg{width:100%;height:100%}
+
+    /* ── Widget grid ── */
+    .widget-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:24px}
+
+    /* ── Modal ── */
+    .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.3);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+    .modal-overlay.open{display:flex}
+    .modal{background:var(--surface-card);border-radius:var(--radius-lg);box-shadow:var(--shadow-modal);width:480px;max-width:calc(100vw - 32px);max-height:calc(100vh - 64px);overflow-y:auto}
+    .modal-h{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--hairline)}
+    .modal-h h3{font-size:16px;font-weight:500;letter-spacing:-.01em}
+    .modal-close{width:28px;height:28px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--muted);transition:all .1s}
+    .modal-close:hover{background:var(--surface-soft);color:var(--ink)}
+    .modal-b{padding:20px}
+
+    /* ── Form ── */
+    .form-group{margin-bottom:16px}
+    .form-group label{display:block;font-size:13px;font-weight:500;color:var(--ink);margin-bottom:4px}
+    .form-group input,.form-group select,.form-group textarea{width:100%;height:36px;padding:0 12px;border:1px solid var(--hairline);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--surface-card);color:var(--ink);outline:none;transition:border-color .15s}
+    .form-group textarea{height:80px;padding:8px 12px;resize:vertical}
+    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-bg)}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+
+    /* ── Toggle ── */
+    .toggle{position:relative;width:36px;height:20px;flex-shrink:0;cursor:pointer}
+    .toggle input{opacity:0;width:0;height:0}
+    .toggle-sl{position:absolute;inset:0;background:var(--stone);border-radius:var(--radius-full);transition:background .15s}
+    .toggle-sl::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .15s}
+    .toggle input:checked+.toggle-sl{background:var(--success)}
+    .toggle input:checked+.toggle-sl::after{transform:translateX(16px)}
+
+    /* ── Tabs ── */
+    .tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--hairline);padding-bottom:0}
+    .tab{padding:0 16px;height:36px;display:inline-flex;align-items:center;font-size:13px;color:var(--muted);border-bottom:2px solid transparent;transition:all .1s;font-weight:400}
+    .tab:hover{color:var(--ink)}
+    .tab.active{color:var(--ink);font-weight:500;border-bottom-color:var(--primary)}
+
+    /* ── Inline alert ── */
+    .alert{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:var(--radius-md);font-size:13px;margin-bottom:16px}
+    .alert-info{background:rgba(0,112,243,0.08);color:var(--success)}
+    .alert-warn{background:rgba(245,166,35,0.1);color:#8a5d00}
+    .alert-danger{background:rgba(238,0,0,0.06);color:var(--danger)}
+    .alert-success{background:rgba(0,112,243,0.08);color:var(--success)}
+
+    /* ── Empty state ── */
+    .empty{text-align:center;padding:40px 20px}
+    .empty svg{width:40px;height:40px;color:var(--ash);margin-bottom:12px}
+    .empty h4{font-size:15px;font-weight:500;color:var(--ink);margin-bottom:4px}
+    .empty p{font-size:13px;color:var(--muted)}
+
+    /* ── Grid cards ── */
+    .card-grid{display:grid;gap:12px}
+    .card-grid-2{grid-template-columns:1fr 1fr}
+    .card-grid-3{grid-template-columns:repeat(3,1fr)}
+    .card-grid-4{grid-template-columns:repeat(4,1fr)}
+    .mini-card{background:var(--surface-card);border-radius:var(--radius-md);padding:16px;box-shadow:var(--shadow-card);display:flex;flex-direction:column;gap:6px}
+    .mini-card .label{font-size:12px;color:var(--muted)}
+    .mini-card .value{font-size:18px;font-weight:600;letter-spacing:-.03em;color:var(--ink)}
+
+    /* ── Hamburger ── */
+    .hamburger{display:none;width:32px;height:32px;align-items:center;justify-content:center;border:1px solid var(--hairline);border-radius:var(--radius-sm);background:var(--surface-card);color:var(--body);margin-right:8px;flex-shrink:0}
+    .sidebar-overlay{display:none}
+
+    /* ── Responsive ── */
+    @media(max-width:768px){
+      .sidebar{transform:translateX(-100%)}
+      .sidebar.open{transform:translateX(0)}
+      .sidebar-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.2);z-index:99}
+      .sidebar-overlay.open{display:block}
+      .main{margin-left:0}
+      .hamburger{display:flex}
+      .stats{grid-template-columns:repeat(2,1fr);gap:12px}
+      .header{padding:0 16px}
+      .content{padding:16px}
+      .header-search{max-width:180px}
+      .section-row{grid-template-columns:1fr}
+      .card-grid-2,.card-grid-3,.card-grid-4{grid-template-columns:1fr}
+      .form-row{grid-template-columns:1fr}
+      .widget-grid{grid-template-columns:1fr}
+    }
+    @media(max-width:480px){
+      .stats{grid-template-columns:1fr}
+      .header-search{display:none}
+      .tab{padding:0 10px;font-size:12px}
+    }
+    @media(min-width:1440px){
+      .content{padding:32px}
+      .stats{grid-template-columns:repeat(4,1fr)}
+      .card-grid-4{grid-template-columns:repeat(4,1fr)}
+    }
+
+    /* ── Utility ── */
+    .flex{display:flex}
+    .flex-c{flex-direction:column}
+    .items-c{align-items:center}
+    .justify-b{justify-content:space-between}
+    .gap-2{gap:2px}
+    .gap-4{gap:4px}
+    .gap-8{gap:8px}
+    .gap-12{gap:12px}
+    .gap-16{gap:16px}
+    .mt-8{margin-top:8px}
+    .mt-16{margin-top:16px}
+    .mb-16{margin-bottom:16px}
+    .w-full{width:100%}
+    .text-right{text-align:right}
+    .text-center{text-align:center}
+    .font-mono{font-family:Inter;font-variant-numeric:tabular-nums}
+    .truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-mark">K</div>
+        <span class="sidebar-logo-text">kong<span>o</span></span>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-nav-label">Overview</div>
+        <a class="sidebar-item active" data-panel="overview" href="#overview">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="1.5" width="6" height="6" rx="1"/><rect x="8.5" y="1.5" width="6" height="6" rx="1"/><rect x="1.5" y="8.5" width="6" height="6" rx="1"/><rect x="8.5" y="8.5" width="6" height="6" rx="1"/></svg>
+          Overview
+        </a>
+        <a class="sidebar-item" data-panel="notifications" href="#notifications">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1.5A4.5 4.5 0 003.5 6v2l-1 2.5h11L12.5 8V6A4.5 4.5 0 008 1.5z"/><path d="M6 13.5a2 2 0 004 0"/></svg>
+          Notifications
+          <span class="badge">6</span>
+        </a>
+
+        <div class="sidebar-nav-label" style="margin-top:12px">Management</div>
+        <a class="sidebar-item" data-panel="users" href="#users">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="2.5"/><path d="M1 14c0-2.5 2-4.5 5-4.5s5 2 5 4.5"/><path d="M11 3.5a2.5 2.5 0 010 4.5"/><path d="M15 14c0-2-1.5-3.7-4-4.3"/></svg>
+          Users
+          <span class="badge">2,847</span>
+        </a>
+        <a class="sidebar-item" data-panel="sellers" href="#sellers">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 5l5-3 5 3v7a1 1 0 01-1 1H4a1 1 0 01-1-1V5z"/><path d="M6 9h4"/><path d="M6 7h4"/><path d="M8 9v4"/></svg>
+          Sellers
+          <span class="badge">143</span>
+        </a>
+        <a class="sidebar-item" data-panel="products" href="#products">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 5l6-3 6 3-6 3-6-3z"/><path d="M2 5v4l6 3 6-3V5"/><path d="M8 8v4"/></svg>
+          Products
+          <span class="badge">12.4K</span>
+        </a>
+
+        <div class="sidebar-nav-label" style="margin-top:12px">Commerce</div>
+        <a class="sidebar-item" data-panel="orders" href="#orders">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3h12l-1.5 9H3.5L2 3z"/><circle cx="5.5" cy="13.5" r="1"/><circle cx="11.5" cy="13.5" r="1"/></svg>
+          Orders
+          <span class="badge">486</span>
+        </a>
+        <a class="sidebar-item" data-panel="payments" href="#payments">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="14" height="9" rx="1.5"/><path d="M1 7h14"/><circle cx="10" cy="9.5" r="1.5" fill="currentColor"/></svg>
+          Payments
+        </a>
+        <a class="sidebar-item" data-panel="disputes" href="#disputes">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M5 8h6"/><path d="M8 5v6"/></svg>
+          Disputes
+          <span class="badge">12</span>
+        </a>
+
+        <div class="sidebar-nav-label" style="margin-top:12px">Platform</div>
+        <a class="sidebar-item" data-panel="analytics" href="#analytics">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 14h14"/><path d="M3 11l3-6 3 3 4-6"/></svg>
+          Analytics
+        </a>
+        <a class="sidebar-item" data-panel="content" href="#content">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="1.5"/><path d="M5 6h6"/><path d="M5 8h6"/><path d="M5 10h4"/></svg>
+          Content
+        </a>
+        <a class="sidebar-item" data-panel="settings" href="#settings">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2"/><path d="M8 1.5V3"/><path d="M8 13v1.5"/><path d="M3 3l1 1"/><path d="M12 12l1 1"/><path d="M1.5 8H3"/><path d="M13 8h1.5"/><path d="M3 13l1-1"/><path d="M12 4l1-1"/></svg>
+          Settings
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <a class="sidebar-item" href="#">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2H3a1 1 0 00-1 1v10a1 1 0 001 1h3"/><path d="M11 5l3 3-3 3"/><path d="M14 8H6"/></svg>
+          Log out
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="main" id="main">
+      <!-- Header -->
+      <header class="header">
+        <button class="hamburger" id="hamburger" aria-label="Menu">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12"/><path d="M2 8h12"/><path d="M2 12h12"/></svg>
+        </button>
+        <div class="header-bread">
+          Kongo <span>/</span> <span id="breadLabel">Overview</span>
+        </div>
+        <div class="header-search">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>
+          <input type="text" placeholder="Search anything..." />
+        </div>
+        <div class="header-actions">
+          <button class="header-btn" title="Notifications" id="notifBell" style="position:relative">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1.5A4.5 4.5 0 003.5 6v2l-1 2.5h11L12.5 8V6A4.5 4.5 0 008 1.5z"/><path d="M6 13.5a2 2 0 004 0"/></svg>
+            <span style="position:absolute;top:-2px;right:-2px;width:16px;height:16px;border-radius:50%;background:var(--danger);color:#fff;font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface-card)">6</span>
+          </button>
+          <div class="header-avatar">AO</div>
+        </div>
+      </header>
+
+      <!-- Content -->
+      <div class="content" id="content">
+
+        <!-- ═══ OVERVIEW ═══ -->
+        <div class="panel active" id="panel-overview">
+          <div class="page-h">
+            <h2>Overview</h2>
+            <p>Real-time platform metrics for Kongo marketplace</p>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <div class="stat-label">Total Users</div>
+              <div class="stat-value">14,283</div>
+              <div class="stat-change up">+12.4% <span>this month</span></div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Revenue (30d)</div>
+              <div class="stat-value">KES 4.8M</div>
+              <div class="stat-change up">+8.2% <span>this month</span></div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Orders (30d)</div>
+              <div class="stat-value">2,847</div>
+              <div class="stat-change up">+15.6% <span>this month</span></div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Active Sellers</div>
+              <div class="stat-value">312</div>
+              <div class="stat-change down">-2.1% <span>this month</span></div>
+            </div>
+          </div>
+
+          <div class="section-row">
+            <div class="card">
+              <div class="card-h">
+                <h3>Revenue trend</h3>
+                <a href="#analytics">View details</a>
+              </div>
+              <div class="card-b">
+                <div class="chart-bar">
+                  <div class="chart-bar-col"><div class="bar fill" style="height:65%"></div><span class="label">Jan</span></div>
+                  <div class="chart-bar-col"><div class="bar fill" style="height:45%"></div><span class="label">Feb</span></div>
+                  <div class="chart-bar-col"><div class="bar fill" style="height:75%"></div><span class="label">Mar</span></div>
+                  <div class="chart-bar-col"><div class="bar fill" style="height:60%"></div><span class="label">Apr</span></div>
+                  <div class="chart-bar-col"><div class="bar fill" style="height:85%"></div><span class="label">May</span></div>
+                  <div class="chart-bar-col"><div class="bar" style="height:100%"></div><span class="label">Jun</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-h">
+                <h3>Recent orders</h3>
+                <a href="#orders">View all</a>
+              </div>
+              <div class="card-b" style="padding:0">
+                <table>
+                  <tbody>
+                    <tr><td class="mono-id">#ORD-3842</td><td>Amara Osei</td><td><span class="pill pill-active"><span class="pill-dot"></span>Shipped</span></td><td class="text-right font-mono">KES 12,400</td></tr>
+                    <tr><td class="mono-id">#ORD-3841</td><td>Kwame Mensah</td><td><span class="pill pill-pending"><span class="pill-dot"></span>Pending</span></td><td class="text-right font-mono">KES 3,800</td></tr>
+                    <tr><td class="mono-id">#ORD-3840</td><td>Folake Nwachukwu</td><td><span class="pill pill-info"><span class="pill-dot"></span>Confirmed</span></td><td class="text-right font-mono">KES 28,500</td></tr>
+                    <tr><td class="mono-id">#ORD-3839</td><td>Chidi Kamara</td><td><span class="pill pill-active"><span class="pill-dot"></span>Shipped</span></td><td class="text-right font-mono">KES 6,200</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="widget-grid">
+            <div class="card">
+              <div class="card-h"><h3>Top sellers</h3></div>
+              <div class="card-b" style="padding:0">
+                <table>
+                  <thead><tr><th>Seller</th><th>Revenue</th><th>Orders</th></tr></thead>
+                  <tbody>
+                    <tr><td>Nakato Textiles</td><td class="font-mono">KES 342K</td><td>184</td></tr>
+                    <tr><td>Makena Crafts</td><td class="font-mono">KES 298K</td><td>156</td></tr>
+                    <tr><td>Omondi Electronics</td><td class="font-mono">KES 211K</td><td>93</td></tr>
+                    <tr><td>Chioma Foods</td><td class="font-mono">KES 187K</td><td>247</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-h"><h3>Platform health</h3></div>
+              <div class="card-b" style="display:flex;flex-direction:column;gap:12px">
+                <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>Uptime</span><span class="font-mono" style="color:var(--success)">99.97%</span></div><div style="height:4px;background:var(--surface-soft);border-radius:2px;overflow:hidden"><div style="width:99.97%;height:100%;background:var(--success);border-radius:2px"></div></div></div>
+                <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>Avg response</span><span class="font-mono">124ms</span></div><div style="height:4px;background:var(--surface-soft);border-radius:2px;overflow:hidden"><div style="width:88%;height:100%;background:var(--primary);border-radius:2px"></div></div></div>
+                <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>Error rate</span><span class="font-mono" style="color:var(--success)">0.03%</span></div><div style="height:4px;background:var(--surface-soft);border-radius:2px;overflow:hidden"><div style="width:0.03%;height:100%;background:var(--success);border-radius:2px"></div></div></div>
+                <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>Queue depth</span><span class="font-mono">4</span></div><div style="height:4px;background:var(--surface-soft);border-radius:2px;overflow:hidden"><div style="width:4%;height:100%;background:var(--warning);border-radius:2px"></div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ USERS ═══ -->
+        <div class="panel" id="panel-users">
+          <div class="page-h">
+            <h2>Users</h2>
+            <p>Manage platform users — view, search, suspend, or ban accounts</p>
+          </div>
+          <div class="action-bar">
+            <div class="search-inline">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>
+              <input type="text" placeholder="Search users..." />
+            </div>
+            <div class="filter-group">
+              <button class="filter-chip active">All</button>
+              <button class="filter-chip">Active</button>
+              <button class="filter-chip">Suspended</button>
+              <button class="filter-chip">Banned</button>
+            </div>
+            <button class="btn btn-secondary" style="margin-left:auto">Export</button>
+          </div>
+          <div class="card">
+            <div style="overflow-x:auto">
+              <table>
+                <thead>
+                  <tr><th style="width:30px"><input type="checkbox" /></th><th>Name</th><th>Email</th><th>Location</th><th>Joined</th><th>Orders</th><th>Status</th><th style="width:80px"></th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><input type="checkbox" /></td><td style="font-weight:500">Amara Osei</td><td style="color:var(--muted)">amara.o@email.com</td><td>Lagos, NG</td><td class="mono-id">Mar 2024</td><td class="font-mono">24</td><td><span class="pill pill-active"><span class="pill-dot"></span>Active</span></td><td><button class="btn btn-ghost btn-sm panel-action" data-action="ban">Ban</button></td></tr>
+                  <tr><td><input type="checkbox" /></td><td style="font-weight:500">Kwame Mensah</td><td style="color:var(--muted)">kwame.m@email.com</td><td>Accra, GH</td><td class="mono-id">Jan 2024</td><td class="font-mono">56</td><td><span class="pill pill-active"><span class="pill-dot"></span>Active</span></td><td><button class="btn btn-ghost btn-sm panel-action" data-action="ban">Ban</button></td></tr>
+                  <tr><td><input type="checkbox" /></td><td style="font-weight:500">Folake Nwachukwu</td><td style="color:var(--muted)">folake.n@email.com</td><td>Lagos, NG</td><td class="mono-id">Nov 2023</td><td class="font-mono">89</td><td><span class="pill pill-active"><span class="pill-dot"></span>Active</span></td><td><button class="btn btn-ghost btn-sm panel-action" data-action="ban">Ban</button></td></tr>
+                  <tr><td><input type="checkbox" /></td><td style="font-weight:500">Chidi Kamara</td><td style="color:var(--muted)">chidi.k@email.com</td><td>Nairobi, KE</td><td class="mono-id">Feb 2024</td><td class="font-mono">12</td><td><span class="pill pill-suspended"><span class="pill-dot"></span>Suspended</span></td><td><button class="btn btn-ghost btn-sm panel-action" data-action="reinstate">Reinstate</button></td></tr>
+                  <tr><td><input type="checkbox" /></td><td style="font-weight:500">Zola Mbeki</td><td style="color:var(--muted)">zola.m@email.com</td><td>Johannesburg, ZA</td><td class="mono-id">Jun 2023</td><td class="font-mono">143</td><td><span class="pill pill-active"><span class="pill-dot"></span>Active</span></td><td><button class="btn btn-ghost btn-sm panel-action" data-action="ban">Ban</button></td></tr>
+                  <tr><td><input type="checkbox" /></td><td style="font-weight:500">Esi Adjei</td><td style="color:var(--muted)">esi.a@email.com</td><td>Accra, GH</td><td class="mono-id">Sep 2023</td><td class="font-mono">67</td><td><span class="pill pill-active"><span class="pill-dot"></span>Active</span></td><td><button class="btn btn-ghost btn-sm panel-action" data-action="ban">Ban</button></td></tr>
+                  <tr><td><input type="checkbox" /></td><td style="font-weight:500">Jabari Okonjo</td><td style="color:var(--muted)">jabari.o@email.com</td><td>Dar es Salaam, TZ</td><td class="mono-id">Apr 2024</td><td class="font-mono">3</td><td><span class="pill pill-pending"><span class="pill-dot"></span>Pending</span></td><td><button class="btn btn-ghost btn-sm panel-action" data-action="approve">Approve</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ SELLERS ═══ -->
+        <div class="panel" id="panel-sellers">
+          <div class="page-h">
+            <h2>Sellers</h2>
+            <p>Approve seller applications and verify business documents</p>
+          </div>
+          <div class="action-bar">
+            <div class="search-inline">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>
+              <input type="text" placeholder="Search sellers..." />
+            </div>
+            <div class="filter-group">
+              <button class="filter-chip active">All</button>
+              <button class="filter-chip">Approved</button>
+              <button class="filter-chip">Pending</button>
+              <button class="filter-chip">Rejected</button>
+            </div>
+          </div>
+          <div class="card">
+            <div style="overflow-x:auto">
+              <table>
+                <thead><tr><th>Business</th><th>Owner</th><th>Category</th><th>Location</th><th>Products</th><th>Revenue</th><th>Documents</th><th>Status</th><th style="width:100px"></th></tr></thead>
+                <tbody>
+                  <tr><td style="font-weight:500">Nakato Textiles</td><td>Nakato Abimbola</td><td>Fashion</td><td>Lagos, NG</td><td>47</td><td class="font-mono">KES 342K</td><td><span class="pill pill-success"><span class="pill-dot"></span>Verified</span></td><td><span class="pill pill-active"><span class="pill-dot"></span>Active</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+                  <tr><td style="font-weight:500">Makena Crafts</td><td>Makena Wanjiku</td><td>Handicrafts</td><td>Nairobi, KE</td><td>124</td><td class="font-mono">KES 298K</td><td><span class="pill pill-success"><span class="pill-dot"></span>Verified</span></td><td><span class="pill pill-active"><span class="pill-dot"></span>Active</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+                  <tr><td style="font-weight:500">Omondi Electronics</td><td>Omondi Nyongo</td><td>Electronics</td><td>Nairobi, KE</td><td>89</td><td class="font-mono">KES 211K</td><td><span class="pill pill-pending"><span class="pill-dot"></span>Pending</span></td><td><span class="pill pill-active"><span class="pill-dot"></span>Active</span></td><td><button class="btn btn-primary btn-sm panel-action" data-action="verify">Verify docs</button></td></tr>
+                  <tr><td style="font-weight:500">Chioma Foods</td><td>Chioma Eze</td><td>Food & Grocery</td><td>Lagos, NG</td><td>203</td><td class="font-mono">KES 187K</td><td><span class="pill pill-success"><span class="pill-dot"></span>Verified</span></td><td><span class="pill pill-active"><span class="pill-dot"></span>Active</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+                  <tr><td style="font-weight:500">Tendai Furniture</td><td>Tendai Banda</td><td>Home & Living</td><td>Lusaka, ZM</td><td>31</td><td class="font-mono">KES 95K</td><td><span class="pill pill-pending"><span class="pill-dot"></span>Pending</span></td><td><span class="pill pill-pending"><span class="pill-dot"></span>Pending</span></td><td><button class="btn btn-primary btn-sm panel-action" data-action="verify">Verify docs</button></td></tr>
+                  <tr><td style="font-weight:500">Fatima Beauty</td><td>Fatima Hassan</td><td>Beauty</td><td>Dar es Salaam, TZ</td><td>76</td><td class="font-mono">KES 156K</td><td><span class="pill pill-success"><span class="pill-dot"></span>Verified</span></td><td><span class="pill pill-active"><span class="pill-dot"></span>Active</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ PRODUCTS ═══ -->
+        <div class="panel" id="panel-products">
+          <div class="page-h">
+            <h2>Products</h2>
+            <p>Moderate marketplace listings — approve, reject, or flag for review</p>
+          </div>
+          <div class="action-bar">
+            <div class="search-inline">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>
+              <input type="text" placeholder="Search products..." />
+            </div>
+            <div class="filter-group">
+              <button class="filter-chip active">All</button>
+              <button class="filter-chip">Approved</button>
+              <button class="filter-chip">Pending</button>
+              <button class="filter-chip">Flagged</button>
+            </div>
+          </div>
+          <div class="card">
+            <div style="overflow-x:auto">
+              <table>
+                <thead><tr><th>Product</th><th>Seller</th><th>Category</th><th>Price</th><th>Stock</th><th>Sales</th><th>Status</th><th style="width:100px"></th></tr></thead>
+                <tbody>
+                  <tr><td style="font-weight:500">Kente Dashiki Pro</td><td>Nakato Textiles</td><td>Fashion</td><td class="font-mono">KES 8,500</td><td>43</td><td>128</td><td><span class="pill pill-active"><span class="pill-dot"></span>Active</span></td><td><button class="btn btn-ghost btn-sm">Moderate</button></td></tr>
+                  <tr><td style="font-weight:500">Handwoven Basket Set</td><td>Makena Crafts</td><td>Handicrafts</td><td class="font-mono">KES 2,200</td><td>200</td><td>347</td><td><span class="pill pill-active"><span class="pill-dot"></span>Active</span></td><td><button class="btn btn-ghost btn-sm">Moderate</button></td></tr>
+                  <tr><td style="font-weight:500">Refurbished Laptop</td><td>Omondi Electronics</td><td>Electronics</td><td class="font-mono">KES 45,000</td><td>12</td><td>34</td><td><span class="pill pill-pending"><span class="pill-dot"></span>Pending</span></td><td><button class="btn btn-primary btn-sm">Approve</button></td></tr>
+                  <tr><td style="font-weight:500">Organic Egusi Soup Mix</td><td>Chioma Foods</td><td>Food & Grocery</td><td class="font-mono">KES 1,800</td><td>500</td><td>892</td><td><span class="pill pill-active"><span class="pill-dot"></span>Active</span></td><td><button class="btn btn-ghost btn-sm">Moderate</button></td></tr>
+                  <tr><td style="font-weight:500">Mango Wood Shelf</td><td>Tendai Furniture</td><td>Home & Living</td><td class="font-mono">KES 6,700</td><td>28</td><td>56</td><td><span class="pill pill-info"><span class="pill-dot"></span>Flagged</span></td><td><button class="btn btn-primary btn-sm">Review</button></td></tr>
+                  <tr><td style="font-weight:500">Shea Butter Cream</td><td>Fatima Beauty</td><td>Beauty</td><td class="font-mono">KES 1,200</td><td>340</td><td>567</td><td><span class="pill pill-active"><span class="pill-dot"></span>Active</span></td><td><button class="btn btn-ghost btn-sm">Moderate</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ ORDERS ═══ -->
+        <div class="panel" id="panel-orders">
+          <div class="page-h">
+            <h2>Orders</h2>
+            <p>Monitor all marketplace orders — track, cancel, or manage returns</p>
+          </div>
+          <div class="action-bar">
+            <div class="search-inline">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>
+              <input type="text" placeholder="Search orders..." />
+            </div>
+            <div class="filter-group">
+              <button class="filter-chip active">All</button>
+              <button class="filter-chip">Pending</button>
+              <button class="filter-chip">Confirmed</button>
+              <button class="filter-chip">Shipped</button>
+              <button class="filter-chip">Delivered</button>
+              <button class="filter-chip">Cancelled</button>
+            </div>
+          </div>
+          <div class="card">
+            <div style="overflow-x:auto">
+              <table>
+                <thead><tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Date</th><th>Status</th><th style="width:80px"></th></tr></thead>
+                <tbody>
+                  <tr><td class="mono-id">#ORD-3842</td><td style="font-weight:500">Amara Osei</td><td>3 items</td><td class="font-mono">KES 12,400</td><td>M-Pesa</td><td class="mono-id">26 May</td><td><span class="pill pill-active"><span class="pill-dot"></span>Shipped</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+                  <tr><td class="mono-id">#ORD-3841</td><td style="font-weight:500">Kwame Mensah</td><td>1 item</td><td class="font-mono">KES 3,800</td><td>Card</td><td class="mono-id">26 May</td><td><span class="pill pill-pending"><span class="pill-dot"></span>Pending</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+                  <tr><td class="mono-id">#ORD-3840</td><td style="font-weight:500">Folake Nwachukwu</td><td>5 items</td><td class="font-mono">KES 28,500</td><td>M-Pesa</td><td class="mono-id">25 May</td><td><span class="pill pill-info"><span class="pill-dot"></span>Confirmed</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+                  <tr><td class="mono-id">#ORD-3839</td><td style="font-weight:500">Chidi Kamara</td><td>2 items</td><td class="font-mono">KES 6,200</td><td>M-Pesa</td><td class="mono-id">25 May</td><td><span class="pill pill-active"><span class="pill-dot"></span>Shipped</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+                  <tr><td class="mono-id">#ORD-3838</td><td style="font-weight:500">Zola Mbeki</td><td>4 items</td><td class="font-mono">KES 19,800</td><td>Bank</td><td class="mono-id">24 May</td><td><span class="pill pill-success"><span class="pill-dot"></span>Delivered</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+                  <tr><td class="mono-id">#ORD-3837</td><td style="font-weight:500">Esi Adjei</td><td>1 item</td><td class="font-mono">KES 1,200</td><td>M-Pesa</td><td class="mono-id">24 May</td><td><span class="pill pill-danger" style="background:rgba(238,0,0,0.08)"><span class="pill-dot" style="background:var(--danger)"></span>Cancelled</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+                  <tr><td class="mono-id">#ORD-3836</td><td style="font-weight:500">Jabari Okonjo</td><td>2 items</td><td class="font-mono">KES 4,600</td><td>M-Pesa</td><td class="mono-id">23 May</td><td><span class="pill pill-active"><span class="pill-dot"></span>Shipped</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ PAYMENTS ═══ -->
+        <div class="panel" id="panel-payments">
+          <div class="page-h">
+            <h2>Payments</h2>
+            <p>View transactions, process refunds, and manage payouts</p>
+          </div>
+          <div class="stats" style="grid-template-columns:repeat(3,1fr)">
+            <div class="stat"><div class="stat-label">Volume (30d)</div><div class="stat-value" style="font-size:24px">KES 4.8M</div></div>
+            <div class="stat"><div class="stat-label">Transactions</div><div class="stat-value" style="font-size:24px">2,847</div></div>
+            <div class="stat"><div class="stat-label">Avg ticket</div><div class="stat-value" style="font-size:24px">KES 1,686</div></div>
+          </div>
+          <div class="card">
+            <div class="card-h"><h3>Recent transactions</h3><button class="btn btn-secondary btn-sm" id="refundBtn">Process refund</button></div>
+            <div style="overflow-x:auto">
+              <table>
+                <thead><tr><th>Transaction ID</th><th>Customer</th><th>Method</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono-id">TXN-89432</td><td>Amara Osei</td><td>M-Pesa</td><td class="font-mono">KES 12,400</td><td class="mono-id">26 May</td><td><span class="pill pill-success"><span class="pill-dot"></span>Completed</span></td></tr>
+                  <tr><td class="mono-id">TXN-89431</td><td>Kwame Mensah</td><td>Card</td><td class="font-mono">KES 3,800</td><td class="mono-id">26 May</td><td><span class="pill pill-pending"><span class="pill-dot"></span>Pending</span></td></tr>
+                  <tr><td class="mono-id">TXN-89430</td><td>Folake Nwachukwu</td><td>M-Pesa</td><td class="font-mono">KES 28,500</td><td class="mono-id">25 May</td><td><span class="pill pill-success"><span class="pill-dot"></span>Completed</span></td></tr>
+                  <tr><td class="mono-id">TXN-89429</td><td>Chidi Kamara</td><td>M-Pesa</td><td class="font-mono">KES 6,200</td><td class="mono-id">25 May</td><td><span class="pill pill-success"><span class="pill-dot"></span>Completed</span></td></tr>
+                  <tr><td class="mono-id">TXN-89428</td><td>Zola Mbeki</td><td>Bank</td><td class="font-mono">KES 19,800</td><td class="mono-id">24 May</td><td><span class="pill pill-success"><span class="pill-dot"></span>Completed</span></td></tr>
+                  <tr><td class="mono-id">TXN-89427</td><td>Esi Adjei</td><td>M-Pesa</td><td class="font-mono">KES 1,200</td><td class="mono-id">24 May</td><td><span class="pill pill-danger" style="background:rgba(238,0,0,0.08)"><span class="pill-dot" style="background:var(--danger)"></span>Refunded</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ DISPUTES ═══ -->
+        <div class="panel" id="panel-disputes">
+          <div class="page-h">
+            <h2>Disputes</h2>
+            <p>Resolve buyer-seller disputes and issue resolutions</p>
+          </div>
+          <div class="stats" style="grid-template-columns:repeat(3,1fr)">
+            <div class="stat"><div class="stat-label">Open</div><div class="stat-value" style="font-size:24px;color:var(--warning)">12</div></div>
+            <div class="stat"><div class="stat-label">Avg resolution</div><div class="stat-value" style="font-size:24px">2.4 days</div></div>
+            <div class="stat"><div class="stat-label">Resolved this week</div><div class="stat-value" style="font-size:24px">18</div></div>
+          </div>
+          <div class="card">
+            <div style="overflow-x:auto">
+              <table>
+                <thead><tr><th>ID</th><th>Buyer</th><th>Seller</th><th>Issue</th><th>Amount</th><th>Opened</th><th>Priority</th><th>Status</th><th style="width:80px"></th></tr></thead>
+                <tbody>
+                  <tr><td class="mono-id">DSP-023</td><td>Amara Osei</td><td>Nakato Textiles</td><td>Item not received</td><td class="font-mono">KES 8,500</td><td class="mono-id">25 May</td><td><span class="pill pill-danger" style="background:rgba(238,0,0,0.08)">High</span></td><td><span class="pill pill-pending"><span class="pill-dot"></span>Open</span></td><td><button class="btn btn-primary btn-sm">Resolve</button></td></tr>
+                  <tr><td class="mono-id">DSP-022</td><td>Kwame Mensah</td><td>Makena Crafts</td><td>Wrong item shipped</td><td class="font-mono">KES 2,200</td><td class="mono-id">24 May</td><td><span class="pill pill-pending" style="background:rgba(245,166,35,0.1)">Medium</span></td><td><span class="pill pill-pending"><span class="pill-dot"></span>Open</span></td><td><button class="btn btn-primary btn-sm">Resolve</button></td></tr>
+                  <tr><td class="mono-id">DSP-021</td><td>Folake Nwachukwu</td><td>Chioma Foods</td><td>Damaged goods</td><td class="font-mono">KES 1,800</td><td class="mono-id">23 May</td><td><span class="pill pill-active" style="background:rgba(0,112,243,0.1)">Low</span></td><td><span class="pill pill-success"><span class="pill-dot"></span>Resolved</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ ANALYTICS ═══ -->
+        <div class="panel" id="panel-analytics">
+          <div class="page-h">
+            <h2>Analytics</h2>
+            <p>Platform metrics and performance trends</p>
+          </div>
+          <div class="card-grid card-grid-4" style="margin-bottom:16px">
+            <div class="mini-card"><span class="label">GMV (30d)</span><span class="value">KES 4.8M</span><span style="font-size:12px;color:var(--success)">+18% vs last period</span></div>
+            <div class="mini-card"><span class="label">Avg order value</span><span class="value">KES 1,686</span><span style="font-size:12px;color:var(--body)">+2% vs last period</span></div>
+            <div class="mini-card"><span class="label">Conversion rate</span><span class="value">3.2%</span><span style="font-size:12px;color:var(--success)">+0.4pp vs last period</span></div>
+            <div class="mini-card"><span class="label">Repeat buyers</span><span class="value">42%</span><span style="font-size:12px;color:var(--success)">+5pp vs last period</span></div>
+          </div>
+          <div class="section-row">
+            <div class="card">
+              <div class="card-h"><h3>Orders by region</h3></div>
+              <div class="card-b" style="padding:16px 20px">
+                <table>
+                  <thead><tr><th>Region</th><th>Orders</th><th>Revenue</th><th>%</th></tr></thead>
+                  <tbody>
+                    <tr><td>Lagos, NG</td><td class="font-mono">1,024</td><td class="font-mono">KES 1.9M</td><td>36%</td></tr>
+                    <tr><td>Nairobi, KE</td><td class="font-mono">687</td><td class="font-mono">KES 1.2M</td><td>24%</td></tr>
+                    <tr><td>Accra, GH</td><td class="font-mono">423</td><td class="font-mono">KES 684K</td><td>15%</td></tr>
+                    <tr><td>Johannesburg, ZA</td><td class="font-mono">312</td><td class="font-mono">KES 522K</td><td>11%</td></tr>
+                    <tr><td>Dar es Salaam, TZ</td><td class="font-mono">198</td><td class="font-mono">KES 286K</td><td>7%</td></tr>
+                    <tr><td>Other</td><td class="font-mono">203</td><td class="font-mono">KES 208K</td><td>7%</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-h"><h3>Top categories</h3></div>
+              <div class="card-b" style="padding:16px 20px">
+                <table>
+                  <thead><tr><th>Category</th><th>Orders</th><th>Revenue</th></tr></thead>
+                  <tbody>
+                    <tr><td>Fashion</td><td class="font-mono">892</td><td class="font-mono">KES 1.6M</td></tr>
+                    <tr><td>Food & Grocery</td><td class="font-mono">654</td><td class="font-mono">KES 892K</td></tr>
+                    <tr><td>Electronics</td><td class="font-mono">432</td><td class="font-mono">KES 1.1M</td></tr>
+                    <tr><td>Handicrafts</td><td class="font-mono">298</td><td class="font-mono">KES 412K</td></tr>
+                    <tr><td>Beauty</td><td class="font-mono">267</td><td class="font-mono">KES 342K</td></tr>
+                    <tr><td>Home & Living</td><td class="font-mono">198</td><td class="font-mono">KES 442K</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ CONTENT ═══ -->
+        <div class="panel" id="panel-content">
+          <div class="page-h">
+            <h2>Content</h2>
+            <p>Manage homepage banners, promotions, and featured content</p>
+          </div>
+          <div class="action-bar">
+            <button class="btn btn-primary">Add banner</button>
+            <button class="btn btn-secondary">Schedule promotion</button>
+          </div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-h"><h3>Active banners</h3></div>
+            <div class="card-b" style="padding:0">
+              <table>
+                <thead><tr><th>Title</th><th>Position</th><th>Start</th><th>End</th><th>Status</th><th style="width:120px"></th></tr></thead>
+                <tbody>
+                  <tr><td style="font-weight:500">Summer Fashion Sale</td><td>Hero</td><td class="mono-id">15 May 2026</td><td class="mono-id">15 Jun 2026</td><td><span class="pill pill-active"><span class="pill-dot"></span>Active</span></td><td><button class="btn btn-ghost btn-sm">Edit</button> <button class="btn btn-ghost btn-sm">Pause</button></td></tr>
+                  <tr><td style="font-weight:500">New Seller Promotion</td><td>Secondary</td><td class="mono-id">1 May 2026</td><td class="mono-id">1 Jul 2026</td><td><span class="pill pill-active"><span class="pill-dot"></span>Active</span></td><td><button class="btn btn-ghost btn-sm">Edit</button> <button class="btn btn-ghost btn-sm">Pause</button></td></tr>
+                  <tr><td style="font-weight:500">Free Delivery Weekend</td><td>Hero</td><td class="mono-id">Pending</td><td class="mono-id">—</td><td><span class="pill pill-pending"><span class="pill-dot"></span>Scheduled</span></td><td><button class="btn btn-ghost btn-sm">Edit</button> <button class="btn btn-ghost btn-sm">Cancel</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="alert alert-info">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" style="width:16px;height:16px;flex-shrink:0"><circle cx="8" cy="8" r="6"/><path d="M8 5v4"/><path d="M8 11.5v.5"/></svg>
+            <span>Content changes take effect within 5 minutes. Schedule promotions up to 30 days in advance.</span>
+          </div>
+        </div>
+
+        <!-- ═══ SETTINGS ═══ -->
+        <div class="panel" id="panel-settings">
+          <div class="page-h">
+            <h2>Settings</h2>
+            <p>Configure platform rules, commissions, and system preferences</p>
+          </div>
+          <div class="section-row">
+            <div class="card">
+              <div class="card-h"><h3>Commission</h3></div>
+              <div class="card-b">
+                <div class="form-group">
+                  <label>Default commission rate (%)</label>
+                  <input type="number" value="8" />
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Electronics commission (%)</label>
+                    <input type="number" value="5" />
+                  </div>
+                  <div class="form-group">
+                    <label>Food commission (%)</label>
+                    <input type="number" value="10" />
+                  </div>
+                </div>
+                <div class="form-actions">
+                  <button class="btn btn-primary">Save changes</button>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-h"><h3>Platform rules</h3></div>
+              <div class="card-b">
+                <div class="form-group" style="display:flex;align-items:center;justify-content:space-between">
+                  <div><label style="margin-bottom:0">Auto-approve sellers</label><div style="font-size:12px;color:var(--muted)">New sellers approved without manual review</div></div>
+                  <label class="toggle"><input type="checkbox" checked /><span class="toggle-sl"></span></label>
+                </div>
+                <div class="form-group" style="display:flex;align-items:center;justify-content:space-between">
+                  <div><label style="margin-bottom:0">Require ID verification</label><div style="font-size:12px;color:var(--muted)">Government ID required for seller registration</div></div>
+                  <label class="toggle"><input type="checkbox" checked /><span class="toggle-sl"></span></label>
+                </div>
+                <div class="form-group" style="display:flex;align-items:center;justify-content:space-between">
+                  <div><label style="margin-bottom:0">Allow international sales</label><div style="font-size:12px;color:var(--muted)">Cross-border buyer-seller transactions</div></div>
+                  <label class="toggle"><input type="checkbox" /><span class="toggle-sl"></span></label>
+                </div>
+                <div class="form-group" style="display:flex;align-items:center;justify-content:space-between">
+                  <div><label style="margin-bottom:0">Auto-refund under KES 1,000</label><div style="font-size:12px;color:var(--muted)">Automatic refund for disputes under threshold</div></div>
+                  <label class="toggle"><input type="checkbox" checked /><span class="toggle-sl"></span></label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ NOTIFICATIONS ═══ -->
+        <div class="panel" id="panel-notifications">
+          <div class="page-h" style="display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <h2>Notifications</h2>
+              <p>Platform alerts, user activity, and system warnings</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="showToast('All marked as read','success')">Mark all read</button>
+          </div>
+          <div style="display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap">
+            <button class="filter-chip active">All</button>
+            <button class="filter-chip">Unread</button>
+            <button class="filter-chip">Alerts</button>
+            <button class="filter-chip">Orders</button>
+            <button class="filter-chip">Users</button>
+            <button class="filter-chip">System</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="card" style="border-left:3px solid var(--primary);box-shadow:var(--shadow-elevated)">
+              <div class="card-b" style="display:flex;gap:12px;align-items:flex-start">
+                <div style="width:36px;height:36px;border-radius:var(--radius-sm);background:var(--primary-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--primary)">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v4"/><path d="M8 11v.01"/></svg>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                    <strong style="font-size:14px;color:var(--ink)">Seller verification flagged</strong>
+                    <span class="pill pill-pending"><span class="pill-dot"></span>Urgent</span>
+                  </div>
+                  <div style="font-size:13px;color:var(--body);margin:2px 0 4px">Nakato Textiles (ID: SELL-9841) submitted documents that failed automated verification. Manual review required.</div>
+                  <div style="font-size:12px;color:var(--ash);display:flex;gap:12px">
+                    <span>5 min ago</span>
+                    <a href="#" style="color:var(--primary)" onclick="switchPanel('sellers');event.preventDefault()">Review seller</a>
+                    <a href="#" style="color:var(--muted)" onclick="showToast('Dismissed','success');this.closest('.card').remove();event.preventDefault()">Dismiss</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-b" style="display:flex;gap:12px;align-items:flex-start">
+                <div style="width:36px;height:36px;border-radius:var(--radius-sm);background:rgba(0,112,243,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--success)">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3h12l-1.5 9H3.5L2 3z"/><circle cx="5.5" cy="13.5" r="1"/><circle cx="11.5" cy="13.5" r="1"/></svg>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                    <strong style="font-size:14px;color:var(--ink)">New order — KES 24,500</strong>
+                    <span class="pill pill-active"><span class="pill-dot"></span>New</span>
+                  </div>
+                  <div style="font-size:13px;color:var(--body);margin:2px 0 4px">Chidi Kamara ordered 3 items from Zola Electronics (Order #ORD-8923). Payment confirmed via M-Pesa.</div>
+                  <div style="font-size:12px;color:var(--ash);display:flex;gap:12px">
+                    <span>18 min ago</span>
+                    <a href="#" style="color:var(--primary)" onclick="window.location.hash='orders';switchPanel('orders');event.preventDefault()">View order</a>
+                    <a href="#" style="color:var(--muted)" onclick="this.closest('.card').remove();event.preventDefault()">Dismiss</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-b" style="display:flex;gap:12px;align-items:flex-start">
+                <div style="width:36px;height:36px;border-radius:var(--radius-sm);background:rgba(238,0,0,0.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--danger)">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1.5A4.5 4.5 0 003.5 6v2l-1 2.5h11L12.5 8V6A4.5 4.5 0 008 1.5z"/><path d="M6 13.5a2 2 0 004 0"/></svg>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                    <strong style="font-size:14px;color:var(--ink)">Refund request — KES 8,500</strong>
+                    <span class="pill pill-pending"><span class="pill-dot"></span>Action needed</span>
+                  </div>
+                  <div style="font-size:13px;color:var(--body);margin:2px 0 4px">Amina Diallo requested a refund for damaged goods from AfriStyle Fashion. Escalate if unresolved within 24h.</div>
+                  <div style="font-size:12px;color:var(--ash);display:flex;gap:12px">
+                    <span>1h ago</span>
+                    <a href="#" style="color:var(--primary)" onclick="window.location.hash='disputes';switchPanel('disputes');event.preventDefault()">View dispute</a>
+                    <a href="#" style="color:var(--muted)" onclick="this.closest('.card').remove();event.preventDefault()">Dismiss</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-b" style="display:flex;gap:12px;align-items:flex-start">
+                <div style="width:36px;height:36px;border-radius:var(--radius-sm);background:rgba(0,112,243,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--success)">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="2.5"/><path d="M1 14c0-2.5 2-4.5 5-4.5s5 2 5 4.5"/></svg>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                    <strong style="font-size:14px;color:var(--ink)">12 new users registered</strong>
+                    <span class="pill pill-success"><span class="pill-dot"></span>Info</span>
+                  </div>
+                  <div style="font-size:13px;color:var(--body);margin:2px 0 4px">12 new accounts created in the last hour. 4 are sellers, 8 are buyers. 2 pending verification.</div>
+                  <div style="font-size:12px;color:var(--ash);display:flex;gap:12px">
+                    <span>2h ago</span>
+                    <a href="#" style="color:var(--primary)" onclick="window.location.hash='users';switchPanel('users');event.preventDefault()">View users</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-b" style="display:flex;gap:12px;align-items:flex-start">
+                <div style="width:36px;height:36px;border-radius:var(--radius-sm);background:rgba(245,166,35,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--warning)">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 14h14"/><path d="M3 11l3-6 3 3 4-6"/></svg>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                    <strong style="font-size:14px;color:var(--ink)">Revenue milestone: KES 5M</strong>
+                    <span class="pill pill-active"><span class="pill-dot"></span>Milestone</span>
+                  </div>
+                  <div style="font-size:13px;color:var(--body);margin:2px 0 4px">Kongo marketplace crossed KES 5M in monthly revenue for the first time. Top category: Electronics (38%).</div>
+                  <div style="font-size:12px;color:var(--ash);display:flex;gap:12px">
+                    <span>3h ago</span>
+                    <a href="#" style="color:var(--primary)" onclick="window.location.hash='analytics';switchPanel('analytics');event.preventDefault()">View analytics</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-b" style="display:flex;gap:12px;align-items:flex-start">
+                <div style="width:36px;height:36px;border-radius:var(--radius-sm);background:rgba(238,0,0,0.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--danger)">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M5 8h6"/></svg>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                    <strong style="font-size:14px;color:var(--ink)">Payment gateway latency</strong>
+                    <span class="pill pill-suspended"><span class="pill-dot"></span>Warning</span>
+                  </div>
+                  <div style="font-size:13px;color:var(--body);margin:2px 0 4px">M-Pesa API response time increased to 3.2s (threshold: 2.0s). Monitoring. Check payment processing.</div>
+                  <div style="font-size:12px;color:var(--ash);display:flex;gap:12px">
+                    <span>5h ago</span>
+                    <a href="#" style="color:var(--primary)" onclick="window.location.hash='payments';switchPanel('payments');event.preventDefault()">Check payments</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /content -->
+    </div><!-- /main -->
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="modalContent">
+      <div class="modal-h">
+        <h3 id="modalTitle">Process refund</h3>
+        <button class="modal-close" id="modalClose">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4l8 8"/><path d="M12 4l-8 8"/></svg>
+        </button>
+      </div>
+      <div class="modal-b" id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" style="position:fixed;bottom:24px;right:24px;z-index:300;display:flex;flex-direction:column;gap:8px;pointer-events:none"></div>
+
+  <script>
+    // ── Navigation ──
+    const panels = document.querySelectorAll('.panel');
+    const navItems = document.querySelectorAll('.sidebar-item[data-panel]');
+    const breadLabel = document.getElementById('breadLabel');
+
+    const panelLabels = {
+      overview:'Overview', users:'Users', sellers:'Sellers', products:'Products',
+      orders:'Orders', payments:'Payments', disputes:'Disputes',
+      analytics:'Analytics', content:'Content', settings:'Settings', notifications:'Notifications'
+    };
+
+    function switchPanel(id) {
+      panels.forEach(p => p.classList.remove('active'));
+      const target = document.getElementById('panel-' + id);
+      if (!target) return;
+      target.classList.add('active');
+
+      navItems.forEach(n => n.classList.remove('active'));
+      document.querySelector('.sidebar-item[data-panel="' + id + '"]')?.classList.add('active');
+
+      breadLabel.textContent = panelLabels[id] || 'Overview';
+    }
+
+    navItems.forEach(item => {
+      item.addEventListener('click', e => {
+        e.preventDefault();
+        switchPanel(item.dataset.panel);
+        window.location.hash = item.dataset.panel;
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('open');
+      });
+    });
+
+    window.addEventListener('hashchange', () => {
+      const id = window.location.hash.slice(1) || 'overview';
+      switchPanel(id);
+    });
+
+    const initHash = window.location.hash.slice(1);
+    if (initHash && document.getElementById('panel-' + initHash)) {
+      switchPanel(initHash);
+    }
+
+    // ── Sidebar mobile ──
+    document.getElementById('hamburger')?.addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    });
+    document.getElementById('sidebarOverlay')?.addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('open');
+    });
+
+    // ── Notification bell ──
+    document.getElementById('notifBell')?.addEventListener('click', () => {
+      switchPanel('notifications');
+      window.location.hash = 'notifications';
+    });
+
+    // ── Filter chips ──
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        chip.parentElement.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+      });
+    });
+
+    // ── Toast ──
+    function showToast(msg, type) {
+      const el = document.createElement('div');
+      el.style.cssText = 'pointer-events:auto;padding:10px 16px;border-radius:var(--radius-md);font-size:13px;font-weight:500;box-shadow:var(--shadow-modal);animation:fadeInUp .2s ease;display:flex;align-items:center;gap:8px';
+      el.style.background = type === 'success' ? '#0070f3' : type === 'danger' ? '#ee0000' : type === 'warning' ? '#f5a623' : '#171717';
+      el.style.color = '#fff';
+      el.textContent = msg;
+      document.getElementById('toast').appendChild(el);
+      setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(() => el.remove(), 300); }, 3000);
+    }
+    const styleToast = document.createElement('style');
+    styleToast.textContent = '@keyframes fadeInUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}';
+    document.head.appendChild(styleToast);
+
+    // ── Modal ──
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+
+    function openModal(title, bodyHTML) {
+      modalTitle.textContent = title;
+      modalBody.innerHTML = bodyHTML;
+      modalOverlay.classList.add('open');
+    }
+
+    function closeModal() {
+      modalOverlay.classList.remove('open');
+    }
+
+    document.getElementById('modalClose').addEventListener('click', closeModal);
+    modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
+
+    // ── Modal confirm helper ──
+    function confirmThenClose(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const label = this.textContent.trim();
+        closeModal();
+        showToast(label + ' — done', 'success');
+      });
+    }
+
+    // ── Refund button ──
+    document.getElementById('refundBtn')?.addEventListener('click', () => {
+      openModal('Process refund', `
+        <div class="form-group">
+          <label>Transaction ID</label>
+          <input type="text" placeholder="e.g. TXN-89432" />
+        </div>
+        <div class="form-group">
+          <label>Refund amount (KES)</label>
+          <input type="number" placeholder="0" />
+        </div>
+        <div class="form-group">
+          <label>Reason</label>
+          <select>
+            <option>Customer request</option>
+            <option>Item not received</option>
+            <option>Damaged goods</option>
+            <option>Wrong item shipped</option>
+            <option>Duplicate payment</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-secondary modal-close-btn">Cancel</button>
+          <button class="btn btn-primary modal-confirm-btn">Process refund</button>
+        </div>
+      `);
+      document.querySelector('.modal-confirm-btn')?.addEventListener('click', () => { closeModal(); showToast('Refund processed', 'success'); });
+      document.querySelector('.modal-close-btn')?.addEventListener('click', closeModal);
+    });
+
+    // ── Panel action buttons (ban, verify, etc.) ──
+    document.querySelectorAll('.panel-action').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const action = this.dataset.action;
+        const row = this.closest('tr');
+        const name = row?.querySelector('td')?.textContent || 'this item';
+
+        if (action === 'ban') {
+          openModal('Confirm ban',
+            `<p style="font-size:14px;color:var(--body);margin-bottom:16px">Are you sure you want to ban <strong>${name}</strong>? This will suspend their account and prevent future transactions.</p>
+            <div class="form-group"><label>Reason</label><textarea placeholder="Describe the reason for this action..."></textarea></div>
+            <div class="form-actions"><button class="btn btn-secondary modal-close-btn">Cancel</button><button class="btn btn-primary modal-confirm-btn" style="background:var(--danger)">Ban user</button></div>`
+          );
+          document.querySelector('.modal-confirm-btn')?.addEventListener('click', () => { closeModal(); showToast(name + ' banned', 'danger'); });
+          document.querySelector('.modal-close-btn')?.addEventListener('click', closeModal);
+        } else if (action === 'reinstate') {
+          openModal('Reinstate user',
+            `<p style="font-size:14px;color:var(--body);margin-bottom:16px">Reinstate <strong>${name}</strong>'s account? They will regain full access to the platform.</p>
+            <div class="form-actions"><button class="btn btn-secondary modal-close-btn">Cancel</button><button class="btn btn-primary modal-confirm-btn" style="background:var(--success)">Reinstate</button></div>`
+          );
+          document.querySelector('.modal-confirm-btn')?.addEventListener('click', () => { closeModal(); showToast(name + ' reinstated', 'success'); });
+          document.querySelector('.modal-close-btn')?.addEventListener('click', closeModal);
+        } else if (action === 'verify') {
+          openModal('Verify documents',
+            `<p style="font-size:14px;color:var(--body);margin-bottom:16px">Review and verify documents for <strong>${name}</strong>.</p>
+            <div style="border:1px solid var(--hairline);border-radius:var(--radius-md);padding:16px;margin-bottom:16px">
+              <div style="font-size:13px;font-weight:500;margin-bottom:8px">Business registration</div>
+              <div style="height:120px;background:var(--surface-soft);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted)">Document preview</div>
+            </div>
+            <div style="border:1px solid var(--hairline);border-radius:var(--radius-md);padding:16px;margin-bottom:16px">
+              <div style="font-size:13px;font-weight:500;margin-bottom:8px">Government ID</div>
+              <div style="height:120px;background:var(--surface-soft);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted)">Document preview</div>
+            </div>
+            <div class="form-actions"><button class="btn btn-secondary modal-close-btn">Reject</button><button class="btn btn-primary modal-confirm-btn">Approve & verify</button></div>`
+          );
+          document.querySelector('.modal-confirm-btn')?.addEventListener('click', () => { closeModal(); showToast(name + ' verified', 'success'); });
+          document.querySelector('.modal-close-btn')?.addEventListener('click', closeModal);
+        } else if (action === 'approve') {
+          openModal('Approve user',
+            `<p style="font-size:14px;color:var(--body);margin-bottom:16px">Approve <strong>${name}</strong> for platform access?</p>
+            <div class="form-actions"><button class="btn btn-secondary modal-close-btn">Cancel</button><button class="btn btn-primary modal-confirm-btn">Approve</button></div>`
+          );
+          document.querySelector('.modal-confirm-btn')?.addEventListener('click', () => { closeModal(); showToast(name + ' approved', 'success'); });
+          document.querySelector('.modal-close-btn')?.addEventListener('click', closeModal);
+        }
+      });
+    });
+
+    // ── Products panel: Moderate / Approve / Review ──
+    document.querySelectorAll('#panel-products .btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const row = this.closest('tr');
+        const product = row?.querySelector('td')?.textContent || 'this product';
+        const text = this.textContent.trim();
+
+        if (text === 'Moderate') {
+          openModal('Moderate listing',
+            `<p style="font-size:14px;color:var(--body);margin-bottom:16px">Review <strong>${product}</strong> listing details before taking action.</p>
+            <div style="border:1px solid var(--hairline);border-radius:var(--radius-md);padding:16px;margin-bottom:16px">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px">
+                <span style="color:var(--muted)">Listed by:</span><span>Nakato Textiles</span>
+                <span style="color:var(--muted)">Price:</span><span>KES 8,500</span>
+                <span style="color:var(--muted)">Category:</span><span>Fashion</span>
+                <span style="color:var(--muted)">Date listed:</span><span>12 May 2026</span>
+              </div>
+            </div>
+            <div class="form-group"><label>Admin notes</label><textarea placeholder="Add moderation notes..."></textarea></div>
+            <div class="form-actions"><button class="btn btn-secondary modal-close-btn">Flag for review</button><button class="btn btn-primary modal-confirm-btn">Approve listing</button></div>`
+          );
+          document.querySelector('.modal-confirm-btn')?.addEventListener('click', () => { closeModal(); showToast(product + ' approved', 'success'); });
+          document.querySelector('.modal-close-btn')?.addEventListener('click', () => { closeModal(); showToast(product + ' flagged', 'warning'); });
+        } else if (text === 'Approve') {
+          openModal('Approve listing',
+            `<p style="font-size:14px;color:var(--body);margin-bottom:16px">Approve <strong>${product}</strong> for the marketplace?</p>
+            <div class="form-actions"><button class="btn btn-secondary modal-close-btn">Cancel</button><button class="btn btn-primary modal-confirm-btn">Approve</button></div>`
+          );
+          document.querySelector('.modal-confirm-btn')?.addEventListener('click', () => { closeModal(); showToast(product + ' approved', 'success'); });
+          document.querySelector('.modal-close-btn')?.addEventListener('click', closeModal);
+        } else if (text === 'Review') {
+          openModal('Review flagged listing',
+            `<p style="font-size:14px;color:var(--body);margin-bottom:16px"><strong>${product}</strong> was flagged by the automated moderation system.</p>
+            <div style="border:1px solid var(--hairline);border-radius:var(--radius-md);padding:16px;margin-bottom:16px">
+              <div style="font-size:13px;font-weight:500;margin-bottom:4px">Flag reason</div>
+              <div style="font-size:13px;color:var(--body)">Potential counterfeit — price significantly below market average</div>
+            </div>
+            <div class="form-actions"><button class="btn btn-secondary modal-close-btn">Reject listing</button><button class="btn btn-primary modal-confirm-btn">Clear flag & approve</button></div>`
+          );
+          document.querySelector('.modal-confirm-btn')?.addEventListener('click', () => { closeModal(); showToast(product + ' approved', 'success'); });
+          document.querySelector('.modal-close-btn')?.addEventListener('click', () => { closeModal(); showToast(product + ' rejected', 'danger'); });
+        }
+      });
+    });
+
+    // ── Disputes panel: Resolve / View ──
+    document.querySelectorAll('#panel-disputes .btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const row = this.closest('tr');
+        const cells = row?.querySelectorAll('td');
+        const disputeId = cells?.[0]?.textContent || 'DSP-000';
+        const text = this.textContent.trim();
+
+        if (text === 'Resolve') {
+          openModal('Resolve dispute ' + disputeId,
+            `<p style="font-size:14px;color:var(--body);margin-bottom:16px">Issue: <strong>${cells?.[3]?.textContent || '—'}</strong></p>
+            <div class="form-group"><label>Resolution</label>
+              <select><option>Refund buyer — full</option><option>Refund buyer — partial</option><option>Reject claim — no action</option><option>Split — 50/50</option></select>
+            </div>
+            <div class="form-group"><label>Admin notes</label><textarea placeholder="Resolution notes..."></textarea></div>
+            <div class="form-actions"><button class="btn btn-secondary modal-close-btn">Escalate</button><button class="btn btn-primary modal-confirm-btn">Resolve dispute</button></div>`
+          );
+          document.querySelector('.modal-confirm-btn')?.addEventListener('click', () => { closeModal(); showToast(disputeId + ' resolved', 'success'); });
+          document.querySelector('.modal-close-btn')?.addEventListener('click', () => { closeModal(); showToast(disputeId + ' escalated', 'warning'); });
+        } else if (text === 'View') {
+          openModal('Dispute ' + disputeId,
+            `<p style="font-size:14px;color:var(--body);margin-bottom:16px"><strong>${cells?.[1]?.textContent || 'Buyer'}</strong> vs <strong>${cells?.[2]?.textContent || 'Seller'}</strong></p>
+            <div style="border:1px solid var(--hairline);border-radius:var(--radius-md);padding:16px;margin-bottom:16px">
+              <div style="font-size:13px;margin-bottom:4px"><span style="color:var(--muted)">Issue:</span> ${cells?.[3]?.textContent || '—'}</div>
+              <div style="font-size:13px;margin-bottom:4px"><span style="color:var(--muted)">Amount:</span> ${cells?.[4]?.textContent || '—'}</div>
+              <div style="font-size:13px"><span style="color:var(--muted)">Status:</span> Resolved</div>
+            </div>
+            <div class="form-actions"><button class="btn btn-secondary modal-close-btn">Close</button></div>`
+          );
+          document.querySelector('.modal-close-btn')?.addEventListener('click', closeModal);
+        }
+      });
+    });
+
+    // ── Content panel buttons ──
+    document.querySelectorAll('#panel-content .btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const text = this.textContent.trim();
+
+        if (text === 'Add banner') {
+          openModal('Add new banner',
+            `<div class="form-group"><label>Title</label><input type="text" placeholder="e.g. Summer Sale" /></div>
+            <div class="form-row">
+              <div class="form-group"><label>Position</label><select><option>Hero</option><option>Secondary</option><option>Sidebar</option></select></div>
+              <div class="form-group"><label>Link URL</label><input type="text" placeholder="/promotions/summer" /></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Start date</label><input type="date" /></div>
+              <div class="form-group"><label>End date</label><input type="date" /></div>
+            </div>
+            <div class="form-actions"><button class="btn btn-secondary modal-close-btn">Cancel</button><button class="btn btn-primary modal-confirm-btn">Create banner</button></div>`
+          );
+          document.querySelector('.modal-confirm-btn')?.addEventListener('click', () => { closeModal(); showToast('Banner created', 'success'); });
+          document.querySelector('.modal-close-btn')?.addEventListener('click', closeModal);
+        } else if (text === 'Schedule promotion') {
+          openModal('Schedule promotion',
+            `<div class="form-group"><label>Promotion title</label><input type="text" placeholder="e.g. Free Delivery Weekend" /></div>
+            <div class="form-row">
+              <div class="form-group"><label>Start</label><input type="date" /></div>
+              <div class="form-group"><label>End</label><input type="date" /></div>
+            </div>
+            <div class="form-group"><label>Description</label><textarea placeholder="Promotion details..."></textarea></div>
+            <div class="form-actions"><button class="btn btn-secondary modal-close-btn">Cancel</button><button class="btn btn-primary modal-confirm-btn">Schedule</button></div>`
+          );
+          document.querySelector('.modal-confirm-btn')?.addEventListener('click', () => { closeModal(); showToast('Promotion scheduled', 'success'); });
+          document.querySelector('.modal-close-btn')?.addEventListener('click', closeModal);
+        } else if (text === 'Edit') {
+          const row = this.closest('tr');
+          const title = row?.querySelector('td')?.textContent || 'Banner';
+          openModal('Edit ' + title,
+            `<div class="form-group"><label>Title</label><input type="text" value="${title}" /></div>
+            <div class="form-row">
+              <div class="form-group"><label>Start date</label><input type="date" /></div>
+              <div class="form-group"><label>End date</label><input type="date" /></div>
+            </div>
+            <div class="form-actions"><button class="btn btn-secondary modal-close-btn">Cancel</button><button class="btn btn-primary modal-confirm-btn">Save changes</button></div>`
+          );
+          document.querySelector('.modal-confirm-btn')?.addEventListener('click', () => { closeModal(); showToast(title + ' updated', 'success'); });
+          document.querySelector('.modal-close-btn')?.addEventListener('click', closeModal);
+        } else if (text === 'Pause') {
+          const row = this.closest('tr');
+          const title = row?.querySelector('td')?.textContent || 'Banner';
+          showToast(title + ' paused', 'warning');
+        } else if (text === 'Cancel') {
+          const row = this.closest('tr');
+          const title = row?.querySelector('td')?.textContent || 'Banner';
+          openModal('Cancel promotion',
+            `<p style="font-size:14px;color:var(--body);margin-bottom:16px">Cancel <strong>${title}</strong>? This will remove the scheduled promotion.</p>
+            <div class="form-actions"><button class="btn btn-secondary modal-close-btn">Keep</button><button class="btn btn-primary modal-confirm-btn" style="background:var(--danger)">Cancel promotion</button></div>`
+          );
+          document.querySelector('.modal-confirm-btn')?.addEventListener('click', () => { closeModal(); showToast(title + ' cancelled', 'danger'); });
+          document.querySelector('.modal-close-btn')?.addEventListener('click', closeModal);
+        }
+      });
+    });
+
+    // ── Settings: Save changes ──
+    document.querySelector('#panel-settings .btn-primary')?.addEventListener('click', () => {
+      showToast('Commission settings saved', 'success');
+    });
+
+    // ── Export button ──
+    document.querySelectorAll('.btn').forEach(btn => {
+      if (btn.textContent.trim() === 'Export') {
+        btn.addEventListener('click', () => {
+          showToast('Export started — CSV will download shortly', 'success');
+        });
+      }
+    });
+
+    // ── Orders panel: View button ──
+    document.querySelectorAll('#panel-orders .btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        if (this.textContent.trim() === 'View') {
+          const row = this.closest('tr');
+          const cells = row?.querySelectorAll('td');
+          const orderId = cells?.[0]?.textContent || '#ORD-0000';
+          openModal('Order ' + orderId,
+            `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;margin-bottom:16px">
+              <div><span style="color:var(--muted)">Customer:</span><br/><strong>${cells?.[1]?.textContent || '—'}</strong></div>
+              <div><span style="color:var(--muted)">Total:</span><br/><strong>${cells?.[3]?.textContent || '—'}</strong></div>
+              <div><span style="color:var(--muted)">Payment:</span><br/>${cells?.[4]?.textContent || '—'}</div>
+              <div><span style="color:var(--muted)">Date:</span><br/>${cells?.[5]?.textContent || '—'}</div>
+              <div><span style="color:var(--muted)">Status:</span><br/>${cells?.[6]?.textContent || '—'}</div>
+              <div><span style="color:var(--muted)">Items:</span><br/>${cells?.[2]?.textContent || '—'}</div>
+            </div>
+            <div style="border:1px solid var(--hairline);border-radius:var(--radius-md);padding:16px;margin-bottom:16px">
+              <div style="font-size:13px;font-weight:500;margin-bottom:8px">Tracking</div>
+              <div style="font-size:13px;color:var(--muted)">No tracking info available yet.</div>
+            </div>
+            <div class="form-actions"><button class="btn btn-secondary modal-close-btn">Close</button></div>`
+          );
+          document.querySelector('.modal-close-btn')?.addEventListener('click', closeModal);
+        }
+      });
+    });
+
+    // ── Sellers panel: View button ──
+    document.querySelectorAll('#panel-sellers .btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        if (this.textContent.trim() === 'View') {
+          const row = this.closest('tr');
+          const cells = row?.querySelectorAll('td');
+          const biz = cells?.[0]?.textContent || 'Business';
+          openModal(biz,
+            `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;margin-bottom:16px">
+              <div><span style="color:var(--muted)">Owner:</span><br/><strong>${cells?.[1]?.textContent || '—'}</strong></div>
+              <div><span style="color:var(--muted)">Category:</span><br/>${cells?.[2]?.textContent || '—'}</div>
+              <div><span style="color:var(--muted)">Location:</span><br/>${cells?.[3]?.textContent || '—'}</div>
+              <div><span style="color:var(--muted)">Products:</span><br/>${cells?.[4]?.textContent || '—'}</div>
+              <div><span style="color:var(--muted)">Revenue:</span><br/>${cells?.[5]?.textContent || '—'}</div>
+              <div><span style="color:var(--muted)">Documents:</span><br/>${cells?.[6]?.innerHTML || '—'}</div>
+            </div>
+            <div class="form-actions"><button class="btn btn-secondary modal-close-btn">Close</button></div>`
+          );
+          document.querySelector('.modal-close-btn')?.addEventListener('click', closeModal);
+        }
+      });
+    });
+
+    // ── Logout ──
+    document.querySelector('.sidebar-footer .sidebar-item')?.addEventListener('click', e => {
+      e.preventDefault();
+      showToast('Logged out', 'success');
+    });
+  </script>
+</body>
+</html>
