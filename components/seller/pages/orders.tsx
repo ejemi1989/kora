@@ -1,0 +1,125 @@
+"use client";
+
+import { useState } from "react";
+import { useSeller } from "@/components/seller/seller-context";
+import { SELLER_ORDERS } from "@/lib/data/seller";
+import { SearchIcon } from "@/components/user/icons";
+
+const filterLabels = ["all", "pending", "processing", "shipped", "delivered", "cancelled"] as const;
+
+const badgeClass: Record<string, string> = {
+  pending: "s-badge-pending",
+  processing: "s-badge-info",
+  shipped: "s-badge-warning",
+  delivered: "s-badge-success",
+  cancelled: "s-badge-danger",
+};
+
+export function OrdersPage() {
+  const { showToast } = useSeller();
+  const [orders, setOrders] = useState(SELLER_ORDERS);
+  const [filter, setFilter] = useState<typeof filterLabels[number]>("all");
+  const [search, setSearch] = useState("");
+
+  const filtered = orders.filter((o) => {
+    const matchFilter = filter === "all" || o.status === filter;
+    const matchSearch = o.id.includes(search) || o.customer.toLowerCase().includes(search.toLowerCase());
+    return matchFilter && matchSearch;
+  });
+
+  function updateStatus(id: string, status: string) {
+    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: status as any } : o)));
+    showToast(`Order ${id} updated to ${status}`, "success");
+  }
+
+  return (
+    <div>
+      <style>{`
+        .s-page-h { font-size:20px; font-weight:600; color:var(--ink); letter-spacing:-0.03em; margin:0 0 4px; }
+        .s-page-sub { font-size:13px; color:var(--muted-text); margin:0 0 20px; }
+        .s-action-bar { display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+        .s-search-wrap { position:relative; width:220px; }
+        .s-search-wrap input { width:100%; height:34px; padding:0 8px 0 30px; border:1px solid var(--hairline); border-radius:var(--radius-sm); font-size:12px; outline:none; background:#fff; }
+        .s-search-wrap input:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-bg); }
+        .s-search-wrap svg { position:absolute; left:8px; top:50%; transform:translateY(-50%); color:var(--stone); pointer-events:none; }
+        .s-filter-chips { display:flex; gap:6px; flex-wrap:wrap; }
+        .s-chip { padding:4px 12px; border-radius:999px; font-size:11px; font-weight:500; border:1px solid var(--hairline); background:#fff; color:var(--body); cursor:pointer; transition:all 150ms; }
+        .s-chip:hover { border-color:var(--primary); color:var(--primary); }
+        .s-chip.active { background:var(--primary); border-color:var(--primary); color:#fff; }
+        .s-badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:10px; font-weight:500; text-transform:uppercase; }
+        .s-badge-pending { background:var(--surface-soft); color:var(--muted-text); }
+        .s-badge-info { background:rgba(121,40,202,0.1); color:var(--info); }
+        .s-badge-warning { background:rgba(245,166,35,0.1); color:var(--warning); }
+        .s-badge-success { background:rgba(0,112,243,0.1); color:var(--success); }
+        .s-badge-danger { background:rgba(238,0,0,0.08); color:var(--danger); }
+        .s-table-wrap { overflow-x:auto; background:#fff; border-radius:8px; border:1px solid var(--hairline); box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+        .s-table { width:100%; border-collapse:collapse; font-size:13px; }
+        .s-table th { text-align:left; padding:10px 14px; font-size:11px; font-weight:600; color:var(--ash); text-transform:uppercase; letter-spacing:0.04em; border-bottom:1px solid var(--hairline); background:var(--canvas); }
+        .s-table td { padding:10px 14px; border-bottom:1px solid var(--hairline); color:var(--body); }
+        .s-table tr:last-child td { border-bottom:none; }
+        .s-table .mono { font-family:var(--font-mono); font-size:12px; color:var(--ash); }
+        .s-status-select { padding:3px 6px; border:1px solid var(--hairline); border-radius:4px; font-size:11px; background:#fff; cursor:pointer; outline:none; }
+        .s-status-select:focus { border-color:var(--primary); }
+        @media (max-width:768px) { .s-search-wrap { width:100%; } }
+      `}</style>
+
+      <div className="s-page-h">Orders</div>
+      <div className="s-page-sub">View and manage incoming orders</div>
+
+      <div className="s-action-bar">
+        <div className="s-search-wrap">
+          <SearchIcon size={14} />
+          <input placeholder="Search by ID or customer..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <div className="s-filter-chips">
+          {filterLabels.map((f) => (
+            <button key={f} className={`s-chip ${filter === f ? "active" : ""}`} onClick={() => setFilter(f)}>
+              {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="s-table-wrap">
+        <table className="s-table">
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Customer</th>
+              <th>Items</th>
+              <th>Product</th>
+              <th>Total</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((o) => (
+              <tr key={o.id}>
+                <td><span className="mono">{o.id}</span></td>
+                <td>{o.customer}</td>
+                <td>{o.items}</td>
+                <td style={{ color: "var(--muted-text)" }}>{o.product}</td>
+                <td style={{ fontWeight: 500 }}>₦{o.total.toLocaleString()}</td>
+                <td style={{ color: "var(--muted-text)" }}>{o.date}</td>
+                <td><span className={`s-badge ${badgeClass[o.status]}`}>{o.status}</span></td>
+                <td>
+                  <select
+                    className="s-status-select"
+                    value={o.status}
+                    onChange={(e) => updateStatus(o.id, e.target.value)}
+                  >
+                    {["pending", "processing", "shipped", "delivered", "cancelled"].map((s) => (
+                      <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                    ))}
+                  </select>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}

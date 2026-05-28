@@ -298,3 +298,163 @@ All roles interact through:
 - Low infrastructure complexity
 - Easy to scale later
 - Clear separation of roles and responsibilities
+
+## INVARIANTS
+
+Use this as a non-negotiable rules layer for your system.
+
+🔒 1. CORE SYSTEM INVARIANTS
+## Core Invariants
+
+- The system MUST be role-based: buyer, seller, admin are isolated domains.
+- No UI, logic, or data access is shared implicitly across roles.
+- All data flows must be explicit (props, API, or service layer).
+- No direct database access from UI components.
+- Every feature must map to a clear domain (product, order, user, etc).
+
+🧱 2. UI ARCHITECTURE INVARIANTS
+## UI Architecture Invariants
+
+- Raw HTML files MUST NOT be used in production.
+- All UI must be broken into reusable components.
+- Components must be:
+  - Stateless (preferred)
+  - Controlled via props
+  - Independent of page context
+
+- Pages must only compose components — never contain complex UI logic.
+
+- Shared UI goes in `/components/ui`
+- Feature UI goes in `/components/features/{domain}`
+
+- Layouts must be separated:
+  - MarketingLayout
+  - DashboardLayout
+
+- No duplication of UI patterns (cards, tables, modals).
+
+🔁 3. STATE & DATA FLOW INVARIANTS
+## Data Flow Invariants
+
+- Data flows in ONE direction: backend → page → component
+- No component fetches data directly (unless explicitly defined as a data component)
+
+- All async logic must live in:
+  - services/
+  - server actions
+  - API routes
+
+- No hardcoded data in production UI
+
+🧩 4. COMPONENT DESIGN INVARIANTS
+## Component Invariants
+
+Each component must:
+
+- Have a single responsibility
+- Be reusable across at least 2 contexts OR clearly scoped to a feature
+- Accept data via props only
+- Not depend on global state unless explicitly designed
+
+Naming:
+
+- ProductCard
+- OrderRow
+- UserTable
+- NOT: random/div-based naming
+
+No component should exceed ~150 lines
+🗂️ 5. FILE STRUCTURE INVARIANTS
+## File Structure Invariants
+
+/app
+  /(marketing)
+  /(buyer)
+  /(seller)
+  /(admin)
+
+/components
+  /ui
+  /layout
+  /features
+
+/lib
+  /services
+  /utils
+
+- Role routes MUST be isolated using route groups
+- Feature folders MUST reflect domain logic
+- No mixing of admin/seller/buyer components
+🔐 6. ROLE ISOLATION INVARIANTS
+## Role Isolation
+
+- Buyer cannot access seller UI
+- Seller cannot access admin UI
+- Admin has full visibility but uses separate components
+
+- Each role has:
+  - Separate layout
+  - Separate navigation
+  - Separate feature set
+
+- Shared logic must go through services, not UI reuse
+⚡ 7. INTERACTION INVARIANTS
+## Interaction Rules
+
+Every user action must map to:
+
+Action → Event → State Change → UI Feedback
+
+Example:
+Click "Add to Cart"
+→ event: add_to_cart
+→ service call
+→ state update
+→ UI re-render
+
+- No silent actions
+- Every action must have feedback (loading, success, error)
+🧠 8. AI CODING INVARIANTS (CRITICAL)
+## AI Coding Invariants
+
+When generating code:
+
+- AI must NEVER:
+  - Create monolithic files
+  - Mix roles
+  - Hardcode data
+  - Skip componentization
+
+- AI must ALWAYS:
+  - Follow folder structure
+  - Use existing components when possible
+  - Respect design tokens
+  - Keep logic separated (UI vs data)
+
+- Every AI-generated file must:
+  - Declare its purpose
+  - Fit into existing architecture
+🎨 9. DESIGN SYSTEM INVARIANTS
+## Design System Rules
+
+- No raw colors (e.g. #fff, #000)
+- Use design tokens only:
+  - bg-base
+  - text-primary
+  - border-default
+  - accent-price
+
+- Spacing must follow scale (4, 8, 12, 16, 24...)
+- Radius and shadows must be consistent
+
+- UI must feel:
+  clean, minimal, consistent
+🚫 10. ANTI-PATTERNS (STRICTLY FORBIDDEN)
+## Anti-Patterns
+
+- Copy-paste HTML reuse ❌
+- Mixing admin + seller UI ❌
+- Fetching inside UI components ❌
+- Inline styles everywhere ❌
+- Giant pages with all logic ❌
+- Unnamed or generic components ❌

@@ -8,9 +8,9 @@
 
 | Property | Value |
 |---|---|
-| Product name | NaijaPlate |
+| Product name | KORA |
 | Tagline | Authentic African food, delivered |
-| Logo mark | "NP" initials in white on red `#ea2804` rounded square |
+| Logo mark | "KR" initials in white on red `#ea2804` rounded square |
 | Primary audience | Nigerian food shoppers (diaspora + local) |
 | Tone | Warm, direct, trustworthy |
 

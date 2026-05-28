@@ -1,0 +1,164 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  role      String   @default("CUSTOMER")
+  createdAt DateTime @default(now())
+
+  cart          Cart?
+  orders        Order[]
+  notifications Notification[]
+  addresses     Address[]
+  wishlistItems WishlistItem[]
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  price       Float
+  stock       Int
+  images      String[]
+  category    String
+  sellerId    String
+  status      String   @default("ACTIVE")
+  rating      Float    @default(0)
+  createdAt   DateTime @default(now())
+
+  cartItems    CartItem[]
+  orderItems   OrderItem[]
+  wishlistItems WishlistItem[]
+}
+
+model Cart {
+  id     String @id @default(uuid())
+  userId String @unique
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
+}
+
+model CartItem {
+  id        String @id @default(uuid())
+  cartId    String
+  productId String
+  quantity  Int
+
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model Order {
+  id             String      @id @default(uuid())
+  userId         String
+  status         OrderStatus @default(PENDING)
+  total          Float
+  trackingNumber String?
+  createdAt      DateTime    @default(now())
+
+  user      User        @relation(fields: [userId], references: [id])
+  items     OrderItem[]
+  payments  Payment[]
+  tracking  TrackingEvent[]
+}
+
+model OrderItem {
+  id        String @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Float
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model TrackingEvent {
+  id          String   @id @default(uuid())
+  orderId     String
+  label       String
+  description String
+  time        String
+  step        Int
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id       String        @id @default(uuid())
+  orderId  String        @unique
+  amount   Float
+  status   PaymentStatus @default(PENDING)
+  stripeId String?
+  method   String?
+  createdAt DateTime     @default(now())
+
+  order Order @relation(fields: [orderId], references: [id])
+}
+
+model Payout {
+  id        String   @id @default(uuid())
+  sellerId  String
+  amount    Float
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+}
+
+model Address {
+  id        String  @id @default(uuid())
+  userId    String
+  tag       String
+  name      String
+  address   String
+  phone     String
+  isDefault Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model WishlistItem {
+  id        String @id @default(uuid())
+  userId    String
+  productId String
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model Notification {
+  id      String   @id @default(uuid())
+  userId  String
+  type    String
+  message String
+  read    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

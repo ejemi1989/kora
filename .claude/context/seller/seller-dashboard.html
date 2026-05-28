@@ -1,0 +1,1371 @@
+<!doctype html>
+<html lang="en">
+<head><script data-od-sandbox-shim>(function(){
+  function makeStore(){
+    var data = {};
+    var api = {
+      getItem: function(k){ return Object.prototype.hasOwnProperty.call(data, k) ? data[k] : null; },
+      setItem: function(k, v){ data[k] = String(v); },
+      removeItem: function(k){ delete data[k]; },
+      clear: function(){ data = {}; },
+      key: function(i){ return Object.keys(data)[i] || null; }
+    };
+    Object.defineProperty(api, 'length', { get: function(){ return Object.keys(data).length; } });
+    return api;
+  }
+  function tryShim(name){
+    var works = false;
+    try { works = !!window[name] && typeof window[name].getItem === 'function'; void window[name].length; }
+    catch (_) { works = false; }
+    if (works) return;
+    try { Object.defineProperty(window, name, { configurable: true, value: makeStore() }); }
+    catch (_) { try { window[name] = makeStore(); } catch (__) {} }
+  }
+  tryShim('localStorage');
+  tryShim('sessionStorage');
+  document.addEventListener('click', (e) => {
+    if (!e.target || !(e.target instanceof Element)) return;
+    var link = e.target.closest('a[href]');
+    if (!link) return;
+    var href = link.getAttribute('href');
+    if (href === null) return;
+    var isAnchor = href.startsWith('#') || href === '';
+    if (isAnchor) {
+      e.preventDefault();
+      if (href === '' || href === '#') {
+        window.scrollTo({ top: 0 });
+        history.replaceState(null, '', ' ');
+      } else {
+        var targetId = href.slice(1);
+        var target = targetId ? document.getElementById(targetId) : null;
+        if (target) {
+          target.scrollIntoView();
+          location.hash === href && history.replaceState(null, '', ' ');
+          location.hash = href;
+        }
+      }
+    } else if (link.getAttribute('target') === '_blank') {
+      e.preventDefault();
+      let safe = false;
+      try {
+        var url = new URL(href, location.href);
+        safe =
+          url.protocol === 'http:' ||
+          url.protocol === 'https:' ||
+          url.protocol === 'mailto:';
+      } catch (_) {}
+      safe && window.open(href, '_blank', 'noopener,noreferrer');
+    }
+  });
+})();</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Akara Market — Seller Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --orange-50: #FFF0ED;
+  --orange-100: #FFD6CC;
+  --orange-200: #FFB099;
+  --orange-300: #FF8A66;
+  --orange-400: #FF6633;
+  --orange-500: #E8552A;
+  --orange-600: #CC4422;
+  --orange-700: #AA331A;
+  --orange-800: #882211;
+  --orange-900: #661108;
+
+  --primary: var(--orange-500);
+  --primary-deep: var(--orange-600);
+  --primary-bg: rgba(232, 85, 42, 0.08);
+
+  --ink: #171717;
+  --body: #4d4d4d;
+  --muted: #888;
+  --ash: #a1a1a1;
+  --stone: #bbb;
+  --canvas: #fafafa;
+  --surface-card: #fff;
+  --surface-soft: #f5f5f5;
+  --surface-dark: #171717;
+  --hairline: #ebebeb;
+
+  --success: #0070f3;
+  --warning: #f5a623;
+  --danger: #ee0000;
+  --info: #7928ca;
+
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-elevated: 0 4px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05);
+  --shadow-modal: 0 2px 4px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.10);
+
+  --sidebar-w: 240px;
+  --header-h: 52px;
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono: 'Inter', ui-monospace, Menlo, monospace;
+}
+
+html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--canvas);
+  min-height: 100vh;
+  display: flex;
+}
+
+/* ─── Sidebar ─── */
+.sidebar {
+  position: fixed; top: 0; left: 0;
+  width: var(--sidebar-w); height: 100vh;
+  background: var(--surface-card);
+  border-right: 1px solid var(--hairline);
+  z-index: 100;
+  display: flex; flex-direction: column;
+  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+
+.sidebar-head {
+  padding: 16px 16px 14px;
+  border-bottom: 1px solid var(--hairline);
+  display: flex; align-items: center; gap: 10px;
+}
+
+.sidebar-logo {
+  width: 30px; height: 30px;
+  background: var(--primary); border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 14px; flex-shrink: 0;
+}
+
+.sidebar-brand {
+  font-size: 14px; font-weight: 600; line-height: 1.2; color: var(--ink);
+}
+
+.sidebar-brand small {
+  display: block; font-weight: 400; font-size: 10px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.4px;
+}
+
+.sidebar-nav {
+  flex: 1; overflow-y: auto;
+  padding: 8px 8px; display: flex; flex-direction: column; gap: 1px;
+}
+
+.nav-section {
+  font-size: 10px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.6px; color: var(--muted);
+  padding: 14px 12px 5px;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 10px; border-radius: var(--radius-sm);
+  cursor: pointer; color: var(--body); font-size: 13px; font-weight: 500;
+  transition: all 0.12s; text-decoration: none;
+}
+
+.nav-item:hover { background: var(--primary-bg); color: var(--ink); }
+
+.nav-item.active {
+  background: var(--primary-bg);
+  color: var(--primary); font-weight: 600;
+}
+
+.nav-item svg {
+  width: 16px; height: 16px; flex-shrink: 0; opacity: 0.6;
+}
+
+.nav-item.active svg { opacity: 1; color: var(--primary); }
+
+.nav-badge {
+  margin-left: auto;
+  font-size: 10px; font-weight: 600; padding: 1px 7px;
+  border-radius: 10px;
+  background: var(--primary-bg); color: var(--primary);
+}
+
+.nav-badge.danger { background: #FBE9E7; color: #C62828; }
+
+/* ─── Main ─── */
+.main { margin-left: var(--sidebar-w); flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+.header {
+  height: var(--header-h);
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--hairline);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; position: sticky; top: 0; z-index: 50;
+}
+
+.header-left { display: flex; align-items: center; gap: 12px; }
+
+.header-title { font-size: 14px; font-weight: 600; color: var(--ink); }
+
+.menu-toggle { display: none; background: none; border: none; cursor: pointer; color: var(--ink); padding: 4px; }
+
+.header-right { display: flex; align-items: center; gap: 12px; }
+
+.search-box { position: relative; }
+.search-box input {
+  background: var(--canvas); border: 1px solid transparent;
+  border-radius: var(--radius-sm); padding: 6px 10px 6px 30px;
+  font-family: var(--font); font-size: 12.5px; width: 200px;
+  color: var(--ink); outline: none; transition: all 0.12s;
+}
+.search-box input:focus { border-color: var(--primary); background: var(--surface-card); width: 240px; }
+.search-box svg {
+  position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+  width: 14px; height: 14px; color: var(--muted);
+}
+
+.avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--primary); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 11px; cursor: pointer; flex-shrink: 0;
+}
+
+/* ─── Content ─── */
+.content { padding: 20px 24px 40px; flex: 1; }
+
+.section-panel { display: none; }
+.section-panel.active { display: block; animation: fadeIn 0.2s ease; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.section-head { margin-bottom: 20px; }
+.section-head h1 { font-size: 18px; font-weight: 600; color: var(--ink); }
+.section-head p { font-size: 13px; color: var(--body); margin-top: 3px; }
+
+/* ─── Cards ─── */
+.card {
+  background: var(--surface-card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 20px;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-elevated);
+}
+
+.card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.card-title { font-size: 13px; font-weight: 600; color: var(--ink); }
+
+.card-action {
+  font-size: 12px; color: var(--primary); cursor: pointer; font-weight: 500;
+  background: none; border: none; font-family: var(--font);
+}
+.card-action:hover { text-decoration: underline; }
+
+/* ─── Stats Grid ─── */
+.stat-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--surface-card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 16px;
+  transition: box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  box-shadow: var(--shadow-elevated);
+}
+
+.stat-value {
+  font-size: 22px; font-weight: 700; letter-spacing: -0.3px; line-height: 1.1;
+}
+
+.stat-label { font-size: 12px; color: var(--body); margin-top: 3px; }
+
+.stat-change {
+  display: inline-flex; align-items: center; gap: 2px;
+  font-size: 11px; font-weight: 500; margin-top: 6px;
+  padding: 1px 6px; border-radius: 4px;
+}
+
+.stat-change.up { background: #E8F5E9; color: #2E7D32; }
+.stat-change.down { background: #FBE9E7; color: #C62828; }
+
+/* ─── Tables ─── */
+.table-wrap { overflow-x: auto; }
+
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+
+thead th {
+  text-align: left; padding: 10px 14px;
+  font-weight: 600; color: var(--muted); font-size: 10.5px;
+  text-transform: uppercase; letter-spacing: 0.4px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+tbody td { padding: 10px 14px; border-bottom: 1px solid var(--hairline); vertical-align: middle; }
+
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: rgba(0,0,0,0.02); }
+
+/* ─── Badges ─── */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 10px;
+  font-size: 10.5px; font-weight: 600;
+}
+
+.badge-pending { background: #FFF8E1; color: #F57F17; }
+.badge-processing { background: #E3F2FD; color: #1565C0; }
+.badge-shipped { background: #F3E5F5; color: #7B1FA2; }
+.badge-delivered { background: #E8F5E9; color: #2E7D32; }
+.badge-cancelled { background: #FBE9E7; color: #C62828; }
+.badge-active { background: #E8F5E9; color: #2E7D32; }
+.badge-draft { background: #F0F0F0; color: #888; }
+.badge-low { background: #FBE9E7; color: #C62828; }
+.badge-ok { background: #E8F5E9; color: #2E7D32; }
+.badge-new { background: var(--primary-bg); color: var(--primary); }
+
+/* ─── Buttons ─── */
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 14px; border-radius: var(--radius-sm);
+  font-family: var(--font); font-size: 12.5px; font-weight: 500;
+  cursor: pointer; border: none; transition: all 0.12s; white-space: nowrap;
+}
+
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-deep); }
+
+.btn-secondary {
+  background: var(--surface-card); color: var(--ink);
+  border: 1px solid var(--hairline);
+}
+.btn-secondary:hover { border-color: var(--stone); }
+
+.btn-ghost { background: transparent; color: var(--body); }
+.btn-ghost:hover { background: var(--primary-bg); color: var(--primary); }
+
+.btn-sm { padding: 4px 10px; font-size: 11.5px; }
+
+.btn svg { width: 14px; height: 14px; }
+
+/* ─── Forms ─── */
+.form-group { margin-bottom: 14px; }
+
+.form-group label {
+  display: block; font-size: 11.5px; font-weight: 600;
+  color: var(--body); margin-bottom: 5px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%; padding: 8px 12px;
+  background: var(--surface-card); border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm); font-family: var(--font);
+  font-size: 12.5px; color: var(--ink); outline: none;
+  transition: border-color 0.12s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-bg);
+}
+
+.form-group textarea { resize: vertical; min-height: 70px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* ─── Modal ─── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.25); z-index: 200;
+  align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--surface-card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-xl);
+  padding: 24px; width: 480px; max-width: 90vw;
+  max-height: 85vh; overflow-y: auto;
+  box-shadow: var(--shadow-modal);
+  animation: modalIn 0.18s ease;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.modal-head h2 { font-size: 15px; font-weight: 600; }
+
+.modal-close { background: none; border: none; cursor: pointer; color: var(--muted); padding: 4px; }
+.modal-close:hover { color: var(--ink); }
+
+.modal-actions {
+  display: flex; gap: 8px; justify-content: flex-end;
+  margin-top: 20px; padding-top: 14px;
+  border-top: 1px solid var(--hairline);
+}
+
+/* ─── Layout Helpers ─── */
+.col-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.col-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
+
+/* ─── Product Cell ─── */
+.product-cell { display: flex; align-items: center; gap: 10px; }
+.product-thumb {
+  width: 32px; height: 32px; border-radius: 6px;
+  background: var(--primary-bg); display: flex;
+  align-items: center; justify-content: center;
+  font-size: 13px; flex-shrink: 0;
+}
+.product-name { font-weight: 500; font-size: 12.5px; }
+.product-sku { font-size: 10.5px; color: var(--muted); font-family: var(--font-mono); }
+
+/* ─── Review Card ─── */
+.review-card { padding: 14px; border-bottom: 1px solid var(--hairline); }
+.review-card:last-child { border-bottom: none; }
+.review-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.review-user { display: flex; align-items: center; gap: 8px; }
+.review-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--primary-bg); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 11px; }
+.stars { color: #F59E0B; font-size: 12px; letter-spacing: 1px; }
+.review-text { font-size: 12.5px; color: var(--body); line-height: 1.5; margin-bottom: 6px; }
+.review-product { font-size: 10.5px; color: var(--muted); }
+.reply-input { display: flex; gap: 6px; margin-top: 8px; }
+.reply-input input { flex: 1; padding: 6px 10px; border: 1px solid var(--hairline); border-radius: var(--radius-sm); font-family: var(--font); font-size: 11.5px; outline: none; }
+.reply-input input:focus { border-color: var(--primary); }
+
+/* ─── Customer Cell ─── */
+.customer-cell { display: flex; align-items: center; gap: 8px; }
+.customer-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 11px; flex-shrink: 0; }
+.customer-name { font-weight: 500; font-size: 12.5px; }
+.customer-email { font-size: 10.5px; color: var(--muted); }
+
+/* ─── Promo Card ─── */
+.promo-card { display: flex; align-items: center; justify-content: space-between; padding: 14px; border-bottom: 1px solid var(--hairline); }
+.promo-card:last-child { border-bottom: none; }
+.promo-code { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--primary); background: var(--primary-bg); padding: 2px 8px; border-radius: 4px; }
+.promo-details { font-size: 11.5px; color: var(--body); margin-top: 3px; }
+
+/* ─── Settings ─── */
+.settings-section { margin-bottom: 20px; }
+.settings-section h3 { font-size: 13px; font-weight: 600; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+
+/* ─── Alert ─── */
+.alert {
+  padding: 12px 16px; border-radius: var(--radius-lg);
+  border: 1px solid; font-size: 12.5px;
+}
+.alert-warning { background: #FEF9E7; border-color: #FDE68A; color: #92400E; }
+.alert-danger { background: #FBE9E7; border-color: #FECACA; color: #C62828; }
+.alert-info { background: #EFF6FF; border-color: #BFDBFE; color: #1E40AF; }
+
+/* ─── Utility ─── */
+.flex { display: flex; align-items: center; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.gap-2 { gap: 6px; }
+.gap-3 { gap: 10px; }
+.mt-3 { margin-top: 10px; }
+.mt-4 { margin-top: 14px; }
+.mb-3 { margin-bottom: 10px; }
+.mb-4 { margin-bottom: 14px; }
+.text-sm { font-size: 12.5px; }
+.text-xs { font-size: 11px; }
+.text-muted { color: var(--muted); }
+.text-body { color: var(--body); }
+.font-semibold { font-weight: 600; }
+.text-right { text-align: right; }
+.text-mono { font-family: var(--font-mono); font-size: 12px; }
+
+.empty-state { text-align: center; padding: 36px 20px; }
+.empty-state svg { width: 40px; height: 40px; color: var(--muted); margin-bottom: 12px; opacity: 0.3; }
+.empty-state h3 { font-size: 14px; color: var(--body); font-weight: 600; }
+.empty-state p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+.status-select { padding: 3px 6px; border: 1px solid var(--hairline); border-radius: 4px; font-family: var(--font); font-size: 11px; cursor: pointer; background: var(--surface-card); }
+
+/* ─── Chart Bars ─── */
+.chart { display: flex; align-items: flex-end; gap: 5px; padding: 16px 0 0; }
+.chart-bar { flex: 1; border-radius: 3px 3px 0 0; background: linear-gradient(to top, var(--primary), var(--orange-200)); opacity: 0.65; transition: opacity 0.15s; min-height: 8px; }
+.chart-bar:hover { opacity: 1; }
+.chart-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); padding-top: 6px; }
+
+/* ─── Progress bar ─── */
+.progress { height: 4px; background: var(--orange-100); border-radius: 2px; }
+.progress-bar { height: 100%; background: var(--primary); border-radius: 2px; }
+
+/* ─── Overlay ─── */
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.2); z-index: 90; }
+
+/* ─── Responsive ─── */
+@media (max-width: 1200px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 1024px) {
+  .col-2 { grid-template-columns: 1fr; }
+  .col-2-1 { grid-template-columns: 1fr; }
+  .search-box input { width: 140px; }
+  .search-box input:focus { width: 180px; }
+}
+@media (max-width: 768px) {
+  .menu-toggle { display: block; }
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay.open { display: block; }
+  .main { margin-left: 0; }
+  .content { padding: 14px; }
+  .header { padding: 0 14px; }
+  .search-box { display: none; }
+  .stat-grid { gap: 8px; }
+  .stat-card { padding: 12px; }
+  .stat-value { font-size: 18px; }
+  .form-row { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) { .stat-grid { grid-template-columns: 1fr; } .modal { padding: 16px; } }
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ─── Sidebar ─── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-head">
+    <div class="sidebar-logo">A</div>
+    <div class="sidebar-brand">Akara Market<small>Seller Dashboard</small></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Main</div>
+    <div class="nav-item active" data-section="overview" onclick="nav('overview')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Overview
+    </div>
+    <div class="nav-item" data-section="products" onclick="nav('products')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+      Products
+      <span class="nav-badge">24</span>
+    </div>
+    <div class="nav-item" data-section="orders" onclick="nav('orders')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      Orders
+    </div>
+    <div class="nav-item" data-section="inventory" onclick="nav('inventory')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><circle cx="12" cy="12" r="2"/></svg>
+      Inventory
+      <span class="nav-badge danger">3</span>
+    </div>
+
+    <div class="nav-section">Insights</div>
+    <div class="nav-item" data-section="analytics" onclick="nav('analytics')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Analytics
+    </div>
+    <div class="nav-item" data-section="payouts" onclick="nav('payouts')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Payouts
+    </div>
+
+    <div class="nav-section">Community</div>
+    <div class="nav-item" data-section="customers" onclick="nav('customers')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Customers
+    </div>
+    <div class="nav-item" data-section="reviews" onclick="nav('reviews')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      Reviews
+      <span class="nav-badge">8</span>
+    </div>
+
+    <div class="nav-section">Growth</div>
+    <div class="nav-item" data-section="promotions" onclick="nav('promotions')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      Promotions
+    </div>
+    <div class="nav-item" data-section="settings" onclick="nav('settings')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </div>
+  </nav>
+</aside>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- ─── Main ─── -->
+<div class="main">
+  <header class="header">
+    <div class="header-left">
+      <button class="menu-toggle" onclick="toggleSidebar()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <h2 class="header-title" id="headerTitle">Overview</h2>
+    </div>
+    <div class="header-right">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Search…" />
+      </div>
+      <div class="avatar">AK</div>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- ═══ OVERVIEW ═══ -->
+    <div class="section-panel active" id="panel-overview">
+      <div class="section-head">
+        <h1>Store Overview</h1>
+        <p>Your Akara Market performance at a glance</p>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-value">₦847,320</div>
+          <div class="stat-label">Total Revenue</div>
+          <div class="stat-change up">↑ 12.5%</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">186</div>
+          <div class="stat-label">Orders This Month</div>
+          <div class="stat-change up">↑ 8.3%</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">24</div>
+          <div class="stat-label">Active Products</div>
+          <div class="stat-change up">↑ 2 this week</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">89</div>
+          <div class="stat-label">Total Customers</div>
+          <div class="stat-change up">↑ 5 this month</div>
+        </div>
+      </div>
+      <div class="col-2-1">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Recent Orders</div>
+            <button class="card-action" onclick="nav('orders')">View All</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>#1042</td><td>Chisom Okafor</td><td>3</td><td>₦12,500</td><td><span class="badge badge-processing">Processing</span></td></tr>
+                <tr><td>#1041</td><td>Amara Eze</td><td>1</td><td>₦4,800</td><td><span class="badge badge-shipped">Shipped</span></td></tr>
+                <tr><td>#1040</td><td>Kofi Mensah</td><td>5</td><td>₦23,200</td><td><span class="badge badge-delivered">Delivered</span></td></tr>
+                <tr><td>#1039</td><td>Ngozi Adebayo</td><td>2</td><td>₦8,900</td><td><span class="badge badge-pending">Pending</span></td></tr>
+                <tr><td>#1038</td><td>Yvonne Kamau</td><td>4</td><td>₦16,700</td><td><span class="badge badge-delivered">Delivered</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Top Products</div></div>
+          <table>
+            <thead><tr><th>Product</th><th>Sold</th><th>Revenue</th></tr></thead>
+            <tbody>
+              <tr><td><div class="product-cell"><div class="product-thumb">🌶️</div><div class="product-name">Jollof Spice Mix</div></div></td><td>42</td><td>₦210,000</td></tr>
+              <tr><td><div class="product-cell"><div class="product-thumb">🥜</div><div class="product-name">Groundnut Paste</div></div></td><td>38</td><td>₦152,000</td></tr>
+              <tr><td><div class="product-cell"><div class="product-thumb">🌿</div><div class="product-name">Dried Ugwu Leaves</div></div></td><td>31</td><td>₦124,000</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PRODUCTS ═══ -->
+    <div class="section-panel" id="panel-products">
+      <div class="section-head flex-between">
+        <div>
+          <h1>Products</h1>
+          <p>Manage your catalogue — 24 active listings</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('productModal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Product
+        </button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Product</th><th>SKU</th><th>Price</th><th>Stock</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              <tr><td><div class="product-cell"><div class="product-thumb">🌶️</div><div><div class="product-name">Jollof Spice Mix</div><div class="product-sku">JSM-001</div></div></div></td><td><span class="text-mono">JSM-001</span></td><td>₦5,000</td><td>48</td><td><span class="badge badge-active">Active</span></td><td><button class="btn btn-ghost btn-sm">Edit</button></td></tr>
+              <tr><td><div class="product-cell"><div class="product-thumb">🥜</div><div><div class="product-name">Groundnut Paste</div><div class="product-sku">GNP-002</div></div></div></td><td><span class="text-mono">GNP-002</span></td><td>₦4,000</td><td>36</td><td><span class="badge badge-active">Active</span></td><td><button class="btn btn-ghost btn-sm">Edit</button></td></tr>
+              <tr><td><div class="product-cell"><div class="product-thumb">🌿</div><div><div class="product-name">Dried Ugwu Leaves</div><div class="product-sku">DUL-003</div></div></div></td><td><span class="text-mono">DUL-003</span></td><td>₦4,000</td><td>22</td><td><span class="badge badge-active">Active</span></td><td><button class="btn btn-ghost btn-sm">Edit</button></td></tr>
+              <tr><td><div class="product-cell"><div class="product-thumb">🐟</div><div><div class="product-name">Smoked Catfish</div><div class="product-sku">SCF-004</div></div></div></td><td><span class="text-mono">SCF-004</span></td><td>₦8,500</td><td>15</td><td><span class="badge badge-active">Active</span></td><td><button class="btn btn-ghost btn-sm">Edit</button></td></tr>
+              <tr><td><div class="product-cell"><div class="product-thumb">🍚</div><div><div class="product-name">Ofada Rice (5kg)</div><div class="product-sku">OFR-005</div></div></div></td><td><span class="text-mono">OFR-005</span></td><td>₦12,000</td><td>8</td><td><span class="badge badge-low">Low Stock</span></td><td><button class="btn btn-ghost btn-sm">Edit</button></td></tr>
+              <tr><td><div class="product-cell"><div class="product-thumb">🥥</div><div><div class="product-name">Palm Oil (1L)</div><div class="product-sku">POI-006</div></div></div></td><td><span class="text-mono">POI-006</span></td><td>₦3,500</td><td>0</td><td><span class="badge badge-draft">Out of Stock</span></td><td><button class="btn btn-ghost btn-sm">Edit</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ORDERS ═══ -->
+    <div class="section-panel" id="panel-orders">
+      <div class="section-head">
+        <h1>Orders</h1>
+        <p>Track and manage incoming orders</p>
+      </div>
+      <div class="card">
+        <div class="stat-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px;">
+          <div><div class="text-xs text-muted">Pending</div><div class="stat-value" style="font-size:17px;">12</div></div>
+          <div><div class="text-xs text-muted">Processing</div><div class="stat-value" style="font-size:17px;">8</div></div>
+          <div><div class="text-xs text-muted">Shipped</div><div class="stat-value" style="font-size:17px;">15</div></div>
+          <div><div class="text-xs text-muted">Delivered</div><div class="stat-value" style="font-size:17px;">151</div></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="ordersTableBody">
+              <tr><td>#1042</td><td>Chisom Okafor</td><td>25 May</td><td>3</td><td>₦12,500</td><td><span class="badge badge-processing">Processing</span></td><td><select class="status-select" onchange="updateStatus(this,'#1042')"><option>Pending</option><option selected>Processing</option><option>Shipped</option><option>Delivered</option></select></td></tr>
+              <tr><td>#1041</td><td>Amara Eze</td><td>24 May</td><td>1</td><td>₦4,800</td><td><span class="badge badge-shipped">Shipped</span></td><td><select class="status-select" onchange="updateStatus(this,'#1041')"><option>Pending</option><option>Processing</option><option selected>Shipped</option><option>Delivered</option></select></td></tr>
+              <tr><td>#1040</td><td>Kofi Mensah</td><td>23 May</td><td>5</td><td>₦23,200</td><td><span class="badge badge-delivered">Delivered</span></td><td><select class="status-select" onchange="updateStatus(this,'#1040')"><option>Pending</option><option>Processing</option><option>Shipped</option><option selected>Delivered</option></select></td></tr>
+              <tr><td>#1039</td><td>Ngozi Adebayo</td><td>22 May</td><td>2</td><td>₦8,900</td><td><span class="badge badge-pending">Pending</span></td><td><select class="status-select" onchange="updateStatus(this,'#1039')"><option selected>Pending</option><option>Processing</option><option>Shipped</option><option>Delivered</option></select></td></tr>
+              <tr><td>#1038</td><td>Yvonne Kamau</td><td>21 May</td><td>4</td><td>₦16,700</td><td><span class="badge badge-delivered">Delivered</span></td><td><select class="status-select" onchange="updateStatus(this,'#1038')"><option>Pending</option><option>Processing</option><option>Shipped</option><option selected>Delivered</option></select></td></tr>
+              <tr><td>#1037</td><td>Emeka Obi</td><td>20 May</td><td>2</td><td>₦11,200</td><td><span class="badge badge-shipped">Shipped</span></td><td><select class="status-select" onchange="updateStatus(this,'#1037')"><option>Pending</option><option>Processing</option><option selected>Shipped</option><option>Delivered</option></select></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ INVENTORY ═══ -->
+    <div class="section-panel" id="panel-inventory">
+      <div class="section-head">
+        <h1>Inventory</h1>
+        <p>Monitor stock levels across your catalogue</p>
+      </div>
+      <div class="alert alert-danger mb-4">
+        <div class="flex-between">
+          <div><strong>Low Stock Alert</strong><p class="text-sm text-body" style="margin-top:3px;">3 products are running low — reorder soon</p></div>
+          <span class="badge badge-low">3 Alerts</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Product</th><th>SKU</th><th>In Stock</th><th>Reserved</th><th>Available</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              <tr><td><div class="product-cell"><div class="product-thumb">🌶️</div><div class="product-name">Jollof Spice Mix</div></div></td><td><span class="text-mono">JSM-001</span></td><td>60</td><td>12</td><td>48</td><td><span class="badge badge-ok">OK</span></td><td><button class="btn btn-ghost btn-sm">Restock</button></td></tr>
+              <tr><td><div class="product-cell"><div class="product-thumb">🍚</div><div class="product-name">Ofada Rice (5kg)</div></div></td><td><span class="text-mono">OFR-005</span></td><td>10</td><td>2</td><td>8</td><td><span class="badge badge-low">Low</span></td><td><button class="btn btn-ghost btn-sm">Restock</button></td></tr>
+              <tr><td><div class="product-cell"><div class="product-thumb">🥥</div><div class="product-name">Palm Oil (1L)</div></div></td><td><span class="text-mono">POI-006</span></td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-draft">Out</span></td><td><button class="btn btn-ghost btn-sm">Restock</button></td></tr>
+              <tr><td><div class="product-cell"><div class="product-thumb">🐟</div><div class="product-name">Smoked Catfish</div></div></td><td><span class="text-mono">SCF-004</span></td><td>20</td><td>5</td><td>15</td><td><span class="badge badge-low">Low</span></td><td><button class="btn btn-ghost btn-sm">Restock</button></td></tr>
+              <tr><td><div class="product-cell"><div class="product-thumb">🥜</div><div class="product-name">Groundnut Paste</div></div></td><td><span class="text-mono">GNP-002</span></td><td>40</td><td>4</td><td>36</td><td><span class="badge badge-ok">OK</span></td><td><button class="btn btn-ghost btn-sm">Restock</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ANALYTICS ═══ -->
+    <div class="section-panel" id="panel-analytics">
+      <div class="section-head">
+        <h1>Analytics</h1>
+        <p>Revenue trends and sales performance</p>
+      </div>
+      <div class="col-2 mb-4">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Revenue (Last 30 Days)</div></div>
+          <div class="chart" style="height:200px;">
+            <div class="chart-bar" style="height:40%;"></div>
+            <div class="chart-bar" style="height:65%;"></div>
+            <div class="chart-bar" style="height:55%;"></div>
+            <div class="chart-bar" style="height:85%;"></div>
+            <div class="chart-bar" style="height:72%;"></div>
+            <div class="chart-bar" style="height:90%;"></div>
+          </div>
+          <div class="chart-labels">
+            <span>May 1</span><span>May 8</span><span>May 15</span><span>May 22</span><span>May 25</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Revenue Breakdown</div></div>
+          <div style="padding:4px 0;">
+            <div class="flex-between mb-3"><span class="text-sm">Jollof Spice Mix</span><span class="font-semibold text-sm">₦210,000</span></div>
+            <div class="progress mb-3"><div class="progress-bar" style="width:35%;"></div></div>
+            <div class="flex-between mb-3"><span class="text-sm">Groundnut Paste</span><span class="font-semibold text-sm">₦152,000</span></div>
+            <div class="progress mb-3"><div class="progress-bar" style="width:25%;"></div></div>
+            <div class="flex-between mb-3"><span class="text-sm">Dried Ugwu Leaves</span><span class="font-semibold text-sm">₦124,000</span></div>
+            <div class="progress mb-3"><div class="progress-bar" style="width:20%;"></div></div>
+            <div class="flex-between mb-3"><span class="text-sm">Smoked Catfish</span><span class="font-semibold text-sm">₦297,500</span></div>
+            <div class="progress mb-3"><div class="progress-bar" style="width:48%;"></div></div>
+            <div class="flex-between"><span class="text-sm">Other Products</span><span class="font-semibold text-sm">₦63,820</span></div>
+            <div class="progress mt-3"><div class="progress-bar" style="width:10%;"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Order Trends (This Week)</div></div>
+        <div class="chart" style="height:100px;">
+          <div class="chart-bar" style="height:30%;"></div>
+          <div class="chart-bar" style="height:45%;"></div>
+          <div class="chart-bar" style="height:35%;"></div>
+          <div class="chart-bar" style="height:60%;"></div>
+          <div class="chart-bar" style="height:55%;"></div>
+          <div class="chart-bar" style="height:70%;"></div>
+          <div class="chart-bar" style="height:80%;"></div>
+        </div>
+        <div class="chart-labels">
+          <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PAYOUTS ═══ -->
+    <div class="section-panel" id="panel-payouts">
+      <div class="section-head">
+        <h1>Payouts</h1>
+        <p>Track earnings and withdraw funds</p>
+      </div>
+      <div class="col-2-1 mb-4">
+        <div class="card">
+          <div class="stat-value">₦847,320</div>
+          <div class="stat-label">Total Earnings (All Time)</div>
+          <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--hairline);">
+            <div class="flex-between mb-3"><span class="text-sm text-muted">Available Balance</span><span class="font-semibold">₦124,500</span></div>
+            <div class="flex-between mb-3"><span class="text-sm text-muted">Pending Clearance</span><span class="font-semibold">₦68,200</span></div>
+            <div class="flex-between"><span class="text-sm text-muted">Withdrawn This Month</span><span class="font-semibold">₦50,000</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Withdraw Funds</div></div>
+          <div class="form-group">
+            <label>Amount (₦)</label>
+            <input type="number" value="124500" />
+          </div>
+          <div class="form-group">
+            <label>Transfer To</label>
+            <select><option>GTBank — 0123456789</option><option>Access Bank — 9876543210</option></select>
+          </div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;">Withdraw Funds</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Payout History</div></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Amount</th><th>Account</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>15 May 2026</td><td>₦50,000</td><td>GTBank ••••6789</td><td><span class="badge badge-delivered">Completed</span></td></tr>
+              <tr><td>28 Apr 2026</td><td>₦35,000</td><td>GTBank ••••6789</td><td><span class="badge badge-delivered">Completed</span></td></tr>
+              <tr><td>10 Apr 2026</td><td>₦45,000</td><td>Access Bank ••••3210</td><td><span class="badge badge-delivered">Completed</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ CUSTOMERS ═══ -->
+    <div class="section-panel" id="panel-customers">
+      <div class="section-head">
+        <h1>Customers</h1>
+        <p>Your buyer community — 89 total</p>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Customer</th><th>Orders</th><th>Total Spent</th><th>Last Order</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              <tr><td><div class="customer-cell"><div class="customer-avatar" style="background:#E8F5E9;color:#2E7D32;">CO</div><div><div class="customer-name">Chisom Okafor</div><div class="customer-email">chisom.o@email.com</div></div></div></td><td>12</td><td>₦156,000</td><td>25 May</td><td><span class="badge badge-active">Regular</span></td><td><button class="btn btn-ghost btn-sm" onclick="viewCustomer('CO')">View</button></td></tr>
+              <tr><td><div class="customer-cell"><div class="customer-avatar" style="background:#E3F2FD;color:#1565C0;">AE</div><div><div class="customer-name">Amara Eze</div><div class="customer-email">amara.eze@email.com</div></div></div></td><td>8</td><td>₦84,500</td><td>24 May</td><td><span class="badge badge-active">Regular</span></td><td><button class="btn btn-ghost btn-sm" onclick="viewCustomer('AE')">View</button></td></tr>
+              <tr><td><div class="customer-cell"><div class="customer-avatar" style="background:#FFF8E1;color:#F57F17;">KM</div><div><div class="customer-name">Kofi Mensah</div><div class="customer-email">kofi.m@email.com</div></div></div></td><td>5</td><td>₦67,200</td><td>23 May</td><td><span class="badge badge-new">New</span></td><td><button class="btn btn-ghost btn-sm" onclick="viewCustomer('KM')">View</button></td></tr>
+              <tr><td><div class="customer-cell"><div class="customer-avatar" style="background:#F3E5F5;color:#7B1FA2;">NA</div><div><div class="customer-name">Ngozi Adebayo</div><div class="customer-email">ngozi.a@email.com</div></div></div></td><td>18</td><td>₦234,000</td><td>22 May</td><td><span class="badge badge-active">Regular</span></td><td><button class="btn btn-ghost btn-sm" onclick="viewCustomer('NA')">View</button></td></tr>
+              <tr><td><div class="customer-cell"><div class="customer-avatar" style="background:#FBE9E7;color:#C62828;">YK</div><div><div class="customer-name">Yvonne Kamau</div><div class="customer-email">yvonne.k@email.com</div></div></div></td><td>6</td><td>₦92,100</td><td>21 May</td><td><span class="badge badge-new">New</span></td><td><button class="btn btn-ghost btn-sm" onclick="viewCustomer('YK')">View</button></td></tr>
+              <tr><td><div class="customer-cell"><div class="customer-avatar" style="background:#E0F7FA;color:#00695C;">EO</div><div><div class="customer-name">Emeka Obi</div><div class="customer-email">emeka.o@email.com</div></div></div></td><td>3</td><td>₦33,600</td><td>20 May</td><td><span class="badge badge-new">New</span></td><td><button class="btn btn-ghost btn-sm" onclick="viewCustomer('EO')">View</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ REVIEWS ═══ -->
+    <div class="section-panel" id="panel-reviews">
+      <div class="section-head">
+        <h1>Reviews & Ratings</h1>
+        <p>What customers are saying about your products</p>
+      </div>
+      <div class="col-2 mb-4">
+        <div class="card" style="text-align:center;padding:24px;">
+          <div style="font-size:36px;font-weight:700;color:var(--primary);">4.8</div>
+          <div class="stars" style="font-size:18px;margin:4px 0;">★★★★★</div>
+          <div class="text-xs text-muted">Average rating across 67 reviews</div>
+        </div>
+        <div class="card">
+          <div class="flex-between mb-3"><span class="text-xs">5 ★</span><div style="flex:1;margin:0 10px;height:5px;background:var(--orange-100);border-radius:2px;"><div style="width:78%;height:100%;background:var(--primary);border-radius:2px;"></div></div><span class="text-xs text-muted">52</span></div>
+          <div class="flex-between mb-3"><span class="text-xs">4 ★</span><div style="flex:1;margin:0 10px;height:5px;background:var(--orange-100);border-radius:2px;"><div style="width:15%;height:100%;background:var(--primary);border-radius:2px;"></div></div><span class="text-xs text-muted">10</span></div>
+          <div class="flex-between mb-3"><span class="text-xs">3 ★</span><div style="flex:1;margin:0 10px;height:5px;background:var(--orange-100);border-radius:2px;"><div style="width:4%;height:100%;background:var(--primary);border-radius:2px;"></div></div><span class="text-xs text-muted">3</span></div>
+          <div class="flex-between mb-3"><span class="text-xs">2 ★</span><div style="flex:1;margin:0 10px;height:5px;background:var(--orange-100);border-radius:2px;"><div style="width:2%;height:100%;background:var(--primary);border-radius:2px;"></div></div><span class="text-xs text-muted">1</span></div>
+          <div class="flex-between"><span class="text-xs">1 ★</span><div style="flex:1;margin:0 10px;height:5px;background:var(--orange-100);border-radius:2px;"><div style="width:1%;height:100%;background:var(--primary);border-radius:2px;"></div></div><span class="text-xs text-muted">1</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Recent Reviews</div></div>
+        <div class="review-card">
+          <div class="review-head">
+            <div class="review-user"><div class="review-avatar">CO</div><div><div class="customer-name">Chisom Okafor</div><div class="stars">★★★★★</div></div></div>
+            <span class="text-xs text-muted">2 days ago</span>
+          </div>
+          <div class="review-text">The Jollof Spice Mix is absolutely incredible! Tastes just like my grandmother's recipe. Will definitely order again.</div>
+          <div class="review-product">on Jollof Spice Mix</div>
+          <div class="reply-input"><input placeholder="Reply to this review…" /><button class="btn btn-ghost btn-sm">Reply</button></div>
+        </div>
+        <div class="review-card">
+          <div class="review-head">
+            <div class="review-user"><div class="review-avatar">KM</div><div><div class="customer-name">Kofi Mensah</div><div class="stars">★★★★☆</div></div></div>
+            <span class="text-xs text-muted">4 days ago</span>
+          </div>
+          <div class="review-text">Good quality groundnut paste, but the packaging could be better. Product itself is fresh and tasty.</div>
+          <div class="review-product">on Groundnut Paste</div>
+          <div class="reply-input"><input placeholder="Reply to this review…" /><button class="btn btn-ghost btn-sm">Reply</button></div>
+        </div>
+        <div class="review-card">
+          <div class="review-head">
+            <div class="review-user"><div class="review-avatar">NA</div><div><div class="customer-name">Ngozi Adebayo</div><div class="stars">★★★★★</div></div></div>
+            <span class="text-xs text-muted">1 week ago</span>
+          </div>
+          <div class="review-text">The dried ugwu leaves are so fresh. Makes my soups taste like home. Fast delivery too!</div>
+          <div class="review-product">on Dried Ugwu Leaves</div>
+          <div class="reply-input"><input placeholder="Reply to this review…" /><button class="btn btn-ghost btn-sm">Reply</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PROMOTIONS ═══ -->
+    <div class="section-panel" id="panel-promotions">
+      <div class="section-head flex-between">
+        <div>
+          <h1>Promotions</h1>
+          <p>Create and manage discounts for your products</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('promoModal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Promotion
+        </button>
+      </div>
+      <div class="card">
+        <div class="promo-card">
+          <div>
+            <span class="promo-code">AKARA15</span>
+            <div class="promo-details">15% off — All Jollof Spice products • Ends 30 Jun</div>
+          </div>
+          <div class="flex gap-2">
+            <span class="badge badge-active">Active</span>
+            <button class="btn btn-ghost btn-sm">Edit</button>
+          </div>
+        </div>
+        <div class="promo-card">
+          <div>
+            <span class="promo-code">FREESHIP</span>
+            <div class="promo-details">Free delivery on orders over ₦10,000 • Ends 31 Jul</div>
+          </div>
+          <div class="flex gap-2">
+            <span class="badge badge-active">Active</span>
+            <button class="btn btn-ghost btn-sm">Edit</button>
+          </div>
+        </div>
+        <div class="promo-card">
+          <div>
+            <span class="promo-code">WELCOME20</span>
+            <div class="promo-details">20% off for first-time buyers • Ends 15 Jun</div>
+          </div>
+          <div class="flex gap-2">
+            <span class="badge badge-processing">Scheduled</span>
+            <button class="btn btn-ghost btn-sm">Edit</button>
+          </div>
+        </div>
+        <div class="promo-card">
+          <div>
+            <span class="promo-code">BULKORDER</span>
+            <div class="promo-details">10% off on orders of 5+ items • Unlimited</div>
+          </div>
+          <div class="flex gap-2">
+            <span class="badge badge-draft">Draft</span>
+            <button class="btn btn-ghost btn-sm">Edit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SETTINGS ═══ -->
+    <div class="section-panel" id="panel-settings">
+      <div class="section-head">
+        <h1>Settings</h1>
+        <p>Manage your store profile and payment details</p>
+      </div>
+      <div class="col-2">
+        <div class="card">
+          <div class="settings-section">
+            <h3>Store Profile</h3>
+            <div class="form-group"><label>Store Name</label><input value="Akara Market" /></div>
+            <div class="form-group"><label>Store Description</label><textarea rows="3">Premium African food ingredients — jollof spices, groundnut paste, smoked fish, and more delivered fresh.</textarea></div>
+            <div class="form-group"><label>Contact Email</label><input value="hello@akaramarket.com" /></div>
+            <div class="form-group"><label>Phone</label><input value="+234 800 AKARA" /></div>
+          </div>
+          <button class="btn btn-primary">Save Changes</button>
+        </div>
+        <div class="card">
+          <div class="settings-section">
+            <h3>Bank Information</h3>
+            <div class="form-group"><label>Bank Name</label><select><option>GTBank</option><option>Access Bank</option></select></div>
+            <div class="form-group"><label>Account Number</label><input value="0123456789" /></div>
+            <div class="form-group"><label>Account Name</label><input value="Akara Market Ventures" /></div>
+          </div>
+          <div class="settings-section">
+            <h3>Payout Preferences</h3>
+            <div class="form-group"><label>Auto Withdraw Threshold</label><select><option>₦50,000</option><option selected>₦100,000</option><option>₦200,000</option></select></div>
+            <div class="form-group"><label>Payout Schedule</label><select><option>Manual only</option><option selected>Weekly (every Monday)</option><option>Bi-weekly</option></select></div>
+          </div>
+          <button class="btn btn-primary">Save Changes</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─── Add Product Modal ─── -->
+<div class="modal-overlay" id="productModal" onclick="if(event.target===this)closeModal('productModal')">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Add Product</h2>
+      <button class="modal-close" onclick="closeModal('productModal')">✕</button>
+    </div>
+    <div class="form-group"><label>Product Name</label><input placeholder="e.g. Fresh Palm Oil" /></div>
+    <div class="form-group"><label>Description</label><textarea rows="3" placeholder="Describe your product…"></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>Price (₦)</label><input type="number" placeholder="0" /></div>
+      <div class="form-group"><label>Stock Quantity</label><input type="number" placeholder="0" /></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Category</label><select><option>Spices & Seasonings</option><option>Oils & Fats</option><option>Grains & Rice</option><option>Fish & Meat</option><option>Vegetables</option></select></div>
+      <div class="form-group"><label>Unit</label><select><option>Piece</option><option>Kilogram</option><option>Litre</option><option>Pack</option></select></div>
+    </div>
+    <div class="form-group"><label>Product Images</label><input type="file" multiple style="padding:6px;font-size:11.5px;" /></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('productModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal('productModal')">Add Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── New Promotion Modal ─── -->
+<div class="modal-overlay" id="promoModal" onclick="if(event.target===this)closeModal('promoModal')">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>New Promotion</h2>
+      <button class="modal-close" onclick="closeModal('promoModal')">✕</button>
+    </div>
+    <div class="form-group"><label>Promo Code</label><input placeholder="e.g. SUMMER20" /></div>
+    <div class="form-row">
+      <div class="form-group"><label>Discount Type</label><select><option>Percentage (%)</option><option>Fixed Amount (₦)</option></select></div>
+      <div class="form-group"><label>Value</label><input type="number" placeholder="0" /></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Start Date</label><input type="date" /></div>
+      <div class="form-group"><label>End Date</label><input type="date" /></div>
+    </div>
+    <div class="form-group"><label>Applicable Products</label><select><option>All Products</option><option>Spices & Seasonings</option><option>Select individually…</option></select></div>
+    <div class="form-group"><label>Minimum Order</label><input type="number" placeholder="0 (no minimum)" /></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('promoModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal('promoModal')">Create Promotion</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Customer Detail Modal ─── -->
+<div class="modal-overlay" id="customerModal" onclick="if(event.target===this)closeModal('customerModal')">
+  <div class="modal" style="width:580px;padding:0;">
+    <div class="modal-head" style="padding:20px 24px;border-bottom:1px solid var(--hairline);margin-bottom:0;">
+      <div id="customerModalHead" style="display:flex;align-items:center;gap:14px;">
+        <div id="cmAvatar" class="customer-avatar" style="width:44px;height:44px;font-size:16px;"></div>
+        <div>
+          <div id="cmName" style="font-weight:600;font-size:15px;"></div>
+          <div id="cmEmail" style="font-size:12.5px;color:var(--muted);margin-top:2px;"></div>
+        </div>
+        <span id="cmStatus" style="margin-left:auto;"></span>
+      </div>
+      <button class="modal-close" onclick="closeModal('customerModal')">✕</button>
+    </div>
+    <div style="padding:20px 24px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px;">
+        <div class="card" style="padding:14px;text-align:center;">
+          <div id="cmOrders" style="font-size:22px;font-weight:700;"></div>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:2px;">Orders</div>
+        </div>
+        <div class="card" style="padding:14px;text-align:center;">
+          <div id="cmSpent" style="font-size:22px;font-weight:700;"></div>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:2px;">Total Spent</div>
+        </div>
+        <div class="card" style="padding:14px;text-align:center;">
+          <div id="cmLastOrder" style="font-size:22px;font-weight:700;"></div>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:2px;">Last Order</div>
+        </div>
+      </div>
+      <div style="font-weight:600;font-size:13px;margin-bottom:10px;">Order History</div>
+      <div class="table-wrap">
+        <table id="cmOrdersTable" style="font-size:12px;">
+          <thead><tr><th>Order</th><th>Product</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const customerData = {
+  CO: { name: 'Chisom Okafor', email: 'chisom.o@email.com', initials: 'CO', orders: 12, spent: 156000, last: '25 May', status: 'Regular', statusClass: 'badge-active', phone: '+234 802 345 6789', location: 'Lagos, Nigeria', joined: '12 Jan 2025', bg: '#E8F5E9', fg: '#2E7D32', history: [{ order: '#AK-1024', product: 'Jollof Spice Mix', amount: '₦12,500', status: 'Delivered', statusClass: 'badge-delivered', date: '25 May' }, { order: '#AK-1012', product: 'Groundnut Paste', amount: '₦8,200', status: 'Delivered', statusClass: 'badge-delivered', date: '18 May' }, { order: '#AK-0987', product: 'Dried Ugwu Leaves', amount: '₦6,800', status: 'Delivered', statusClass: 'badge-delivered', date: '10 May' }] },
+  AE: { name: 'Amara Eze', email: 'amara.eze@email.com', initials: 'AE', orders: 8, spent: 84500, last: '24 May', status: 'Regular', statusClass: 'badge-active', phone: '+234 808 234 5678', location: 'Abuja, Nigeria', joined: '3 Mar 2025', bg: '#E3F2FD', fg: '#1565C0', history: [{ order: '#AK-1022', product: 'Palm Oil (5L)', amount: '₦18,500', status: 'Delivered', statusClass: 'badge-delivered', date: '24 May' }, { order: '#AK-1005', product: 'Yam Flour', amount: '₦7,200', status: 'Delivered', statusClass: 'badge-delivered', date: '15 May' }] },
+  KM: { name: 'Kofi Mensah', email: 'kofi.m@email.com', initials: 'KM', orders: 5, spent: 67200, last: '23 May', status: 'New', statusClass: 'badge-new', phone: '+233 50 123 4567', location: 'Accra, Ghana', joined: '15 Apr 2025', bg: '#FFF8E1', fg: '#F57F17', history: [{ order: '#AK-1020', product: 'Smoked Catfish', amount: '₦15,800', status: 'Shipped', statusClass: 'badge-shipped', date: '23 May' }, { order: '#AK-1009', product: 'Fufu Flour', amount: '₦6,500', status: 'Delivered', statusClass: 'badge-delivered', date: '12 May' }] },
+  NA: { name: 'Ngozi Adebayo', email: 'ngozi.a@email.com', initials: 'NA', orders: 18, spent: 234000, last: '22 May', status: 'Regular', statusClass: 'badge-active', phone: '+234 805 678 9012', location: 'Port Harcourt, Nigeria', joined: '28 Oct 2024', bg: '#F3E5F5', fg: '#7B1FA2', history: [{ order: '#AK-1018', product: 'Dried Ugwu Leaves', amount: '₦6,800', status: 'Delivered', statusClass: 'badge-delivered', date: '22 May' }, { order: '#AK-1003', product: 'Egusi Soup Mix', amount: '₦9,500', status: 'Delivered', statusClass: 'badge-delivered', date: '8 May' }, { order: '#AK-0976', product: 'Jollof Spice Mix', amount: '₦12,500', status: 'Delivered', statusClass: 'badge-delivered', date: '28 Apr' }] },
+  YK: { name: 'Yvonne Kamau', email: 'yvonne.k@email.com', initials: 'YK', orders: 6, spent: 92100, last: '21 May', status: 'New', statusClass: 'badge-new', phone: '+254 712 345 678', location: 'Nairobi, Kenya', joined: '2 May 2025', bg: '#FBE9E7', fg: '#C62828', history: [{ order: '#AK-1015', product: 'Arrowroot Flour', amount: '₦11,200', status: 'Delivered', statusClass: 'badge-delivered', date: '21 May' }, { order: '#AK-1001', product: 'Coconut Oil', amount: '₦9,800', status: 'Processing', statusClass: 'badge-processing', date: '19 May' }] },
+  EO: { name: 'Emeka Obi', email: 'emeka.o@email.com', initials: 'EO', orders: 3, spent: 33600, last: '20 May', status: 'New', statusClass: 'badge-new', phone: '+234 809 876 5432', location: 'Onitsha, Nigeria', joined: '10 May 2025', bg: '#E0F7FA', fg: '#00695C', history: [{ order: '#AK-1013', product: 'Tiger Nuts', amount: '₦5,400', status: 'Delivered', statusClass: 'badge-delivered', date: '20 May' }, { order: '#AK-1006', product: 'Honey (500ml)', amount: '₦8,500', status: 'Shipped', statusClass: 'badge-shipped', date: '16 May' }] }
+};
+
+function viewCustomer(id) {
+  const c = customerData[id];
+  if (!c) return;
+  const avatar = document.getElementById('cmAvatar');
+  avatar.textContent = c.initials;
+  avatar.style.background = c.bg;
+  avatar.style.color = c.fg;
+  document.getElementById('cmName').textContent = c.name;
+  document.getElementById('cmEmail').textContent = c.email + ' · ' + c.phone + ' · ' + c.location;
+  document.getElementById('cmStatus').innerHTML = '<span class="badge ' + c.statusClass + '">' + c.status + '</span>';
+  document.getElementById('cmOrders').textContent = c.orders;
+  document.getElementById('cmSpent').textContent = '₦' + c.spent.toLocaleString();
+  document.getElementById('cmLastOrder').textContent = c.last;
+  const tbody = document.querySelector('#cmOrdersTable tbody');
+  tbody.innerHTML = c.history.map(h => '<tr><td style="font-family:var(--font-mono)">' + h.order + '</td><td>' + h.product + '</td><td>' + h.amount + '</td><td><span class="badge ' + h.statusClass + '">' + h.status + '</span></td><td>' + h.date + '</td></tr>').join('');
+  openModal('customerModal');
+}
+
+const panels = document.querySelectorAll('.section-panel');
+const navItems = document.querySelectorAll('.nav-item');
+const headerTitle = document.getElementById('headerTitle');
+
+const titles = {
+  overview: 'Overview', products: 'Products', orders: 'Orders',
+  inventory: 'Inventory', analytics: 'Analytics', payouts: 'Payouts',
+  customers: 'Customers', reviews: 'Reviews', promotions: 'Promotions',
+  settings: 'Settings'
+};
+
+function nav(section) {
+  panels.forEach(p => p.classList.remove('active'));
+  navItems.forEach(i => i.classList.remove('active'));
+  document.getElementById('panel-' + section).classList.add('active');
+  document.querySelector(`[data-section="${section}"]`).classList.add('active');
+  headerTitle.textContent = titles[section] || section;
+  closeSidebar();
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebarOverlay').classList.toggle('open'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('open'); }
+
+function updateStatus(sel, id) {
+  const badge = sel.closest('tr').querySelector('.badge');
+  const v = sel.value;
+  badge.className = 'badge badge-' + v.toLowerCase();
+  badge.textContent = v.charAt(0).toUpperCase() + v.slice(1);
+  toast(`Order ${id} updated to ${v}`);
+}
+
+/* ─── Toast System ─── */
+function toast(msg, type) {
+  const existing = document.querySelector('.toast-container');
+  if (!existing) {
+    const c = document.createElement('div');
+    c.className = 'toast-container';
+    document.body.appendChild(c);
+  }
+  const t = document.createElement('div');
+  t.className = 'toast' + (type ? ' toast-' + type : '');
+  t.textContent = msg;
+  document.querySelector('.toast-container').appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(100%)'; setTimeout(() => t.remove(), 300); }, 2500);
+}
+
+/* ─── Wire all buttons ─── */
+document.addEventListener('DOMContentLoaded', function() {
+
+  /* ── Products: Edit buttons ── */
+  document.querySelectorAll('#panel-products .btn-ghost').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      const row = this.closest('tr');
+      if (!row) return;
+      const name = row.querySelector('.product-name')?.textContent || 'Product';
+      toast(`Opening ${name} for editing…`);
+      openModal('productModal');
+    });
+  });
+
+  /* ── Products: Add Product button ── */
+  document.querySelector('#panel-products .btn-primary')?.addEventListener('click', function() {
+    openModal('productModal');
+  });
+
+  /* ── Product Modal: Add Product submit ── */
+  const productModal = document.getElementById('productModal');
+  productModal?.querySelector('.btn-primary:last-child')?.addEventListener('click', function() {
+    const name = productModal.querySelector('input[placeholder="e.g. Fresh Palm Oil"]')?.value.trim();
+    if (!name) { toast('Please enter a product name', 'error'); return; }
+    toast(`"${name}" has been added to your catalogue!`, 'success');
+    closeModal('productModal');
+    productModal.querySelectorAll('input, textarea, select').forEach(el => {
+      if (el.type !== 'file') el.value = '';
+    });
+  });
+
+  /* ── Inventory: Restock buttons ── */
+  document.querySelectorAll('#panel-inventory .btn-ghost').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const row = this.closest('tr');
+      if (!row) return;
+      const name = row.querySelector('.product-name')?.textContent || 'Product';
+      const qty = prompt(`Restock quantity for ${name}:`, '10');
+      if (qty && !isNaN(qty) && parseInt(qty) > 0) {
+        const stockCell = row.querySelector('td:nth-child(3)');
+        if (stockCell) {
+          const current = parseInt(stockCell.textContent) || 0;
+          stockCell.textContent = current + parseInt(qty);
+        }
+        const availCell = row.querySelector('td:nth-child(5)');
+        if (availCell) {
+          const current = parseInt(availCell.textContent) || 0;
+          availCell.textContent = current + parseInt(qty);
+        }
+        const badge = row.querySelector('.badge');
+        if (badge) { badge.className = 'badge badge-ok'; badge.textContent = 'OK'; }
+        toast(`Restocked ${qty} units of ${name}`, 'success');
+      }
+    });
+  });
+
+  /* ── Reviews: Reply buttons ── */
+  document.querySelectorAll('#panel-reviews .reply-input .btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const input = this.closest('.reply-input').querySelector('input');
+      const text = input?.value.trim();
+      if (!text) { toast('Write a reply first', 'error'); return; }
+      toast('Reply posted to review', 'success');
+      input.value = '';
+    });
+  });
+
+  /* ── Payouts: Withdraw Funds ── */
+  document.querySelector('#panel-payouts .btn-primary')?.addEventListener('click', function() {
+    const amt = document.querySelector('#panel-payouts input[type="number"]')?.value;
+    if (!amt || parseFloat(amt) <= 0) { toast('Enter a valid withdrawal amount', 'error'); return; }
+    if (parseFloat(amt) > 124500) { toast('Insufficient available balance', 'error'); return; }
+    toast(`₦${parseInt(amt).toLocaleString()} withdrawal request submitted!`, 'success');
+    const avail = document.querySelector('#panel-payouts .stat-value')?.nextElementSibling?.nextElementSibling?.querySelector('.font-semibold');
+    if (avail) {
+      const remaining = 124500 - parseFloat(amt);
+      avail.textContent = '₦' + remaining.toLocaleString();
+    }
+  });
+
+  /* ── Promotions: Edit buttons ── */
+  document.querySelectorAll('#panel-promotions .btn-ghost').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const code = this.closest('.promo-card')?.querySelector('.promo-code')?.textContent || 'Promo';
+      toast(`Editing ${code} promotion…`);
+      openModal('promoModal');
+    });
+  });
+
+  /* ── Promotions: New Promotion button ── */
+  document.querySelector('#panel-promotions .btn-primary')?.addEventListener('click', function() {
+    openModal('promoModal');
+  });
+
+  /* ── Promo Modal: Create Promotion submit ── */
+  const promoModal = document.getElementById('promoModal');
+  promoModal?.querySelector('.btn-primary:last-child')?.addEventListener('click', function() {
+    const code = promoModal.querySelector('input[placeholder="e.g. SUMMER20"]')?.value.trim().toUpperCase();
+    if (!code) { toast('Enter a promo code', 'error'); return; }
+    toast(`Promotion "${code}" created!`, 'success');
+    closeModal('promoModal');
+    promoModal.querySelectorAll('input, select').forEach(el => el.value = '');
+  });
+
+  /* ── Settings: Save Changes buttons ── */
+  document.querySelectorAll('#panel-settings .btn-primary').forEach(btn => {
+    btn.addEventListener('click', function() {
+      toast('Settings saved successfully!', 'success');
+    });
+  });
+
+  /* ── Orders: status-select already works via inline onchange ── */
+
+});
+</script>
+<style>
+.toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  background: var(--surface-dark);
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  font-weight: 500;
+  box-shadow: var(--shadow-modal);
+  animation: toastIn 0.25s ease;
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: auto;
+  max-width: 360px;
+}
+.toast-success { background: #0070f3; }
+.toast-error { background: #ee0000; }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+</style>
+</body>
+</html>
