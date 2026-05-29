@@ -2,11 +2,12 @@
 
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { UserButton } from "@clerk/nextjs";
 import { useSeller } from "@/components/seller/seller-context";
 import {
   HomeIcon, BellIcon, StoreIcon, ListIcon, PackageIcon,
   BarChartIcon, CardIcon, HeartIcon, StarIcon, TagIcon,
-  SettingsIcon, MenuIcon, XIcon, SearchIcon, LogOutIcon,
+  SettingsIcon, MenuIcon, XIcon, SearchIcon,
 } from "@/components/user/icons";
 
 const navGroups: { label?: string; items: { id: string; label: string; icon: ReactNode }[] }[] = [
@@ -148,15 +149,6 @@ export function SellerShell({ children }: { children: ReactNode }) {
             </div>
           ))}
         </nav>
-        <div className="seller-sidebar-footer">
-          <button className="seller-logout" onClick={async () => {
-            await fetch("/api/auth/logout", { method: "POST" });
-            router.push("/login");
-          }}>
-            <LogOutIcon size={16} />
-            Log out
-          </button>
-        </div>
       </aside>
 
       <div className="seller-main">
@@ -170,7 +162,7 @@ export function SellerShell({ children }: { children: ReactNode }) {
             <SearchIcon size={14} />
             <input placeholder="Search products..." />
           </div>
-          <button className="seller-avatar-btn">AM</button>
+          <UserButton />
         </header>
         <main className="seller-content">
           {children}

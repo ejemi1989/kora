@@ -45,18 +45,6 @@ export const addressSchema = z.object({
   isDefault: z.boolean().optional().default(false),
 });
 
-export const loginSchema = z.object({
-  email: z.string().email("Valid email is required"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
-
-export const signupSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100),
-  email: z.string().email("Valid email is required"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  role: z.enum(["CUSTOMER", "SELLER"]).optional().default("CUSTOMER"),
-});
-
 export function validate<T>(schema: z.ZodSchema<T>, data: unknown): { success: true; data: T } | { success: false; error: string } {
   const result = schema.safeParse(data);
   if (!result.success) {

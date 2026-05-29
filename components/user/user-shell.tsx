@@ -2,10 +2,11 @@
 
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { UserButton } from "@clerk/nextjs";
 import { useUser } from "@/components/user/user-context";
 import {
   GridIcon, HomeIcon, ListIcon, TruckIcon, CartIcon, HeartIcon,
-  MapIcon, CardIcon, BellIcon, SettingsIcon, MenuIcon, XIcon, LogOutIcon,
+  MapIcon, CardIcon, BellIcon, SettingsIcon, MenuIcon, XIcon,
 } from "@/components/user/icons";
 
 const navItems: { id: string; label: string; icon: ReactNode }[] = [
@@ -81,7 +82,7 @@ export function UserShell({ children }: { children: ReactNode }) {
       <aside className={`user-sidebar ${sidebar ? "open" : ""}`}>
         <div className="user-sidebar-brand">
           <div className="user-logo">NP</div>
-          NaijaPlate
+          Kora
         </div>
         <nav className="user-nav">
           {navItems.map((item) => (
@@ -99,21 +100,20 @@ export function UserShell({ children }: { children: ReactNode }) {
             <div style={{ fontSize: 12, fontWeight: 500, color: "var(--ink)" }}>Amara Okafor</div>
             <div style={{ fontSize: 10, color: "var(--ash)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>amara.o@naijaplate.com</div>
           </div>
-          <button onClick={async (e) => { e.stopPropagation(); await fetch("/api/auth/logout", { method: "POST" }); router.push("/login"); }} style={{ width: 24, height: 24, border: "none", background: "none", cursor: "pointer", color: "var(--ash)", display: "flex", alignItems: "center", justifyContent: "center" }} title="Log out"><LogOutIcon size={14} /></button>
         </div>
       </aside>
 
       <div className="user-main">
         <header className="user-topbar">
           <button className="user-hamburger" onClick={() => setSidebar(true)}><MenuIcon /></button>
-          <span className="user-topbar-title">NaijaPlate</span>
+          <span className="user-topbar-title">Kora</span>
           <span className="user-topbar-sub">/ {pageLabels[page] || page}</span>
           <div className="user-topbar-spacer" />
           <button className="user-notif-btn" onClick={() => { setNotifOpen(false); setPage("notifications" as any); router.push("/user/notifications"); }} title="Notifications">
             <BellIcon size={18} />
             {unread > 0 && <span className="user-notif-dot" />}
           </button>
-          <button className="user-avatar-btn" onClick={() => { setPage("settings" as any); router.push("/user/settings"); }}>AO</button>
+          <UserButton />
         </header>
         <main className="user-content">
           {children}

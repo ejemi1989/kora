@@ -6,7 +6,7 @@ Enable secure authentication using Clerk for customers, sellers, and admins with
 ## Design
 Clerk is the source of truth for authentication.
 
-Use Clerk’s `dark` theme from `@clerk/ui/themes` as the base.
+Use Clerk’s `light` theme from `@clerk/ui/themes` as the base.
 
 Override Clerk appearance variables using the app’s existing CSS variables. Do not hardcode colors.
 

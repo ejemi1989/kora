@@ -2,11 +2,12 @@
 
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { UserButton } from "@clerk/nextjs";
 import { useAdmin } from "@/components/admin/admin-context";
 import {
   HomeIcon, BellIcon, UsersIcon, StoreIcon, PackageIcon, ListIcon,
   CardIcon, ShieldIcon, BarChartIcon, FileIcon, SettingsIcon, DollarIcon,
-  MenuIcon, XIcon, SearchIcon, LogOutIcon,
+  MenuIcon, XIcon, SearchIcon,
 } from "@/components/user/icons";
 
 const navGroups: { label?: string; items: { id: string; label: string; icon: ReactNode }[] }[] = [
@@ -159,15 +160,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
             </div>
           ))}
         </nav>
-        <div className="admin-sidebar-footer">
-          <button className="admin-logout" onClick={async () => {
-            await fetch("/api/auth/logout", { method: "POST" });
-            router.push("/login");
-          }}>
-            <LogOutIcon size={16} />
-            Log out
-          </button>
-        </div>
       </aside>
 
       <div className="admin-main">
@@ -185,7 +177,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <BellIcon size={18} />
             <span className="admin-notif-badge">6</span>
           </button>
-          <button className="admin-avatar-btn">AO</button>
+          <UserButton />
         </header>
         <main className="admin-content">
           {children}

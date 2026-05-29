@@ -1,24 +1,24 @@
-import { PrismaClient } from "../lib/generated/prisma";
+import { PrismaClient } from "../lib/generated/prisma/client";
 
 const prisma = new PrismaClient();
 
 async function main() {
   const user = await prisma.user.upsert({
-    where: { email: "amara@naijaplate.com" },
+    where: { email: "buyer@kora.com" },
     update: {},
-    create: { id: "user-1", name: "Amara Okafor", email: "amara@naijaplate.com", role: "CUSTOMER" },
+    create: { id: "user-1", name: "Amara Okafor", email: "buyer@kora.com", role: "CUSTOMER" },
   });
 
   const seller = await prisma.user.upsert({
-    where: { email: "seller@naijaplate.com" },
+    where: { email: "seller@kora.com" },
     update: {},
-    create: { id: "seller-1", name: "Chidi Okonkwo", email: "seller@naijaplate.com", role: "SELLER" },
+    create: { id: "seller-1", name: "Chidi Okonkwo", email: "seller@kora.com", role: "SELLER" },
   });
 
   const admin = await prisma.user.upsert({
-    where: { email: "admin@naijaplate.com" },
+    where: { email: "admin@kora.com" },
     update: {},
-    create: { id: "admin-1", name: "Admin User", email: "admin@naijaplate.com", role: "ADMIN" },
+    create: { id: "admin-1", name: "Admin User", email: "admin@kora.com", role: "ADMIN" },
   });
 
   const products = [

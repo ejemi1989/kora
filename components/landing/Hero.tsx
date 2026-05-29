@@ -19,6 +19,8 @@ export function Hero() {
           alt=""
           fill
           className="object-cover"
+          priority
+          loading="eager"
         />
       </div>
       <div
@@ -95,7 +97,7 @@ export function Hero() {
           </p>
           <div className="flex" style={{ gap: "16px" }}>
             <a
-              href="/signup"
+              href="/sign-up"
               style={{
                 background: "var(--pr)",
                 color: "#fff",

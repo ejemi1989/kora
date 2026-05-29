@@ -21,9 +21,9 @@
 
 ## Key Differences from User Dashboard
 
-| Property | Admin | User (NaijaPlate) |
+| Property | Admin | User (Kora) |
 |---|---|---|
-| Brand name | Kongo | NaijaPlate |
+| Brand name | Kongo | Kora |
 | Currency | KES | ₦ |
 | Sidebar position | Fixed (not off-canvas on desktop) | Fixed width |
 | Toast position | Bottom-right | Bottom-center |

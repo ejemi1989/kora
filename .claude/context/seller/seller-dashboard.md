@@ -21,9 +21,9 @@
 
 ## Key Differences from User & Admin Dashboards
 
-| Property | Seller (Akara) | Admin (Kongo) | User (NaijaPlate) |
+| Property | Seller (Akara) | Admin (Kongo) | User (Kora) |
 |---|---|---|---|
-| Brand name | Akara Market | Kongo | NaijaPlate |
+| Brand name | Akara Market | Kongo | Kora |
 | Primary color | `#E8552A` (orange) | `#ea2804` (red) | `#ea2804` (red) |
 | Color scale | Full orange scale (`--orange-50` → `--orange-900`) | None | None |
 | Stat change colors | Green/red (material) | Blue/red | Blue/red |

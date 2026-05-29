@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Show, UserButton } from "@clerk/nextjs";
 
 const navLinks = ["Shops", "Sellers", "How it works", "Pricing"];
 
@@ -45,32 +46,50 @@ export function Navbar() {
             />
             <span className="hidden sm:inline">English</span>
           </div>
-          <Link
-            href="/login"
-            style={{
-              fontSize: "15.9px",
-              fontWeight: 500,
-              color: "var(--pr)",
-              textDecoration: "none",
-            }}
-          >
-            Login
-          </Link>
-          <Link
-            href="/signup"
-            style={{
-              background: "var(--pr)",
-              color: "#fff",
-              padding: "10px 20px",
-              borderRadius: "24px",
-              fontSize: "15.9px",
-              fontWeight: 500,
-              border: "1px solid transparent",
-              textDecoration: "none",
-            }}
-          >
-            Start for free
-          </Link>
+          <Show when="signed-out">
+            <Link
+              href="/sign-in"
+              style={{
+                fontSize: "15.9px",
+                fontWeight: 500,
+                color: "var(--pr)",
+                border: "none",
+                background: "none",
+                cursor: "pointer",
+                textDecoration: "none",
+              }}
+            >
+              Login
+            </Link>
+            <Link
+              href="/sign-up"
+              style={{
+                background: "var(--pr)",
+                color: "#fff",
+                padding: "10px 20px",
+                borderRadius: "24px",
+                fontSize: "15.9px",
+                fontWeight: 500,
+                border: "1px solid transparent",
+                cursor: "pointer",
+                textDecoration: "none",
+              }}
+            >
+              Start for free
+            </Link>
+          </Show>
+          <Show when="signed-in">
+            <UserButton
+              appearance={{
+                elements: {
+                  userButtonOuterIdentifier: { fontSize: 13, color: "var(--ink)" },
+                  userButtonTrigger: { borderRadius: 9999, height: 32 },
+                },
+              }}
+              userProfileMode="navigation"
+              userProfileUrl="/user/settings"
+            />
+          </Show>
         </div>
       </div>
     </nav>
