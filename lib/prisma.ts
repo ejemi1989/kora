@@ -1,21 +1,7 @@
-let client: any = null
+import { PrismaClient } from "./generated/prisma/client"
 
-export function getPrisma() {
-  if (!client) {
-    try {
-      const { PrismaClient } = require("./generated/prisma/client")
-      client = new PrismaClient()
-    } catch {
-      return null
-    }
-  }
-  return client
-}
+const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined }
 
-export const prisma = new Proxy({} as any, {
-  get(_, prop: string | symbol) {
-    const p = getPrisma()
-    if (!p) return undefined
-    return p[prop]
-  },
-})
+export const prisma = globalForPrisma.prisma ?? new PrismaClient()
+
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma
