@@ -130,7 +130,7 @@ export function SellerShell({ children }: { children: ReactNode }) {
       <aside className={`seller-sidebar ${sidebar ? "open" : ""}`}>
         <div className="seller-sidebar-brand">
           <div className="seller-logo">A</div>
-          <span className="seller-wordmark">akara <span>market</span></span>
+          <span className="seller-wordmark">Kora</span>
         </div>
         <nav className="seller-sidebar-nav">
           {navGroups.map((group) => (
@@ -154,7 +154,7 @@ export function SellerShell({ children }: { children: ReactNode }) {
       <div className="seller-main">
         <header className="seller-topbar">
           <button className="seller-hamburger" onClick={() => setSidebar(true)}><MenuIcon /></button>
-          <span className="seller-topbar-title">Akara Market</span>
+          <span className="seller-topbar-title">Kora</span>
           <span className="seller-topbar-sep">/</span>
           <span className="seller-topbar-current">{panelLabels[page] || page}</span>
           <div className="seller-topbar-spacer" />

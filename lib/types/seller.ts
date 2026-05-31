@@ -27,6 +27,7 @@ export interface SellerProduct {
   available: number;
   sales: number;
   status: "active" | "draft" | "out_of_stock";
+  image?: string;
 }
 
 export interface SellerOrder {
@@ -37,6 +38,7 @@ export interface SellerOrder {
   total: number;
   date: string;
   status: "delivered" | "shipped" | "processing" | "pending" | "cancelled";
+  trackingNumber?: string;
 }
 
 export interface SellerInventoryItem {

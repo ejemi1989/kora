@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Clerk Auth Custom Forms + Role Tabs — Complete
+- Order Tracking: Seller/Admin add tracking numbers, Buyer views them — Complete
 
 ## Current Goal
 
-- Role-based sign-up/sign-in flows with custom forms (bypassing Clerk UI CDN), all routes protected, zero build errors.
+- Enable seller and admin to assign tracking numbers to orders, and buyers to view them on their tracking page.
 
 ## Completed
 
@@ -16,7 +16,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - `app/layout.tsx` — ClerkProvider updated with appearance overrides mapped to app CSS variables
 - `app/api/me/route.ts` — GET endpoint returning Clerk user + role
 - All three shells — `<UserButton />` in topbar, custom logout removed
-- `proxy.ts` — Already configured with `clerkMiddleware` (unchanged)
+- `proxy.ts` — Configured with `clerkMiddleware`; later extended with role-based authorization to restrict users to their own dashboard
 - TypeScript fixed: `afterSignInUrl` → `fallbackRedirectUrl`, `afterSignOutUrl` removed from UserButton
 
 ### Custom Forms (replacing Clerk pre-built components)
@@ -86,7 +86,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - 10 page components: overview, shop, orders, tracking, cart, wishlist, addresses, payments, notifications, settings
 - All interactions verified via browser testing
 
-### Admin Dashboard (Kongo)
+### Admin Dashboard (Kora)
 - `/lib/types/admin.ts`, `/lib/data/admin.ts` — TypeScript interfaces + seed data
 - `/components/admin/admin-context.tsx` — React Context with global state + actions
 - `/components/admin/admin-shell.tsx` — sidebar with 13 nav items in 4 groups
@@ -94,7 +94,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - `/app/admin/[page]/page.tsx` — dynamic route dispatching to 12 page components
 - 12 admin page components including currencies with inline rate editing, set-as-base, etc.
 
-### Seller Dashboard (Akara Market)
+### Seller Dashboard (Kora)
 - `/lib/types/seller.ts`, `/lib/data/seller.ts` — TypeScript interfaces + seed data
 - `/components/seller/seller-context.tsx` — React Context with global state + actions
 - `/components/seller/seller-shell.tsx` — orange-themed sidebar with 10 nav items
@@ -108,7 +108,80 @@ Update this file whenever the current phase, active feature, or implementation s
 - `lib/auth.ts` — JWT auth utilities (later cleaned up in JWT cleanup)
 - `lib/validation.ts` — Zod schemas for all routes + shared response helpers
 - `lib/rate-limit.ts` — In-memory sliding window rate limiter
-- `middleware.ts` — Route protection with matcher
+- `middleware.ts` — Route protection with matcher (later renamed to `proxy.ts`)
+
+### Role-Based Access Control (post-auth)
+- `proxy.ts` — Extended `clerkMiddleware` handler with role-scoped authorization:
+  - After `auth.protect()`, fetches the user's role from Clerk `unsafeMetadata` via `clerkClient().users.getUser()`
+  - Maps URL prefix (`/admin`, `/seller`, `/user`) to expected role (`ADMIN`, `SELLER`, `CUSTOMER`)
+  - Redirects role mismatches to the user's correct dashboard (e.g., CUSTOMER → `/user/overview`)
+  - Defaults to `CUSTOMER` role if no `unsafeMetadata.role` is set
+
+### Landing Page CTA Fixes
+- `components/landing/Community.tsx` — "Get started" button changed from `href="#"` to `href="/sign-up"`
+- Verified all other CTAs: Hero "Start for free" → `/sign-up`, Navbar "Login" → `/sign-in`, Navbar "Start for free" → `/sign-up`
+
+### Sign-In Role Enforcement Fixes
+- **Fix 1 — `useEffect` race condition:** The effect redirecting signed-in users to `/auth/callback` was missing `intended_role` param and fired before `signIn.finalize()`'s navigate callback. Fixed by:
+  - Added `intended_role` query param to useEffect redirect URL
+  - Added `navigatingRef` guard so effect skips when handleSubmit/handleMFAVerify is already handling finalize navigation
+  - Added `role` to effect dependency array so it captures the current tab selection
+- **Fix 2 — `signIn.finalize()` navigate callback:** Changed to use `window.location.href` consistently (instead of `router.push` for relative URLs) so navigation is atomic and won't be preempted by re-renders
+- **Fix 3 — Google SSO `redirectUrl`:** Changed from `"/auth/callback"` to `"/auth/callback?intended_role=" + encodeURIComponent(role)` so the selected tab's role is preserved through the OAuth redirect chain
+
+### Seller Dashboard Functional Fixes
+- **Products image upload:** Added file input with preview to Add Product modal; `SellerProduct` type extended with optional `image` field
+- **Products Add Product:** Extracted `ProductForm` component with self-contained controlled state; form now collects name, price, stock, category, unit + image and creates a real `SellerProduct` in state
+- **Products Edit button:** Changed from placeholder toast to pre-filled edit modal using same `ProductForm` component; saves changes back to state
+- **Promotions New/Edit:** Extracted `PromotionForm` component; New Promotion now computes discount label and creates real `SellerPromotion` in state; Edit pre-fills and updates state on save
+- **Settings bank form:** Converted bank name, account number, account name, auto-withdraw threshold, and payout schedule from `defaultValue` to controlled `value` + `onChange` pattern
+
+### QA Skill Definition
+- `quality/QA.md` — enriched YAML frontmatter with full metadata: `version`, `status`, `tags` (qa, testing, bug-fixing, quality-assurance, e2e-testing, regression), `execution` config (tier 1, interactive mode, url/description inputs, required tools), and `discovery` section (goal, tasks, audience, triggers, not_for boundaries)
+- Frontmatter follows the same metadata schema as `quality/distributed.md` (BookForge community skill format)
+- Existing 247-line QA workflow (10-phase test-fix-verify process, health score rubric) preserved untouched
+- Skill is discoverable by pattern-matching triggers: "qa", "test this site", "find bugs", "does this work", "quality check"
+
+### Distributed Failure Analyzer Skill
+- `quality/distributed.md` — BookForge community skill (CC-BY-SA-4.0) from Designing Data-Intensive Applications
+- Registered at `~/.claude/skills/distributed-failure-analyzer/SKILL.md` → symlink to project file
+- Full metadata already present: version 1.0.0, 25 tags, tier 2 hybrid execution, 7 triggers covering timeout/corruption/zombie/stale-read scenarios
+- Covers: network fault taxonomy, clock unreliability, process pauses, fencing tokens, Byzantine fault scoping, system model selection
+
+### Brand Alignment: Akara Market → Kora Rename
+- `progress-tracker.md` — updated header from "Seller Dashboard (Akara Market)" to "Seller Dashboard (Kora)"
+- `.claude/context/seller/seller-dashboard.md` — replaced all 10 occurrences of "Akara Market" with "Kora"
+- `.claude/context/seller/seller-dashboard.html` — replaced all 4 occurrences (title, sidebar brand, overview subtitle, settings form values)
+- Consistency: seller dashboard now matches existing "Kora" naming used for the user dashboard
+
+### Order Tracking: Seller/Admin Add Tracking Numbers
+- **Types** — added `trackingNumber?: string` to `SellerOrder`, `AdminOrder`, `UserOrder`
+- **Mock data** — added tracking numbers to shipped/delivered orders in seller, admin, and user data files
+- **Seller Orders page** (`components/seller/pages/orders.tsx`):
+  - Added "Tracking" column after Date
+  - Inline editable `TrackingCell` component: shows existing tracking number with Edit button, or input field with Set button
+  - Enter key or Set button saves tracking number to local state with toast confirmation
+- **Admin Orders page** (`components/admin/pages/orders.tsx`):
+  - Made orders stateful (local useState instead of constant import)
+  - Added "Tracking" column in table showing number or dash
+  - Replaced "No tracking info available yet" in detail modal with editable `TrackingSection` component
+  - Admin enters tracking number and clicks Save — updates local state with toast
+- **User Tracking page** (`components/user/pages/tracking.tsx`):
+  - Added order selector dropdown to switch between tracked orders
+  - Shows tracking number below the header (e.g., "Tracking: TRK-3841")
+- **User Orders detail** (`components/user/pages/orders.tsx`):
+  - Shows tracking number badge in order detail card when present
+- **Bonus fixes** — Fixed 3 pre-existing TS errors: missing `PageId` import in `app/user/[page]/page.tsx`, missing `SellerPageId` duplicate, missing `AdminPageId` import in `admin-shell.tsx`
+
+### Brand Alignment: Kongo → Kora (Admin Dashboard)
+- `components/admin/admin-shell.tsx` — sidebar wordmark `kongo` → `Kora`, topbar breadcrumb `Kongo` → `Kora`
+- `components/seller/seller-shell.tsx` — sidebar wordmark `akara market` → `Kora`
+- `components/seller/pages/settings.tsx` — email `hello@akaramarket.com` → `hello@kora.com`
+- All visible "Kongo" and "Akara Market" references removed from admin and seller UI code
+
+### Notification Subtitle Visibility Fix
+- `components/user/user-shell.tsx` — dropdown description/time/unread colors changed from `var(--muted)`/`var(--ash)` to `var(--muted-text)`
+- `components/user/pages/notifications.tsx` — full page description, time, and "X unread" all changed to `var(--muted-text)`
 
 ## Build Verification
 
@@ -120,9 +193,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Steps
 
-- Verify custom sign-up and sign-in flows end-to-end in browser (email/password entry → verification code → finalize → redirect to role dashboard)
-- Google OAuth testing via `/sso-callback` route
+- Run QA tier on existing dashboards using the QA skill to baseline health scores
+- Verify role-mismatch enforcement end-to-end: Seller using Buyer tab → gets error banner pointing to Seller tab
+- Verify Google OAuth with role tabs: signing in via Google on Seller tab → redirects to Seller dashboard (or error if alternate role)
 - Existing user role selection flow unchanged (`/auth/choose-role` still works for users without `unsafeMetadata.role`)
+- Verify role-scoped proxy redirects: CUSTOMER visiting `/seller/overview` or `/admin/overview` → redirected to `/user/overview`
 
 ## Open Questions
 

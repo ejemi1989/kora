@@ -2,6 +2,7 @@
 
 import { use, useEffect } from "react";
 import { useSeller } from "@/components/seller/seller-context";
+import type { SellerPageId } from "@/lib/types/seller";
 import { OverviewPage } from "@/components/seller/pages/overview";
 import { ProductsPage } from "@/components/seller/pages/products";
 import { OrdersPage } from "@/components/seller/pages/orders";
@@ -29,7 +30,7 @@ const pages: Record<string, React.FC> = {
 export default function SellerPage({ params }: { params: Promise<{ page: string }> }) {
   const { page } = use(params);
   const { setPage } = useSeller();
-  useEffect(() => { setPage(page as any); }, [page, setPage]);
+  useEffect(() => { setPage(page as SellerPageId); }, [page, setPage]);
   const Page = pages[page] || OverviewPage;
   return <Page />;
 }

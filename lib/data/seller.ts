@@ -11,11 +11,11 @@ export const SELLER_STATS = [
 ];
 
 export const SELLER_RECENT_ORDERS: SellerOrder[] = [
-  { id: "#AK-1024", customer: "Chisom Okafor", items: 3, product: "Jollof Spice Mix", total: 12500, date: "25 May", status: "delivered" },
-  { id: "#AK-1022", customer: "Amara Eze", items: 1, product: "Palm Oil (5L)", total: 18500, date: "24 May", status: "delivered" },
-  { id: "#AK-1020", customer: "Kofi Mensah", items: 2, product: "Smoked Catfish", total: 15800, date: "23 May", status: "shipped" },
+  { id: "#AK-1024", customer: "Chisom Okafor", items: 3, product: "Jollof Spice Mix", total: 12500, date: "25 May", status: "delivered", trackingNumber: "TRK-AK-1024" },
+  { id: "#AK-1022", customer: "Amara Eze", items: 1, product: "Palm Oil (5L)", total: 18500, date: "24 May", status: "delivered", trackingNumber: "TRK-AK-1022" },
+  { id: "#AK-1020", customer: "Kofi Mensah", items: 2, product: "Smoked Catfish", total: 15800, date: "23 May", status: "shipped", trackingNumber: "TRK-AK-1020" },
   { id: "#AK-1018", customer: "Ngozi Adebayo", items: 1, product: "Dried Ugwu Leaves", total: 6800, date: "22 May", status: "processing" },
-  { id: "#AK-1015", customer: "Yvonne Kamau", items: 2, product: "Arrowroot Flour", total: 11200, date: "21 May", status: "delivered" },
+  { id: "#AK-1015", customer: "Yvonne Kamau", items: 2, product: "Arrowroot Flour", total: 11200, date: "21 May", status: "delivered", trackingNumber: "TRK-AK-1015" },
 ];
 
 export const SELLER_PRODUCTS: SellerProduct[] = [
@@ -30,16 +30,16 @@ export const SELLER_PRODUCTS: SellerProduct[] = [
 ];
 
 export const SELLER_ORDERS: SellerOrder[] = [
-  { id: "#AK-1024", customer: "Chisom Okafor", items: 3, product: "Jollof Spice Mix", total: 12500, date: "25 May", status: "delivered" },
+  { id: "#AK-1024", customer: "Chisom Okafor", items: 3, product: "Jollof Spice Mix", total: 12500, date: "25 May", status: "delivered", trackingNumber: "TRK-AK-1024" },
   { id: "#AK-1023", customer: "Tunde Bakare", items: 2, product: "Egusi Soup Mix", total: 19000, date: "25 May", status: "cancelled" },
-  { id: "#AK-1022", customer: "Amara Eze", items: 1, product: "Palm Oil (5L)", total: 18500, date: "24 May", status: "delivered" },
+  { id: "#AK-1022", customer: "Amara Eze", items: 1, product: "Palm Oil (5L)", total: 18500, date: "24 May", status: "delivered", trackingNumber: "TRK-AK-1022" },
   { id: "#AK-1021", customer: "Fatima Bello", items: 4, product: "Jollof Spice Mix", total: 50000, date: "24 May", status: "processing" },
-  { id: "#AK-1020", customer: "Kofi Mensah", items: 2, product: "Smoked Catfish", total: 15800, date: "23 May", status: "shipped" },
+  { id: "#AK-1020", customer: "Kofi Mensah", items: 2, product: "Smoked Catfish", total: 15800, date: "23 May", status: "shipped", trackingNumber: "TRK-AK-1020" },
   { id: "#AK-1019", customer: "Zainab Abdullah", items: 1, product: "Groundnut Paste", total: 8200, date: "23 May", status: "pending" },
   { id: "#AK-1018", customer: "Ngozi Adebayo", items: 1, product: "Dried Ugwu Leaves", total: 6800, date: "22 May", status: "processing" },
-  { id: "#AK-1017", customer: "Chidi Okonkwo", items: 3, product: "Yam Flour", total: 21600, date: "22 May", status: "shipped" },
+  { id: "#AK-1017", customer: "Chidi Okonkwo", items: 3, product: "Yam Flour", total: 21600, date: "22 May", status: "shipped", trackingNumber: "TRK-AK-1017" },
   { id: "#AK-1016", customer: "Moses Otieno", items: 2, product: "Palm Oil (5L)", total: 37000, date: "21 May", status: "pending" },
-  { id: "#AK-1015", customer: "Yvonne Kamau", items: 2, product: "Arrowroot Flour", total: 11200, date: "21 May", status: "delivered" },
+  { id: "#AK-1015", customer: "Yvonne Kamau", items: 2, product: "Arrowroot Flour", total: 11200, date: "21 May", status: "delivered", trackingNumber: "TRK-AK-1015" },
 ];
 
 export const SELLER_INVENTORY: SellerInventoryItem[] = [

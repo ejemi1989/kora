@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import { useUser } from "@/components/user/user-context";
@@ -26,6 +27,18 @@ export function UserShell({ children }: { children: ReactNode }) {
   const { page, setPage, sidebar, setSidebar, cartCount, notifs, notifOpen, setNotifOpen, setNotifs, setPage: navigate, toasts } = useUser();
   const router = useRouter();
   const unread = notifs.filter((n) => !n.read).length;
+
+  useEffect(() => {
+    if (!notifOpen) return;
+    function handleClick(e: MouseEvent) {
+      const target = e.target as HTMLElement;
+      if (!target.closest(".user-notif-btn") && !target.closest(".user-notif-panel")) {
+        setNotifOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [notifOpen, setNotifOpen]);
 
   function handleNav(id: string) {
     setPage(id as any);
@@ -60,6 +73,19 @@ export function UserShell({ children }: { children: ReactNode }) {
         .user-notif-btn { position:relative; width:30px; height:30px; border-radius:6px; border:none; background:none; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--body); }
         .user-notif-btn:hover { background:var(--surface-soft); }
         .user-notif-dot { position:absolute; top:4px; right:4px; width:5px; height:5px; border-radius:50%; background:var(--danger); border:1.5px solid #fff; }
+        .user-notif-panel { position:absolute; top:40px; right:0; width:340px; background:#fff; border-radius:10px; box-shadow:0 4px 24px rgba(0,0,0,0.12); border:1px solid var(--hairline); z-index:300; max-height:400px; overflow-y:auto; }
+        .user-notif-panel-h { display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-bottom:1px solid var(--hairline); }
+        .user-notif-panel-title { font-size:13px; font-weight:600; color:var(--ink); }
+        .user-notif-panel-item { display:flex; gap:10px; padding:10px 14px; cursor:pointer; transition:background 100ms; border-bottom:1px solid var(--hairline); }
+        .user-notif-panel-item:hover { background:var(--canvas); }
+        .user-notif-panel-item:last-child { border-bottom:none; }
+        .user-notif-panel-dot { width:6px; height:6px; border-radius:50%; margin-top:5px; flex-shrink:0; }
+        .user-notif-panel-body { flex:1; min-width:0; }
+        .user-notif-panel-title-text { font-size:12px; font-weight:500; color:var(--ink); margin-bottom:1px; }
+        .user-notif-panel-desc { font-size:11px; color:var(--muted-text); margin-bottom:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .user-notif-panel-time { font-size:10px; color:var(--muted-text); }
+        .user-notif-panel-view { display:block; text-align:center; padding:10px; font-size:12px; color:var(--primary); cursor:pointer; border-top:1px solid var(--hairline); }
+        .user-notif-panel-view:hover { background:var(--canvas); }
         .user-avatar-btn { width:28px; height:28px; border-radius:6px; border:none; background:linear-gradient(135deg, var(--primary), var(--primary-deep)); color:#fff; font-size:10px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; }
         .user-content { flex:1; overflow-y:auto; padding:24px 28px; background:var(--canvas); }
         .user-toast-container { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:200; display:flex; flex-direction:column; align-items:center; gap:8px; pointer-events:none; }
@@ -109,10 +135,33 @@ export function UserShell({ children }: { children: ReactNode }) {
           <span className="user-topbar-title">Kora</span>
           <span className="user-topbar-sub">/ {pageLabels[page] || page}</span>
           <div className="user-topbar-spacer" />
-          <button className="user-notif-btn" onClick={() => { setNotifOpen(false); setPage("notifications" as any); router.push("/user/notifications"); }} title="Notifications">
-            <BellIcon size={18} />
-            {unread > 0 && <span className="user-notif-dot" />}
-          </button>
+          <div style={{ position: "relative" }}>
+            <button className="user-notif-btn" onClick={() => { setNotifOpen(!notifOpen); }} title="Notifications">
+              <BellIcon size={18} />
+              {unread > 0 && <span className="user-notif-dot" />}
+            </button>
+            {notifOpen && (
+              <div className="user-notif-panel">
+                <div className="user-notif-panel-h">
+                  <span className="user-notif-panel-title">Notifications</span>
+                  <span style={{ fontSize: 11, color: "var(--muted-text)" }}>{unread} unread</span>
+                </div>
+                {notifs.slice(0, 5).map((n) => (
+                  <div key={n.id} className="user-notif-panel-item" onClick={() => { setNotifOpen(false); setPage("notifications" as any); router.push("/user/notifications"); }}>
+                    <div className="user-notif-panel-dot" style={{ background: n.read ? "var(--hairline)" : "var(--danger)" }} />
+                    <div className="user-notif-panel-body">
+                      <div className="user-notif-panel-title-text">{n.title}</div>
+                      <div className="user-notif-panel-desc">{n.description}</div>
+                      <div className="user-notif-panel-time">{n.time}</div>
+                    </div>
+                  </div>
+                ))}
+                <div className="user-notif-panel-view" onClick={() => { setNotifOpen(false); setPage("notifications" as any); router.push("/user/notifications"); }}>
+                  View All Notifications →
+                </div>
+              </div>
+            )}
+          </div>
           <UserButton />
         </header>
         <main className="user-content">

@@ -60,6 +60,7 @@ export interface AdminOrder {
   payment: string;
   date: string;
   status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
+  trackingNumber?: string;
 }
 
 export interface AdminTransaction {

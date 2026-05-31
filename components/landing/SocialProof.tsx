@@ -5,8 +5,8 @@ const galleryImages = [
   { file: "gfinal_2.png", alt: "Palm fruit and tomatoes" },
   { file: "gfinal_3.png", alt: "Dried fish" },
   { file: "gfinal_4.png", alt: "Person" },
-  { file: "gfinal_5.png", alt: "White grain in clay bowl" },
-  { file: "gfinal_6.png", alt: "Groundnuts" },
+  { file: "", alt: "White grain in clay bowl" },
+  { file: "groundnut.png", alt: "Groundnuts" },
   { file: "gfinal_7.png", alt: "Person" },
 ];
 

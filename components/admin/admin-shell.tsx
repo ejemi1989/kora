@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import { useAdmin } from "@/components/admin/admin-context";
+import type { AdminPageId } from "@/lib/types/admin";
 import {
   HomeIcon, BellIcon, UsersIcon, StoreIcon, PackageIcon, ListIcon,
   CardIcon, ShieldIcon, BarChartIcon, FileIcon, SettingsIcon, DollarIcon,
@@ -59,7 +60,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   function handleNav(id: string) {
-    setPage(id as any);
+    setPage(id as AdminPageId);
     router.push(`/admin/${id}`);
     setSidebar(false);
   }
@@ -144,7 +145,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
       <aside className={`admin-sidebar ${sidebar ? "open" : ""}`}>
         <div className="admin-sidebar-brand">
           <div className="admin-logo">K</div>
-          <span className="admin-wordmark">kong<span>o</span></span>
+            <span className="admin-wordmark">Kora</span>
         </div>
         <nav className="admin-sidebar-nav">
           {navGroups.map((group) => (
@@ -165,7 +166,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
       <div className="admin-main">
         <header className="admin-topbar">
           <button className="admin-hamburger" onClick={() => setSidebar(true)}><MenuIcon /></button>
-          <span className="admin-topbar-title">Kongo</span>
+          <span className="admin-topbar-title">Kora</span>
           <span className="admin-topbar-sep">/</span>
           <span className="admin-topbar-current">{panelLabels[page] || page}</span>
           <div className="admin-topbar-spacer" />
@@ -173,7 +174,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <SearchIcon size={14} />
             <input placeholder="Search..." />
           </div>
-          <button className="admin-notif-btn" onClick={() => { setPage("notifications" as any); router.push("/admin/notifications"); }}>
+          <button className="admin-notif-btn" onClick={() => { setPage("notifications" as AdminPageId); router.push("/admin/notifications"); }}>
             <BellIcon size={18} />
             <span className="admin-notif-badge">6</span>
           </button>

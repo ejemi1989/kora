@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSeller } from "@/components/seller/seller-context";
 import { SELLER_ORDERS } from "@/lib/data/seller";
+import type { SellerOrder } from "@/lib/types/seller";
 import { SearchIcon } from "@/components/user/icons";
 
 const filterLabels = ["all", "pending", "processing", "shipped", "delivered", "cancelled"] as const;
@@ -30,6 +31,38 @@ export function OrdersPage() {
   function updateStatus(id: string, status: string) {
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: status as any } : o)));
     showToast(`Order ${id} updated to ${status}`, "success");
+  }
+
+  function updateTracking(id: string, tracking: string) {
+    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, trackingNumber: tracking || undefined } : o)));
+    showToast(`Tracking number added to ${id}`, "success");
+  }
+
+  function TrackingCell({ order, onUpdate }: { order: SellerOrder; onUpdate: (id: string, v: string) => void }) {
+    const [editing, setEditing] = useState(false);
+    const [val, setVal] = useState(order.trackingNumber || "");
+
+    if (order.trackingNumber && !editing) {
+      return (
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <span className="mono" style={{ fontSize: 10 }}>{order.trackingNumber}</span>
+          <button className="s-track-set" onClick={() => { setEditing(true); setVal(order.trackingNumber || ""); }}>Edit</button>
+        </div>
+      );
+    }
+
+    return (
+      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <input
+          className="s-track-input"
+          placeholder="Add..."
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") { onUpdate(order.id, val); setEditing(false); } }}
+        />
+        <button className="s-track-set" onClick={() => { onUpdate(order.id, val); setEditing(false); }}>Set</button>
+      </div>
+    );
   }
 
   return (
@@ -60,6 +93,10 @@ export function OrdersPage() {
         .s-table .mono { font-family:var(--font-mono); font-size:12px; color:var(--ash); }
         .s-status-select { padding:3px 6px; border:1px solid var(--hairline); border-radius:4px; font-size:11px; background:#fff; cursor:pointer; outline:none; }
         .s-status-select:focus { border-color:var(--primary); }
+        .s-track-input { width:90px; padding:3px 6px; border:1px solid var(--hairline); border-radius:4px; font-size:10px; font-family:var(--font-mono); background:#fff; outline:none; }
+        .s-track-input:focus { border-color:var(--primary); box-shadow:0 0 0 2px var(--primary-bg); }
+        .s-track-set { font-size:10px; color:var(--primary); cursor:pointer; border:none; background:none; padding:2px 4px; font-weight:500; }
+        .s-track-set:hover { text-decoration:underline; }
         @media (max-width:768px) { .s-search-wrap { width:100%; } }
       `}</style>
 
@@ -90,6 +127,7 @@ export function OrdersPage() {
               <th>Product</th>
               <th>Total</th>
               <th>Date</th>
+              <th>Tracking</th>
               <th>Status</th>
               <th></th>
             </tr>
@@ -103,6 +141,9 @@ export function OrdersPage() {
                 <td style={{ color: "var(--muted-text)" }}>{o.product}</td>
                 <td style={{ fontWeight: 500 }}>₦{o.total.toLocaleString()}</td>
                 <td style={{ color: "var(--muted-text)" }}>{o.date}</td>
+                <td>
+                  <TrackingCell order={o} onUpdate={updateTracking} />
+                </td>
                 <td><span className={`s-badge ${badgeClass[o.status]}`}>{o.status}</span></td>
                 <td>
                   <select

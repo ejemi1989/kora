@@ -32,13 +32,13 @@ export const ADMIN_PRODUCTS: AdminProduct[] = [
 ];
 
 export const ADMIN_ORDERS: AdminOrder[] = [
-  { id: "#ORD-3842", customer: "Amara Osei", items: 3, total: "KES 12,400", payment: "M-Pesa", date: "26 May", status: "shipped" },
+  { id: "#ORD-3842", customer: "Amara Osei", items: 3, total: "KES 12,400", payment: "M-Pesa", date: "26 May", status: "shipped", trackingNumber: "TRK-3842" },
   { id: "#ORD-3841", customer: "Kwame Mensah", items: 1, total: "KES 3,800", payment: "Card", date: "26 May", status: "pending" },
   { id: "#ORD-3840", customer: "Folake Nwachukwu", items: 5, total: "KES 28,500", payment: "M-Pesa", date: "25 May", status: "confirmed" },
-  { id: "#ORD-3839", customer: "Chidi Kamara", items: 2, total: "KES 6,200", payment: "M-Pesa", date: "25 May", status: "shipped" },
-  { id: "#ORD-3838", customer: "Zola Mbeki", items: 4, total: "KES 19,800", payment: "Bank", date: "24 May", status: "delivered" },
+  { id: "#ORD-3839", customer: "Chidi Kamara", items: 2, total: "KES 6,200", payment: "M-Pesa", date: "25 May", status: "shipped", trackingNumber: "TRK-3839" },
+  { id: "#ORD-3838", customer: "Zola Mbeki", items: 4, total: "KES 19,800", payment: "Bank", date: "24 May", status: "delivered", trackingNumber: "TRK-3838" },
   { id: "#ORD-3837", customer: "Esi Adjei", items: 1, total: "KES 1,200", payment: "M-Pesa", date: "24 May", status: "cancelled" },
-  { id: "#ORD-3836", customer: "Jabari Okonjo", items: 2, total: "KES 4,600", payment: "M-Pesa", date: "23 May", status: "shipped" },
+  { id: "#ORD-3836", customer: "Jabari Okonjo", items: 2, total: "KES 4,600", payment: "M-Pesa", date: "23 May", status: "shipped", trackingNumber: "TRK-3836" },
 ];
 
 export const ADMIN_TRANSACTIONS: AdminTransaction[] = [

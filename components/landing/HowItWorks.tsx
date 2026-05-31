@@ -40,13 +40,7 @@ export function HowItWorks() {
           opacity: 0.4,
         }}
       >
-        <Image
-          src="/images/node-91.png"
-          alt=""
-          fill
-          className="object-cover"
-          sizes="340px"
-        />
+
       </div>
       <div
         className="pointer-events-none absolute z-0 hidden lg:block"
@@ -58,13 +52,7 @@ export function HowItWorks() {
           opacity: 0.4,
         }}
       >
-        <Image
-          src="/images/node-92.png"
-          alt=""
-          fill
-          className="object-cover"
-          sizes="340px"
-        />
+
       </div>
 
       <div

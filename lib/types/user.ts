@@ -26,6 +26,7 @@ export interface UserOrder {
   amount: number;
   status: "confirmed" | "packed" | "shipped" | "delivered" | "cancelled";
   thumb: string;
+  trackingNumber?: string;
 }
 
 export interface TrackingEvent {

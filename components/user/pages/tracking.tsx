@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, Fragment } from "react";
-import { TRACKING_EVENTS } from "@/lib/data/user";
+import { ORDERS, TRACKING_EVENTS } from "@/lib/data/user";
 import { useUser } from "@/components/user/user-context";
 import type { TrackingEvent } from "@/lib/types/user";
 
@@ -9,8 +9,11 @@ const statusProgression = ["confirmed", "packed", "shipped", "delivered"];
 
 export function TrackingPage() {
   const { showToast } = useUser();
+  const [orderId, setOrderId] = useState("NP-3841");
   const [events, setEvents] = useState<TrackingEvent[]>(TRACKING_EVENTS);
   const [trackingStatus, setTrackingStatus] = useState("shipped");
+
+  const order = ORDERS.find((o) => o.id === orderId);
 
   function handleSimulate() {
     const idx = statusProgression.indexOf(trackingStatus);
@@ -35,12 +38,25 @@ export function TrackingPage() {
     <div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
         <h1 style={{ fontSize: 20, fontWeight: 600, letterSpacing: "-0.03em", color: "var(--ink)", margin: 0 }}>Tracking</h1>
-        <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--success)" }}>
-          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--success)", display: "inline-block" }} />
-          Live
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <select
+            value={orderId}
+            onChange={(e) => { setOrderId(e.target.value); setTrackingStatus("shipped"); setEvents(TRACKING_EVENTS); }}
+            style={{ fontSize: 11, padding: "4px 8px", borderRadius: 6, border: "1px solid var(--hairline)", background: "#fff", outline: "none" }}
+          >
+            {ORDERS.filter((o) => o.trackingNumber).map((o) => (
+              <option key={o.id} value={o.id}>{o.id}</option>
+            ))}
+          </select>
+          <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--success)" }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--success)", display: "inline-block" }} />
+            Live
+          </div>
         </div>
       </div>
-      <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 16 }}>NP-3841 &middot; Suya Spice Set, Plantain Chips, Palm Oil</p>
+      <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 16 }}>
+        {order?.id ?? orderId}{order?.trackingNumber ? ` \u00B7 Tracking: ${order.trackingNumber}` : ""} &middot; {order?.items ?? "Suya Spice Set, Plantain Chips, Palm Oil"}
+      </p>
 
       <div style={{ background: "var(--surface-soft)", borderRadius: 8, height: 180, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
         <div style={{ fontSize: 32, marginBottom: 8, color: "var(--stone)" }}>\uD83D\uDDFA\uFE0F</div>

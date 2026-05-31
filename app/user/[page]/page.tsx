@@ -12,6 +12,7 @@ import { NotificationsPage } from "@/components/user/pages/notifications";
 import { SettingsPage } from "@/components/user/pages/settings";
 import { use, useEffect } from "react";
 import { useUser } from "@/components/user/user-context";
+import type { PageId } from "@/lib/types/user";
 
 const pages: Record<string, React.FC> = {
   overview: OverviewPage,
@@ -29,7 +30,7 @@ const pages: Record<string, React.FC> = {
 export default function UserPage({ params }: { params: Promise<{ page: string }> }) {
   const { page } = use(params);
   const { setPage } = useUser();
-  useEffect(() => { setPage(page as any); }, [page, setPage]);
+  useEffect(() => { setPage(page as PageId); }, [page, setPage]);
   const Page = pages[page] || OverviewPage;
   return <Page />;
 }

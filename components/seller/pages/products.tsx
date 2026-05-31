@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useSeller } from "@/components/seller/seller-context";
 import { SELLER_PRODUCTS } from "@/lib/data/seller";
+import type { SellerProduct } from "@/lib/types/seller";
 import { SearchIcon, PlusIcon, XIcon } from "@/components/user/icons";
 
 const statusBadges: Record<string, string> = {
@@ -10,6 +11,83 @@ const statusBadges: Record<string, string> = {
   draft: "badge-draft",
   out_of_stock: "badge-oos",
 };
+
+const EMOJIS = ["🌶️", "🫒", "🐟", "🥬", "🥜", "🥣", "🫓", "🌰", "🍯", "🥥"];
+
+function ProductForm({
+  editing,
+  onSave,
+  onCancel,
+}: {
+  editing?: SellerProduct;
+  onSave: (data: { name: string; price: number; stock: number; category: string; unit: string; image: string | null }) => void;
+  onCancel: () => void;
+}) {
+  const [name, setName] = useState(editing?.name || "");
+  const [price, setPrice] = useState(editing?.price.toString() || "");
+  const [stock, setStock] = useState(editing?.stock.toString() || "");
+  const [category, setCategory] = useState(editing?.category || "Spices & Seasonings");
+  const [unit, setUnit] = useState("Piece");
+  const [image, setImage] = useState<string | null>(editing?.image || null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImage(URL.createObjectURL(file));
+    }
+  }
+
+  function handleSubmit() {
+    if (!name.trim()) return;
+    onSave({ name: name.trim(), price: Number(price) || 0, stock: Number(stock) || 0, category, unit, image });
+  }
+
+  return (
+    <div>
+      <div className="s-fg">
+        <label>Product Image</label>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <input ref={fileRef} type="file" accept="image/*" onChange={handleImageChange} style={{ fontSize: 12, flex: 1 }} />
+          {image && (
+            <button className="s-btn s-btn-g s-btn-sm" onClick={() => { setImage(null); if (fileRef.current) fileRef.current.value = ""; }} style={{ fontSize: 11, color: "var(--danger)" }}>
+              <XIcon size={12} />
+            </button>
+          )}
+        </div>
+        {image && <img src={image} alt="" style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 8, marginTop: 8, border: "1px solid var(--hairline)" }} />}
+      </div>
+      <div className="s-fg"><label>Product Name</label><input className="s-fi" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Fresh Palm Oil" /></div>
+      <div className="s-fr">
+        <div className="s-fg"><label>Price (₦)</label><input className="s-fi" type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0" /></div>
+        <div className="s-fg"><label>Stock Quantity</label><input className="s-fi" type="number" value={stock} onChange={(e) => setStock(e.target.value)} placeholder="0" /></div>
+      </div>
+      <div className="s-fr">
+        <div className="s-fg"><label>Category</label>
+          <select className="s-fi" value={category} onChange={(e) => setCategory(e.target.value)}>
+            <option>Spices & Seasonings</option>
+            <option>Oils & Fats</option>
+            <option>Grains & Rice</option>
+            <option>Fish & Meat</option>
+            <option>Vegetables</option>
+          </select>
+        </div>
+        <div className="s-fg"><label>Unit</label>
+          <select className="s-fi" value={unit} onChange={(e) => setUnit(e.target.value)}>
+            <option>Piece</option>
+            <option>Kilogram</option>
+            <option>Litre</option>
+            <option>Pack</option>
+          </select>
+        </div>
+      </div>
+      <div className="s-modal-actions">
+        <button className="s-btn s-btn-s" onClick={onCancel}>Cancel</button>
+        <button className="s-btn s-btn-p" onClick={handleSubmit}>{editing ? "Save Changes" : "Add Product"}</button>
+      </div>
+    </div>
+  );
+}
 
 export function ProductsPage() {
   const { showToast, openModal, closeModal } = useSeller();
@@ -30,37 +108,50 @@ export function ProductsPage() {
 
   function handleAdd() {
     openModal("Add Product", (
-      <div>
-        <div className="s-fg"><label>Product Name</label><input className="s-fi" placeholder="e.g. Fresh Palm Oil" id="prodName" /></div>
-        <div className="s-fg"><label>Description</label><textarea className="s-fi" rows={3} placeholder="Describe your product…" /></div>
-        <div className="s-fr">
-          <div className="s-fg"><label>Price (₦)</label><input className="s-fi" type="number" placeholder="0" /></div>
-          <div className="s-fg"><label>Stock Quantity</label><input className="s-fi" type="number" placeholder="0" /></div>
-        </div>
-        <div className="s-fr">
-          <div className="s-fg"><label>Category</label>
-            <select className="s-fi">
-              <option>Spices & Seasonings</option>
-              <option>Oils & Fats</option>
-              <option>Grains & Rice</option>
-              <option>Fish & Meat</option>
-              <option>Vegetables</option>
-            </select>
-          </div>
-          <div className="s-fg"><label>Unit</label>
-            <select className="s-fi">
-              <option>Piece</option>
-              <option>Kilogram</option>
-              <option>Litre</option>
-              <option>Pack</option>
-            </select>
-          </div>
-        </div>
-        <div className="s-modal-actions">
-          <button className="s-btn s-btn-s" onClick={closeModal}>Cancel</button>
-          <button className="s-btn s-btn-p" onClick={() => { showToast("Product added!", "success"); closeModal(); }}>Add Product</button>
-        </div>
-      </div>
+      <ProductForm
+        onSave={(data) => {
+          const newId = Math.max(0, ...products.map((p) => p.id)) + 1;
+          const emoji = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+          const product: SellerProduct = {
+            id: newId,
+            name: data.name,
+            emoji,
+            category: data.category,
+            price: data.price,
+            stock: data.stock,
+            available: data.stock,
+            sales: 0,
+            status: "draft",
+            image: data.image || undefined,
+          };
+          setProducts((prev) => [product, ...prev]);
+          showToast("Product added!", "success");
+          closeModal();
+        }}
+        onCancel={closeModal}
+      />
+    ));
+  }
+
+  function handleEdit(p: SellerProduct) {
+    openModal(`Edit ${p.name}`, (
+      <ProductForm
+        editing={p}
+        onSave={(data) => {
+          setProducts((prev) => prev.map((x) => x.id === p.id ? {
+            ...x,
+            name: data.name,
+            price: data.price,
+            stock: data.stock,
+            available: data.stock,
+            category: data.category,
+            image: data.image || undefined,
+          } : x));
+          showToast(`${data.name} updated!`, "success");
+          closeModal();
+        }}
+        onCancel={closeModal}
+      />
     ));
   }
 
@@ -97,10 +188,9 @@ export function ProductsPage() {
         .badge-oos { background:rgba(238,0,0,0.08); color:var(--danger); }
         .s-fg { margin-bottom:12px; }
         .s-fg label { display:block; font-size:12px; font-weight:450; color:var(--body); margin-bottom:4px; }
-        .s-fi { width:100%; height:38px; padding:0 10px; border:1px solid var(--hairline); border-radius:var(--radius-sm); font-size:12px; outline:none; }
+        .s-fi { width:100%; height:38px; padding:0 10px; border:1px solid var(--hairline); border-radius:var(--radius-sm); font-size:12px; outline:none; box-sizing:border-box; }
         .s-fi:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-bg); }
-        .s-fi[type="number"] { width:100%; }
-        .s-fi textarea { height:auto; padding:8px 10px; resize:vertical; min-height:60px; }
+        textarea.s-fi { height:auto; padding:8px 10px; resize:vertical; min-height:60px; }
         .s-fr { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
         .s-modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; }
         @media (max-width:768px) { .s-search-wrap { width:100%; } }
@@ -145,7 +235,11 @@ export function ProductsPage() {
           <tbody>
             {filtered.map((p) => (
               <tr key={p.id}>
-                <td><span style={{ marginRight: 6 }}>{p.emoji}</span>{p.name}</td>
+                <td>
+                  {p.image && <img src={p.image} alt="" style={{ width: 20, height: 20, borderRadius: 4, objectFit: "cover", marginRight: 6, verticalAlign: "middle" }} />}
+                  <span style={{ marginRight: p.image ? 0 : 6 }}>{p.emoji}</span>
+                  {p.name}
+                </td>
                 <td style={{ color: "var(--muted-text)" }}>{p.category}</td>
                 <td style={{ fontWeight: 500 }}>₦{p.price.toLocaleString()}</td>
                 <td>{p.stock}</td>
@@ -153,7 +247,7 @@ export function ProductsPage() {
                 <td><span className={`s-badge ${statusBadges[p.status]}`}>{p.status.replace(/_/g, " ")}</span></td>
                 <td>
                   <div style={{ display: "flex", gap: 4 }}>
-                    <button className="s-btn s-btn-s s-btn-sm" onClick={() => showToast(`Editing ${p.name}…`, "default")}>Edit</button>
+                    <button className="s-btn s-btn-s s-btn-sm" onClick={() => handleEdit(p)}>Edit</button>
                     <button className="s-btn s-btn-g s-btn-sm" onClick={() => handleDelete(p.id)}>Delete</button>
                   </div>
                 </td>

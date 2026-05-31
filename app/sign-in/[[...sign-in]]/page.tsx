@@ -1,9 +1,9 @@
 "use client";
 
 import { useSignIn, useAuth } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Role = "CUSTOMER" | "SELLER" | "ADMIN";
 
@@ -44,13 +44,22 @@ export default function SignInPage() {
   const { signIn, errors, fetchStatus } = useSignIn();
   const { isSignedIn } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [role, setRole] = useState<Role>("CUSTOMER");
   const [step, setStep] = useState<"sign-in" | "mfa">("sign-in");
   const [formError, setFormError] = useState<string | null>(null);
 
+  const navigatingRef = useRef(false);
+
+  const urlError = searchParams.get("error");
+  const urlExpected = searchParams.get("expected");
+  const urlActual = searchParams.get("actual");
+
   useEffect(() => {
-    if (isSignedIn) router.push("/auth/callback");
-  }, [isSignedIn, router]);
+    if (isSignedIn && !navigatingRef.current) {
+      router.push("/auth/callback?intended_role=" + encodeURIComponent(role));
+    }
+  }, [isSignedIn, router, role]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -82,17 +91,14 @@ export default function SignInPage() {
     }
 
     if (status === "complete" || status === "needs_client_trust") {
+      navigatingRef.current = true;
       const { error: finalizeError } = await signIn.finalize({
         navigate: ({ session, decorateUrl }) => {
-          const url = decorateUrl("/auth/callback");
-          if (url.startsWith("http")) {
-            window.location.href = url;
-          } else {
-            router.push(url);
-          }
+          const url = decorateUrl("/auth/callback?intended_role=" + encodeURIComponent(role));
+          window.location.href = url.startsWith("http") ? url : new URL(url, window.location.origin).href;
         },
       });
-      if (finalizeError) { setFormError(finalizeError.message); }
+      if (finalizeError) { navigatingRef.current = false; setFormError(finalizeError.message); }
       return;
     }
 
@@ -124,24 +130,21 @@ export default function SignInPage() {
     if (errorResult?.error) { setFormError(errorResult.error.message); return; }
 
     if (signIn.status === "complete") {
+      navigatingRef.current = true;
       const { error: finalizeError } = await signIn.finalize({
         navigate: ({ session, decorateUrl }) => {
-          const url = decorateUrl("/auth/callback");
-          if (url.startsWith("http")) {
-            window.location.href = url;
-          } else {
-            router.push(url);
-          }
+          const url = decorateUrl("/auth/callback?intended_role=" + encodeURIComponent(role));
+          window.location.href = url.startsWith("http") ? url : new URL(url, window.location.origin).href;
         },
       });
-      if (finalizeError) { setFormError(finalizeError.message); }
+      if (finalizeError) { navigatingRef.current = false; setFormError(finalizeError.message); }
     }
   };
 
   const handleGoogleSignIn = async () => {
     await signIn.sso({
       strategy: "oauth_google",
-      redirectUrl: "/auth/callback",
+      redirectUrl: "/auth/callback?intended_role=" + encodeURIComponent(role),
       redirectCallbackUrl: "/sso-callback",
     });
   };
@@ -212,6 +215,15 @@ export default function SignInPage() {
                   {roles.find((r) => r.key === role)?.subtitle}
                 </p>
               </div>
+
+              {urlError === "role_mismatch" && (() => {
+                const labels: Record<string, string> = { CUSTOMER: "Buyer", SELLER: "Seller", ADMIN: "Admin" };
+                return (
+                  <p style={{ fontSize: 12, color: "var(--danger)", padding: "8px 12px", background: "var(--danger-bg)", borderRadius: "var(--radius-sm)" }}>
+                    This account is registered as <strong>{labels[urlActual || ""] || urlActual}</strong>. Please use the &ldquo;{labels[urlExpected || ""] || urlExpected}&rdquo; tab to sign in.
+                  </p>
+                );
+              })()}
 
               <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 {formError && (

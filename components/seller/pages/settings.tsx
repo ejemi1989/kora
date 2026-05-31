@@ -5,10 +5,16 @@ import { useSeller } from "@/components/seller/seller-context";
 
 export function SettingsPage() {
   const { showToast } = useSeller();
-  const [storeName, setStoreName] = useState("Akara Market");
+  const [storeName, setStoreName] = useState("Kora");
   const [description, setDescription] = useState("Premium African food ingredients — jollof spices, groundnut paste, smoked fish, and more delivered fresh.");
-  const [email, setEmail] = useState("hello@akaramarket.com");
+  const [email, setEmail] = useState("hello@kora.com");
   const [phone, setPhone] = useState("+234 800 AKARA");
+
+  const [bankName, setBankName] = useState("GTBank");
+  const [accountNumber, setAccountNumber] = useState("0123456789");
+  const [accountName, setAccountName] = useState("Kora Ventures");
+  const [autoWithdraw, setAutoWithdraw] = useState("₦100,000");
+  const [payoutSchedule, setPayoutSchedule] = useState("Weekly (every Monday)");
 
   function handleSaveStore(e: React.FormEvent) {
     e.preventDefault();
@@ -31,10 +37,9 @@ export function SettingsPage() {
         .s-settings-section h3 { font-size:13px; font-weight:600; color:var(--ink); margin:0 0 12px; }
         .s-fg { margin-bottom:12px; }
         .s-fg label { display:block; font-size:12px; font-weight:450; color:var(--body); margin-bottom:4px; }
-        .s-fi { width:100%; height:38px; padding:0 10px; border:1px solid var(--hairline); border-radius:var(--radius-sm); font-size:12px; outline:none; }
+        .s-fi { width:100%; height:38px; padding:0 10px; border:1px solid var(--hairline); border-radius:var(--radius-sm); font-size:12px; outline:none; box-sizing:border-box; }
         .s-fi:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-bg); }
-        .s-fi textarea { height:auto; resize:vertical; }
-        textarea.s-fi { padding:8px 10px; min-height:60px; }
+        textarea.s-fi { height:auto; padding:8px 10px; resize:vertical; min-height:60px; }
         select.s-fi { appearance:auto; }
         .s-btn { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:var(--radius-sm); font-size:12px; font-weight:500; cursor:pointer; border:none; transition:all 150ms; }
         .s-btn-p { background:var(--primary); color:#fff; }
@@ -77,7 +82,7 @@ export function SettingsPage() {
             <form onSubmit={handleSaveBank}>
               <div className="s-fg">
                 <label>Bank Name</label>
-                <select className="s-fi">
+                <select className="s-fi" value={bankName} onChange={(e) => setBankName(e.target.value)}>
                   <option>GTBank</option>
                   <option>Access Bank</option>
                   <option>First Bank</option>
@@ -86,11 +91,11 @@ export function SettingsPage() {
               </div>
               <div className="s-fg">
                 <label>Account Number</label>
-                <input className="s-fi" defaultValue="0123456789" />
+                <input className="s-fi" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} />
               </div>
               <div className="s-fg">
                 <label>Account Name</label>
-                <input className="s-fi" defaultValue="Akara Market Ventures" />
+                <input className="s-fi" value={accountName} onChange={(e) => setAccountName(e.target.value)} />
               </div>
               <button type="submit" className="s-btn s-btn-p">Save Changes</button>
             </form>
@@ -100,17 +105,17 @@ export function SettingsPage() {
             <h3>Payout Preferences</h3>
             <div className="s-fg">
               <label>Auto Withdraw Threshold</label>
-              <select className="s-fi">
+              <select className="s-fi" value={autoWithdraw} onChange={(e) => setAutoWithdraw(e.target.value)}>
                 <option>₦50,000</option>
-                <option selected>₦100,000</option>
+                <option>₦100,000</option>
                 <option>₦200,000</option>
               </select>
             </div>
             <div className="s-fg">
               <label>Payout Schedule</label>
-              <select className="s-fi">
+              <select className="s-fi" value={payoutSchedule} onChange={(e) => setPayoutSchedule(e.target.value)}>
                 <option>Manual only</option>
-                <option selected>Weekly (every Monday)</option>
+                <option>Weekly (every Monday)</option>
                 <option>Bi-weekly</option>
               </select>
             </div>

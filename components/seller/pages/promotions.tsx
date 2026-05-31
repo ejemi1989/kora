@@ -12,63 +12,108 @@ const promoStatusBadges: Record<string, string> = {
   draft: "s-badge-draft",
 };
 
+function formatDate(dateStr: string) {
+  if (!dateStr) return "Unlimited";
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+}
+
+function PromotionForm({
+  editing,
+  onSave,
+  onCancel,
+}: {
+  editing?: SellerPromotion;
+  onSave: (data: { code: string; discountType: string; value: string; startDate: string; endDate: string; applicable: string; minOrder: string }) => void;
+  onCancel: () => void;
+}) {
+  const [code, setCode] = useState(editing?.code || "");
+  const [discountType, setDiscountType] = useState("Percentage (%)");
+  const [value, setValue] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [applicable, setApplicable] = useState("All Products");
+  const [minOrder, setMinOrder] = useState("");
+
+  return (
+    <div>
+      <div className="s-fg"><label>Promo Code</label><input className="s-fi" value={code} onChange={(e) => setCode(e.target.value)} placeholder="e.g. SUMMER20" /></div>
+      <div className="s-fr">
+        <div className="s-fg"><label>Discount Type</label>
+          <select className="s-fi" value={discountType} onChange={(e) => setDiscountType(e.target.value)}>
+            <option>Percentage (%)</option>
+            <option>Fixed Amount (₦)</option>
+          </select>
+        </div>
+        <div className="s-fg"><label>Value</label><input className="s-fi" type="number" value={value} onChange={(e) => setValue(e.target.value)} placeholder="0" /></div>
+      </div>
+      <div className="s-fr">
+        <div className="s-fg"><label>Start Date</label><input className="s-fi" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} /></div>
+        <div className="s-fg"><label>End Date</label><input className="s-fi" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} /></div>
+      </div>
+      <div className="s-fg"><label>Applicable Products</label>
+        <select className="s-fi" value={applicable} onChange={(e) => setApplicable(e.target.value)}>
+          <option>All Products</option>
+          <option>Spices & Seasonings</option>
+          <option>Select individually…</option>
+        </select>
+      </div>
+      <div className="s-fg"><label>Minimum Order</label><input className="s-fi" type="number" value={minOrder} onChange={(e) => setMinOrder(e.target.value)} placeholder="0 (no minimum)" /></div>
+      <div className="s-modal-actions">
+        <button className="s-btn s-btn-s" onClick={onCancel}>Cancel</button>
+        <button className="s-btn s-btn-p" onClick={() => onSave({ code, discountType, value, startDate, endDate, applicable, minOrder })}>
+          {editing ? "Save" : "Create Promotion"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function PromotionsPage() {
   const { showToast, openModal, closeModal } = useSeller();
   const [promos, setPromos] = useState(SELLER_PROMOTIONS);
 
   function handleNew() {
     openModal("New Promotion", (
-      <div>
-        <div className="s-fg"><label>Promo Code</label><input className="s-fi" placeholder="e.g. SUMMER20" id="promoCode" /></div>
-        <div className="s-fr">
-          <div className="s-fg"><label>Discount Type</label>
-            <select className="s-fi">
-              <option>Percentage (%)</option>
-              <option>Fixed Amount (₦)</option>
-            </select>
-          </div>
-          <div className="s-fg"><label>Value</label><input className="s-fi" type="number" placeholder="0" /></div>
-        </div>
-        <div className="s-fr">
-          <div className="s-fg"><label>Start Date</label><input className="s-fi" type="date" /></div>
-          <div className="s-fg"><label>End Date</label><input className="s-fi" type="date" /></div>
-        </div>
-        <div className="s-fg"><label>Applicable Products</label>
-          <select className="s-fi">
-            <option>All Products</option>
-            <option>Spices & Seasonings</option>
-            <option>Select individually…</option>
-          </select>
-        </div>
-        <div className="s-fg"><label>Minimum Order</label><input className="s-fi" type="number" placeholder="0 (no minimum)" /></div>
-        <div className="s-modal-actions">
-          <button className="s-btn s-btn-s" onClick={closeModal}>Cancel</button>
-          <button className="s-btn s-btn-p" onClick={() => { showToast("Promotion created!", "success"); closeModal(); }}>Create Promotion</button>
-        </div>
-      </div>
+      <PromotionForm
+        onSave={(data) => {
+          if (!data.code.trim()) { showToast("Promo code is required", "error"); return; }
+          const discountLabel = data.discountType === "Percentage (%)" ? `${data.value || "0"}% off` : `₦${Number(data.value || 0).toLocaleString()} off`;
+          const promo: SellerPromotion = {
+            code: data.code,
+            discount: discountLabel,
+            details: data.applicable,
+            ends: formatDate(data.endDate),
+            status: "draft",
+          };
+          setPromos((prev) => [promo, ...prev]);
+          showToast("Promotion created!", "success");
+          closeModal();
+        }}
+        onCancel={closeModal}
+      />
     ));
   }
 
   function handleEdit(p: SellerPromotion) {
-    showToast(`Editing ${p.code} promotion…`, "default");
     openModal(`Edit ${p.code}`, (
-      <div>
-        <div className="s-fg"><label>Promo Code</label><input className="s-fi" defaultValue={p.code} /></div>
-        <div className="s-fr">
-          <div className="s-fg"><label>Discount Type</label>
-            <select className="s-fi"><option>Percentage (%)</option><option>Fixed Amount (₦)</option></select>
-          </div>
-          <div className="s-fg"><label>Value</label><input className="s-fi" type="number" placeholder="0" /></div>
-        </div>
-        <div className="s-fr">
-          <div className="s-fg"><label>Start Date</label><input className="s-fi" type="date" /></div>
-          <div className="s-fg"><label>End Date</label><input className="s-fi" type="date" /></div>
-        </div>
-        <div className="s-modal-actions">
-          <button className="s-btn s-btn-s" onClick={closeModal}>Cancel</button>
-          <button className="s-btn s-btn-p" onClick={() => { showToast(`${p.code} updated!`, "success"); closeModal(); }}>Save</button>
-        </div>
-      </div>
+      <PromotionForm
+        editing={p}
+        onSave={(data) => {
+          if (!data.code.trim()) { showToast("Promo code is required", "error"); return; }
+          const discountLabel = data.discountType === "Percentage (%)" ? `${data.value || "0"}% off` : `₦${Number(data.value || 0).toLocaleString()} off`;
+          setPromos((prev) => prev.map((x) => x.code === p.code ? {
+            ...x,
+            code: data.code,
+            discount: discountLabel,
+            details: data.applicable,
+            ends: formatDate(data.endDate),
+          } : x));
+          showToast(`${data.code} updated!`, "success");
+          closeModal();
+        }}
+        onCancel={closeModal}
+      />
     ));
   }
 
@@ -96,7 +141,7 @@ export function PromotionsPage() {
         .s-badge-draft { background:var(--surface-soft); color:var(--muted-text); }
         .s-fg { margin-bottom:12px; }
         .s-fg label { display:block; font-size:12px; font-weight:450; color:var(--body); margin-bottom:4px; }
-        .s-fi { width:100%; height:38px; padding:0 10px; border:1px solid var(--hairline); border-radius:var(--radius-sm); font-size:12px; outline:none; }
+        .s-fi { width:100%; height:38px; padding:0 10px; border:1px solid var(--hairline); border-radius:var(--radius-sm); font-size:12px; outline:none; box-sizing:border-box; }
         .s-fi:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-bg); }
         .s-fr { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
         .s-modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; }

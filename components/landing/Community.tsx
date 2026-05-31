@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 const bulletItems = [
   "Browse thousands of authentic products",
@@ -171,23 +172,26 @@ export function Community() {
             ))}
           </ul>
 
-          <a
-            href="#"
+          <Link
+            href="/sign-up"
             style={{
               display: "inline-block",
               background: "rgba(17,17,17,1)",
               color: "#fff",
-              padding: "14px 56px",
-              borderRadius: "999px",
-              fontSize: "15.3px",
-              fontWeight: 400,
-              lineHeight: "22.4px",
-              border: "1px solid transparent",
+              padding: "12px 28px",
+              borderRadius: "var(--radius-xs)",
+              fontSize: 13,
+              fontWeight: 550,
+              letterSpacing: "-0.01em",
+              cursor: "pointer",
               textDecoration: "none",
+              transition: "opacity 200ms",
             }}
+            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
+            onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
           >
             Get started
-          </a>
+          </Link>
         </div>
       </div>
     </section>

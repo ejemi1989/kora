@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export function Hero() {
   return (
@@ -33,13 +34,7 @@ export function Hero() {
           opacity: 0.4,
         }}
       >
-        <Image
-          src="/images/node-91.png"
-          alt=""
-          fill
-          className="object-cover"
-          sizes="340px"
-        />
+
       </div>
       <div
         className="pointer-events-none absolute z-0 hidden lg:block"
@@ -51,13 +46,7 @@ export function Hero() {
           opacity: 0.4,
         }}
       >
-        <Image
-          src="/images/node-92.png"
-          alt=""
-          fill
-          className="object-cover"
-          sizes="340px"
-        />
+
       </div>
 
       <div
@@ -96,22 +85,22 @@ export function Hero() {
             delivery in real time. We deliver the best in real time
           </p>
           <div className="flex" style={{ gap: "16px" }}>
-            <a
+            <Link
               href="/sign-up"
               style={{
                 background: "var(--pr)",
                 color: "#fff",
                 padding: "12px 24px",
-                borderRadius: "24px",
-                fontSize: "18px",
-                fontWeight: 700,
-                lineHeight: "21.6px",
-                border: "1px solid transparent",
+                fontSize: 14,
+                fontWeight: 520,
+                borderRadius: "var(--radius-xs)",
+                cursor: "pointer",
                 textDecoration: "none",
+                display: "inline-block",
               }}
             >
               Start for free
-            </a>
+            </Link>
             <a
               href="#"
               className="flex items-center"

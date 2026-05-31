@@ -77,6 +77,11 @@ export function OrdersPage() {
             </div>
             <div style={{ fontSize: 18, fontWeight: 600, color: "var(--primary)" }}>\u20A6{order.amount.toFixed(2)}</div>
             <div style={{ fontSize: 11, color: "var(--ash)", marginTop: 2 }}>{itemNames.length} item{itemNames.length > 1 ? "s" : ""}</div>
+            {order.trackingNumber && (
+              <div style={{ marginTop: 8, padding: "6px 10px", background: "var(--canvas)", borderRadius: 6, fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--body)" }}>
+                Tracking: {order.trackingNumber}
+              </div>
+            )}
           </div>
 
           <div style={{ background: "#fff", borderRadius: 8, boxShadow: "0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)", padding: 16 }}>

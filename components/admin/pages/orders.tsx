@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAdmin } from "@/components/admin/admin-context";
-import { ADMIN_ORDERS } from "@/lib/data/admin";
+import { ADMIN_ORDERS as ADMIN_ORDERS_DATA } from "@/lib/data/admin";
 import type { AdminOrder } from "@/lib/types/admin";
 import { SearchIcon } from "@/components/user/icons";
 
@@ -20,8 +20,9 @@ export function OrdersPage() {
   const { showToast, openModal, closeModal } = useAdmin();
   const [activeFilter, setActiveFilter] = useState("All");
   const [search, setSearch] = useState("");
+  const [orders, setOrders] = useState(ADMIN_ORDERS_DATA);
 
-  const filtered = ADMIN_ORDERS.filter((o) => {
+  const filtered = orders.filter((o) => {
     if (activeFilter !== "All" && o.status !== activeFilter.toLowerCase()) return false;
     if (search && !o.id.toLowerCase().includes(search.toLowerCase()) && !o.customer.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
@@ -45,15 +46,37 @@ export function OrdersPage() {
             </div>
           ))}
         </div>
-        <div style={{ padding: 12, background: "var(--canvas)", borderRadius: 6 }}>
-          <div className="di-label" style={{ marginBottom: 4 }}>Tracking</div>
-          <div style={{ fontSize: 12, color: "var(--muted-text)" }}>No tracking info available yet.</div>
-        </div>
+        <TrackingSection order={order} />
         <div className="admin-modal-actions">
           <button className="btn btn-s" onClick={closeModal}>Close</button>
         </div>
       </div>
     ));
+  }
+
+  function TrackingSection({ order }: { order: AdminOrder }) {
+    const [tracking, setTracking] = useState(order.trackingNumber || "");
+
+    function saveTracking() {
+      setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, trackingNumber: tracking || undefined } : o)));
+      showToast(`Tracking number saved for ${order.id}`, "success");
+    }
+
+    return (
+      <div style={{ padding: 12, background: "var(--canvas)", borderRadius: 6, marginTop: 12 }}>
+        <div className="di-label" style={{ marginBottom: 6 }}>Tracking Number</div>
+        <div style={{ display: "flex", gap: 6 }}>
+          <input
+            value={tracking}
+            onChange={(e) => setTracking(e.target.value)}
+            placeholder="Enter tracking number..."
+            style={{ flex: 1, height: 32, padding: "0 8px", border: "1px solid var(--hairline)", borderRadius: 4, fontSize: 12, fontFamily: "var(--font-mono)", outline: "none" }}
+            onKeyDown={(e) => { if (e.key === "Enter") saveTracking(); }}
+          />
+          <button className="btn btn-p" onClick={saveTracking} style={{ height: 32, fontSize: 11 }}>Save</button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -124,6 +147,7 @@ export function OrdersPage() {
               <th>Total</th>
               <th>Payment</th>
               <th>Date</th>
+              <th>Tracking</th>
               <th>Status</th>
               <th>Action</th>
             </tr>
@@ -137,6 +161,7 @@ export function OrdersPage() {
                 <td style={{ fontWeight: 500 }}>{o.total}</td>
                 <td>{o.payment}</td>
                 <td>{o.date}</td>
+                <td>{o.trackingNumber ? <span className="mono" style={{ fontSize: 11 }}>{o.trackingNumber}</span> : <span style={{ fontSize: 11, color: "var(--muted-text)" }}>—</span>}</td>
                 <td><span className={`pill ${pillClass[o.status]}`}>{o.status}</span></td>
                 <td><button className="action-link" onClick={() => handleView(o)}>View</button></td>
               </tr>

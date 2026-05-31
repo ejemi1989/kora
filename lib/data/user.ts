@@ -43,12 +43,12 @@ export const INITIAL_CART: CartItem[] = [
 ];
 
 export const ORDERS: UserOrder[] = [
-  { id: "NP-3842", items: "Jollof Rice Party Pack · Garri · Egusi Soup Mix", date: "May 24", amount: 47.20, status: "delivered", thumb: "\uD83C\uDF5A" },
-  { id: "NP-3841", items: "Suya Spice Set · Plantain Chips · Palm Oil", date: "May 23", amount: 32.50, status: "shipped", thumb: "\uD83C\uDF36\uFE0F" },
-  { id: "NP-3840", items: "Fufu Flour · Ogbono · Stockfish", date: "May 22", amount: 28.80, status: "packed", thumb: "\uD83E\uDD63" },
+  { id: "NP-3842", items: "Jollof Rice Party Pack · Garri · Egusi Soup Mix", date: "May 24", amount: 47.20, status: "delivered", thumb: "\uD83C\uDF5A", trackingNumber: "TRK-3842" },
+  { id: "NP-3841", items: "Suya Spice Set · Plantain Chips · Palm Oil", date: "May 23", amount: 32.50, status: "shipped", thumb: "\uD83C\uDF36\uFE0F", trackingNumber: "TRK-3841" },
+  { id: "NP-3840", items: "Fufu Flour · Ogbono · Stockfish", date: "May 22", amount: 28.80, status: "packed", thumb: "\uD83E\uDD63", trackingNumber: "TRK-3840" },
   { id: "NP-3839", items: "Groundnut Cake · Zobo Drink Mix · Coconut Rice", date: "May 21", amount: 19.95, status: "confirmed", thumb: "\uD83E\uDD5C" },
-  { id: "NP-3838", items: "Smoked Catfish · Cassava Flour · Uziza Leaves", date: "May 20", amount: 38.40, status: "delivered", thumb: "\uD83D\uDC1F" },
-  { id: "NP-3837", items: "Agege Bread · Ewa Agoyin Kit · Pepper Sauce", date: "May 19", amount: 15.60, status: "delivered", thumb: "\uD83C\uDF5E" },
+  { id: "NP-3838", items: "Smoked Catfish · Cassava Flour · Uziza Leaves", date: "May 20", amount: 38.40, status: "delivered", thumb: "\uD83D\uDC1F", trackingNumber: "TRK-3838" },
+  { id: "NP-3837", items: "Agege Bread · Ewa Agoyin Kit · Pepper Sauce", date: "May 19", amount: 15.60, status: "delivered", thumb: "\uD83C\uDF5E", trackingNumber: "TRK-3837" },
 ];
 
 export const TRACKING_EVENTS: TrackingEvent[] = [

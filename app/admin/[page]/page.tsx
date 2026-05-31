@@ -2,6 +2,7 @@
 
 import { use, useEffect } from "react";
 import { useAdmin } from "@/components/admin/admin-context";
+import type { AdminPageId } from "@/lib/types/admin";
 import { OverviewPage } from "@/components/admin/pages/overview";
 import { UsersPage } from "@/components/admin/pages/users";
 import { SellersPage } from "@/components/admin/pages/sellers";
@@ -33,7 +34,7 @@ const pages: Record<string, React.FC> = {
 export default function AdminPage({ params }: { params: Promise<{ page: string }> }) {
   const { page } = use(params);
   const { setPage } = useAdmin();
-  useEffect(() => { setPage(page as any); }, [page, setPage]);
+  useEffect(() => { setPage(page as AdminPageId); }, [page, setPage]);
   const Page = pages[page] || OverviewPage;
   return <Page />;
 }
