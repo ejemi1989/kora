@@ -1,16 +1,21 @@
-import { PrismaClient } from "./generated/prisma/client"
+let client: any = null
 
-let client: PrismaClient | null = null
-
-export function getPrisma(): PrismaClient {
+export function getPrisma() {
   if (!client) {
-    client = new PrismaClient()
+    try {
+      const { PrismaClient } = require("./generated/prisma/client")
+      client = new PrismaClient()
+    } catch {
+      return null
+    }
   }
   return client
 }
 
-export const prisma = new Proxy({} as PrismaClient, {
+export const prisma = new Proxy({} as any, {
   get(_, prop: string | symbol) {
-    return (getPrisma() as any)[prop]
+    const p = getPrisma()
+    if (!p) return undefined
+    return p[prop]
   },
 })
