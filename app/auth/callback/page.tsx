@@ -1,6 +1,5 @@
 import { auth, currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
-import { prisma } from "@/lib/prisma"
 
 const dashboardMap: Record<string, string> = {
   ADMIN: "/admin/overview",
@@ -24,13 +23,19 @@ export default async function AuthCallbackPage({
   const email = clerkUser.emailAddresses?.[0]?.emailAddress
   if (!email) redirect("/sign-in")
 
-  const dbUser = await prisma.user.findUnique({ where: { email } })
-
   let actualRole: string | undefined
 
-  if (dbUser) {
-    actualRole = dbUser.role
-  } else {
+  try {
+    const { prisma } = await import("@/lib/prisma")
+    const dbUser = await prisma.user.findUnique({ where: { email } })
+    if (dbUser) {
+      actualRole = dbUser.role
+    }
+  } catch {
+    // DB not available — fall through to Clerk metadata below
+  }
+
+  if (!actualRole) {
     actualRole = (clerkUser.unsafeMetadata?.role as string) || undefined
   }
 
@@ -38,15 +43,9 @@ export default async function AuthCallbackPage({
     redirect(`/sign-in?error=role_mismatch&expected=${intendedRole}&actual=${actualRole}`)
   }
 
-  if (dbUser) {
-    const destination = dashboardMap[dbUser.role] || "/user/overview"
-    redirect(destination)
+  if (actualRole && dashboardMap[actualRole]) {
+    redirect(dashboardMap[actualRole])
   }
 
-  const metadataRole = clerkUser.unsafeMetadata?.role as string | undefined
-  if (metadataRole && dashboardMap[metadataRole]) {
-    redirect(dashboardMap[metadataRole])
-  }
-
-  redirect("/auth/choose-role")
+  redirect("/sign-in")
 }
