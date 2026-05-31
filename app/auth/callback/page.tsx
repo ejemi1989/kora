@@ -20,24 +20,7 @@ export default async function AuthCallbackPage({
   const clerkUser = await currentUser()
   if (!clerkUser) redirect("/sign-in")
 
-  const email = clerkUser.emailAddresses?.[0]?.emailAddress
-  if (!email) redirect("/sign-in")
-
-  let actualRole: string | undefined
-
-  try {
-    const { prisma } = await import("@/lib/prisma")
-    const dbUser = await prisma.user.findUnique({ where: { email } })
-    if (dbUser) {
-      actualRole = dbUser.role
-    }
-  } catch {
-    // DB not available — fall through to Clerk metadata below
-  }
-
-  if (!actualRole) {
-    actualRole = (clerkUser.unsafeMetadata?.role as string) || undefined
-  }
+  const actualRole = (clerkUser.unsafeMetadata?.role as string) || undefined
 
   if (intendedRole && actualRole && actualRole !== intendedRole) {
     redirect(`/sign-in?error=role_mismatch&expected=${intendedRole}&actual=${actualRole}`)
