@@ -19,14 +19,17 @@ export function ShopPage() {
 
   function handleAdd(product: typeof PRODUCTS[number]) {
     setLoadingId(product.id);
+    const existing = cartItems.find((i) => i.id === product.id);
     setTimeout(() => {
       addToCart({ id: product.id, name: product.name, price: product.price, description: product.description, emoji: product.emoji });
       setLoadingId(null);
-      showToast("Added to cart");
+      const newQty = (existing?.qty || 0) + 1;
+      showToast(`\u2705 ${product.name} \u2014 Qty: ${newQty}`);
     }, 500);
   }
 
   const inCart = (name: string) => cartItems.some((i) => i.name === name);
+  const cartQty = (name: string) => cartItems.find((i) => i.name === name)?.qty || 0;
 
   return (
     <div>
@@ -73,6 +76,7 @@ export function ShopPage() {
           {filtered.map((product) => {
             const loading = loadingId === product.id;
             const alreadyInCart = inCart(product.name);
+            const qty = cartQty(product.name);
             return (
               <div key={product.id} style={{ background: "#fff", borderRadius: 8, boxShadow: "0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)", overflow: "hidden", transition: "all 150ms", cursor: "pointer" }}
                 onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 0 0 1px var(--primary), 0 2px 4px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
@@ -102,7 +106,7 @@ export function ShopPage() {
                     disabled={loading}
                     style={{ width: "100%", padding: "6px 0", fontSize: 11, borderRadius: 6, border: "none", background: loading ? "var(--surface-soft)" : "var(--primary)", color: "#fff", cursor: loading ? "default" : "pointer", opacity: loading ? 0.7 : 1 }}
                   >
-                    {loading ? "Adding..." : alreadyInCart ? "Add again" : "Add to cart"}
+                    {loading ? "Adding..." : alreadyInCart ? `Add again (${qty})` : "Add to cart"}
                   </button>
                 </div>
               </div>
