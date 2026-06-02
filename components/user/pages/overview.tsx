@@ -63,7 +63,7 @@ export function OverviewPage() {
                   <div style={{ fontSize: 11, color: "var(--muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{order.items}</div>
                 </div>
                 <div style={{ textAlign: "right", flexShrink: 0 }}>
-                  <div style={{ fontWeight: 600 }}>\u20A6{order.amount.toFixed(2)}</div>
+                  <div style={{ fontWeight: 600 }}>{'\u20A6'}{order.amount.toFixed(2)}</div>
                   <div style={{ fontSize: 10, color: "var(--ash)" }}>{order.date}</div>
                 </div>
               </div>

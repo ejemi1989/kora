@@ -75,7 +75,7 @@ export function OrdersPage() {
                 <div style={{ fontSize: 12, color: "var(--muted)" }}>{itemNames.join(", ")}</div>
               </div>
             </div>
-            <div style={{ fontSize: 18, fontWeight: 600, color: "var(--primary)" }}>\u20A6{order.amount.toFixed(2)}</div>
+            <div style={{ fontSize: 18, fontWeight: 600, color: "var(--primary)" }}>{'\u20A6'}{order.amount.toFixed(2)}</div>
             <div style={{ fontSize: 11, color: "var(--ash)", marginTop: 2 }}>{itemNames.length} item{itemNames.length > 1 ? "s" : ""}</div>
             {order.trackingNumber && (
               <div style={{ marginTop: 8, padding: "6px 10px", background: "var(--canvas)", borderRadius: 6, fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--body)" }}>
@@ -156,7 +156,7 @@ export function OrdersPage() {
               </div>
               <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: 999, fontSize: 10, fontWeight: 500, background: bad.bg, color: bad.color }}>{bad.label}</span>
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>\u20A6{order.amount.toFixed(2)}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{'\u20A6'}{order.amount.toFixed(2)}</div>
                 <div style={{ fontSize: 10, color: "var(--ash)" }}>{order.date}</div>
               </div>
             </div>

@@ -57,7 +57,7 @@ export function WishlistPage() {
             </div>
             <div style={{ padding: 10 }}>
               <div style={{ fontSize: 12, fontWeight: 500, color: "var(--ink)", marginBottom: 4 }}>{item.name}</div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--primary)", marginBottom: 8 }}>\u20A6{item.price.toFixed(2)}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--primary)", marginBottom: 8 }}>{'\u20A6'}{item.price.toFixed(2)}</div>
               <button onClick={() => handleAddToCart(item.id, item.name, item.price, item.emoji)} style={{ width: "100%", padding: "6px 0", fontSize: 11, fontWeight: 500, borderRadius: 6, border: "none", background: "var(--primary)", color: "#fff", cursor: "pointer" }}>
                 Add to cart
               </button>

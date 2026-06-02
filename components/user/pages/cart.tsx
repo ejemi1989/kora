@@ -82,7 +82,7 @@ export function CartPage() {
                     <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", minWidth: 20, textAlign: "center" }}>{item.qty}</span>
                     <button onClick={() => updateQty(item.name, 1)} style={{ width: 24, height: 24, borderRadius: 4, border: "1px solid var(--hairline)", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--body)" }}><PlusIcon size={12} /></button>
                   </div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", minWidth: 60, textAlign: "right" }}>\u20A6{(item.unitPrice * item.qty).toFixed(2)}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", minWidth: 60, textAlign: "right" }}>{'\u20A6'}{(item.unitPrice * item.qty).toFixed(2)}</div>
                   <button onClick={() => setCartItems((prev) => prev.filter((i) => i.name !== item.name))} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--stone)", padding: 4 }}>
                     <XIcon size={14} />
                   </button>
@@ -95,13 +95,13 @@ export function CartPage() {
             <div style={{ background: "#fff", borderRadius: 8, boxShadow: "0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)", padding: 16 }}>
               <div style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--ink)", marginBottom: 12 }}>Summary</div>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--body)", marginBottom: 6 }}>
-                <span>Subtotal</span><span>\u20A6{sub.toFixed(2)}</span>
+                <span>Subtotal</span><span>{'\u20A6'}{sub.toFixed(2)}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--body)", marginBottom: 6 }}>
                 <span>Delivery</span><span>{delivery === 0 ? "Free" : `\u20A6${delivery.toFixed(2)}`}</span>
               </div>
               <div style={{ borderTop: "1px solid var(--hairline)", margin: "8px 0", paddingTop: 8, display: "flex", justifyContent: "space-between", fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>
-                <span>Total</span><span>\u20A6{total.toFixed(2)}</span>
+                <span>Total</span><span>{'\u20A6'}{total.toFixed(2)}</span>
               </div>
               <button onClick={handleProceedCheckout} disabled={cartItems.length === 0} style={{ width: "100%", padding: "8px 0", marginTop: 8, fontSize: 13, fontWeight: 600, borderRadius: 6, border: "none", background: cartItems.length === 0 ? "var(--surface-soft)" : "var(--primary)", color: "#fff", cursor: cartItems.length === 0 ? "default" : "pointer", opacity: cartItems.length === 0 ? 0.5 : 1 }}>
                 Proceed to Checkout \u2192
@@ -128,7 +128,7 @@ export function CartPage() {
                       <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", minWidth: 20, textAlign: "center" }}>{item.qty}</span>
                       <button onClick={() => updateQty(item.name, 1)} style={{ width: 22, height: 22, borderRadius: 4, border: "1px solid var(--hairline)", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--body)", fontSize: 10 }}>+</button>
                     </div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>\u20A6{(item.unitPrice * item.qty).toFixed(2)}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{'\u20A6'}{(item.unitPrice * item.qty).toFixed(2)}</div>
                   </div>
                 ))}
               </div>
@@ -165,10 +165,10 @@ export function CartPage() {
               <div>
                 <h3 style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--ink)", margin: "0 0 12px" }}>Confirm Order</h3>
                 <div style={{ fontSize: 13, color: "var(--body)", marginBottom: 6 }}>{cartItems.reduce((s, i) => s + i.qty, 0)} items</div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--body)", marginBottom: 4 }}><span>Subtotal</span><span>\u20A6{sub.toFixed(2)}</span></div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--body)", marginBottom: 4 }}><span>Subtotal</span><span>{'\u20A6'}{sub.toFixed(2)}</span></div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--body)", marginBottom: 4 }}><span>Delivery</span><span>{delivery === 0 ? "Free" : `\u20A6${delivery.toFixed(2)}`}</span></div>
                 <div style={{ borderTop: "1px solid var(--hairline)", margin: "8px 0", paddingTop: 8, display: "flex", justifyContent: "space-between", fontSize: 16, fontWeight: 600, color: "var(--ink)" }}>
-                  <span>Total</span><span>\u20A6{total.toFixed(2)}</span>
+                  <span>Total</span><span>{'\u20A6'}{total.toFixed(2)}</span>
                 </div>
                 {selectedAddr && (
                   <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 8 }}>
@@ -182,9 +182,9 @@ export function CartPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div style={{ background: "#fff", borderRadius: 8, boxShadow: "0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)", padding: 16 }}>
               <div style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--ink)", marginBottom: 12 }}>Summary</div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--body)", marginBottom: 6 }}><span>Subtotal</span><span>\u20A6{sub.toFixed(2)}</span></div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--body)", marginBottom: 6 }}><span>Subtotal</span><span>{'\u20A6'}{sub.toFixed(2)}</span></div>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--body)", marginBottom: 6 }}><span>Delivery</span><span>{delivery === 0 ? "Free" : `\u20A6${delivery.toFixed(2)}`}</span></div>
-              <div style={{ borderTop: "1px solid var(--hairline)", margin: "8px 0", paddingTop: 8, display: "flex", justifyContent: "space-between", fontSize: 15, fontWeight: 600, color: "var(--ink)" }}><span>Total</span><span>\u20A6{total.toFixed(2)}</span></div>
+              <div style={{ borderTop: "1px solid var(--hairline)", margin: "8px 0", paddingTop: 8, display: "flex", justifyContent: "space-between", fontSize: 15, fontWeight: 600, color: "var(--ink)" }}><span>Total</span><span>{'\u20A6'}{total.toFixed(2)}</span></div>
             </div>
 
             {step < 3 && (

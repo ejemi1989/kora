@@ -94,8 +94,8 @@ export function ShopPage() {
                     <StarIcon size={10} /> {product.rating}
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 8 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--primary)" }}>\u20A6{product.price.toFixed(2)}</span>
-                    {product.origPrice && <span style={{ fontSize: 11, color: "var(--stone)", textDecoration: "line-through" }}>\u20A6{product.origPrice.toFixed(2)}</span>}
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--primary)" }}>{'\u20A6'}{product.price.toFixed(2)}</span>
+                    {product.origPrice && <span style={{ fontSize: 11, color: "var(--stone)", textDecoration: "line-through" }}>{'\u20A6'}{product.origPrice.toFixed(2)}</span>}
                   </div>
                   <button
                     onClick={() => handleAdd(product)}
