@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
 import type { CartItem, UserNotification, PageId, UserAddress, PaymentMethod } from "@/lib/types/user";
 import { INITIAL_CART, NOTIFICATIONS, ADDRESSES, PAYMENT_METHODS, TRANSACTIONS, WISHLIST_INITIAL, calcTotal } from "@/lib/data/user";
 
@@ -47,7 +47,17 @@ let toastId = 0;
 export function UserProvider({ children }: { children: ReactNode }) {
   const [page, setPage] = useState<PageId>("overview");
   const [sidebar, setSidebar] = useState(false);
-  const [cartItems, setCartItems] = useState<CartItem[]>(INITIAL_CART);
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("kora-cart");
+      if (saved) try { return JSON.parse(saved); } catch {}
+    }
+    return INITIAL_CART;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("kora-cart", JSON.stringify(cartItems));
+  }, [cartItems]);
   const [notifs, setNotifs] = useState<UserNotification[]>(NOTIFICATIONS);
   const [notifOpen, setNotifOpen] = useState(false);
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
