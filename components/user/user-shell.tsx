@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import { useUser } from "@/components/user/user-context";
@@ -24,6 +24,8 @@ const navItems: { id: string; label: string; icon: ReactNode }[] = [
 ];
 
 export function UserShell({ children }: { children: ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
   const { page, setPage, sidebar, setSidebar, cartCount, notifs, notifOpen, setNotifOpen, setNotifs, setPage: navigate, toasts } = useUser();
   const router = useRouter();
   const unread = notifs.filter((n) => !n.read).length;
@@ -108,15 +110,15 @@ export function UserShell({ children }: { children: ReactNode }) {
       <aside className={`user-sidebar ${sidebar ? "open" : ""}`}>
         <div className="user-sidebar-brand">
           <div className="user-logo">NP</div>
-          Kora
+          Deni
         </div>
         <nav className="user-nav">
           {navItems.map((item) => (
             <button key={item.id} className={`user-nav-item ${page === item.id ? "active" : ""}`} onClick={() => handleNav(item.id)}>
               {item.icon}
               {item.label}
-              {item.id === "cart" && cartCount > 0 && <span className="user-nav-badge cart">{cartCount}</span>}
-              {item.id === "notifications" && unread > 0 && <span className="user-nav-badge">{unread}</span>}
+              {item.id === "cart" && mounted && cartCount > 0 && <span className="user-nav-badge cart">{cartCount}</span>}
+              {item.id === "notifications" && mounted && unread > 0 && <span className="user-nav-badge">{unread}</span>}
             </button>
           ))}
         </nav>
@@ -132,19 +134,19 @@ export function UserShell({ children }: { children: ReactNode }) {
       <div className="user-main">
         <header className="user-topbar">
           <button className="user-hamburger" onClick={() => setSidebar(true)}><MenuIcon /></button>
-          <span className="user-topbar-title">Kora</span>
+          <span className="user-topbar-title">Deni</span>
           <span className="user-topbar-sub">/ {pageLabels[page] || page}</span>
           <div className="user-topbar-spacer" />
           <div style={{ position: "relative" }}>
             <button className="user-notif-btn" onClick={() => { setNotifOpen(!notifOpen); }} title="Notifications">
               <BellIcon size={18} />
-              {unread > 0 && <span className="user-notif-dot" />}
+              {mounted && unread > 0 && <span className="user-notif-dot" />}
             </button>
             {notifOpen && (
               <div className="user-notif-panel">
                 <div className="user-notif-panel-h">
                   <span className="user-notif-panel-title">Notifications</span>
-                  <span style={{ fontSize: 11, color: "var(--muted-text)" }}>{unread} unread</span>
+                  <span style={{ fontSize: 11, color: "var(--muted-text)" }}>{mounted ? unread : 0} unread</span>
                 </div>
                 {notifs.slice(0, 5).map((n) => (
                   <div key={n.id} className="user-notif-panel-item" onClick={() => { setNotifOpen(false); setPage("notifications" as any); router.push("/user/notifications"); }}>

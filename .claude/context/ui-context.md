@@ -1,4 +1,4 @@
-# Kora — UI Context
+# Deni — UI Context
 
 > This file is the single source of truth for all visual and structural design decisions across the Admin, Seller, and User dashboards. Every role-specific spec references this file. Do not redefine tokens or components here that are already declared here.
 

@@ -1,4 +1,4 @@
-# Kora — Seller Dashboard Spec
+# Deni — Seller Dashboard Spec
 
 > Design system: see `ui-context.md` for all tokens, components, layout shell, and shared CSS.  
 > This file covers only the seller-facing dashboard: pages, state, data, interactions, modals, and flows.
@@ -10,20 +10,20 @@
 | Property | Value |
 |---|---|
 | Role | Marketplace Seller |
-| Product name | Kora |
+| Product name | Deni |
 | Entry point | Default page `overview` |
 | Default page | `overview` |
 | Currency | Nigerian Naira (₦) |
-| Sample seller | Kora · hello@akaramarket.com · initials AK |
+| Sample seller | Deni · hello@akaramarket.com · initials AK |
 | Page routing | In-memory JS (`nav()` function) with panel show/hide |
 
 ---
 
 ## Key Differences from User & Admin Dashboards
 
-| Property | Seller (Akara) | Admin (Kongo) | User (Kora) |
+| Property | Seller (Akara) | Admin (Kongo) | User (Deni) |
 |---|---|---|---|
-| Brand name | Kora | Kongo | Kora |
+| Brand name | Deni | Kongo | Deni |
 | Primary color | `#E8552A` (orange) | `#ea2804` (red) | `#ea2804` (red) |
 | Color scale | Full orange scale (`--orange-50` → `--orange-900`) | None | None |
 | Stat change colors | Green/red (material) | Blue/red | Blue/red |
@@ -126,7 +126,7 @@ Nav badges: orange (`nav-badge`) or danger red (`nav-badge danger`).
 ```
 body (flex row, min-height 100vh)
 ├── .sidebar (fixed, 240px, z-index 100)
-│   ├── .sidebar-head (logo "A" mark + "Kora" + "Seller Dashboard" small)
+│   ├── .sidebar-head (logo "A" mark + "Deni" + "Seller Dashboard" small)
 │   └── .sidebar-nav (grouped nav items)
 ├── .sidebar-overlay (mobile only, z-index 90)
 └── .main (margin-left 240px, flex column)
@@ -137,7 +137,7 @@ body (flex row, min-height 100vh)
         └── .section-panel (only .active shown, fadeIn animation)
 ```
 
-**Logo**: "A" white on orange square (`border-radius: 6px`) + "Kora" bold + "Seller Dashboard" uppercase small.  
+**Logo**: "A" white on orange square (`border-radius: 6px`) + "Deni" bold + "Seller Dashboard" uppercase small.  
 **Header title**: `#headerTitle` — updates on navigation via `titles` object.  
 **Search input**: Expands from 200px → 240px on focus. Hidden on mobile (`≤768px`).  
 **Avatar**: "AK" initials, 30px circle, orange background.
@@ -261,7 +261,7 @@ Options: Pending / Processing / Shipped / Delivered
 
 ### `overview` — Store Overview
 
-**Subtitle**: "Your Kora performance at a glance"
+**Subtitle**: "Your Deni performance at a glance"
 
 **Layout**: Stat grid (4) → 2fr+1fr column grid (recent orders + top products)
 
@@ -596,7 +596,7 @@ Fields:
 #### Left — Store Profile card
 
 Fields (pre-filled):
-- Store Name: Kora
+- Store Name: Deni
 - Store Description (textarea 3 rows): "Premium African food ingredients — jollof spices, groundnut paste, smoked fish, and more delivered fresh."
 - Contact Email: hello@akaramarket.com
 - Phone: +234 800 AKARA
@@ -608,7 +608,7 @@ Fields (pre-filled):
 **Bank Information section**:
 - Bank Name select: GTBank / Access Bank
 - Account Number: 0123456789
-- Account Name: Kora Ventures
+- Account Name: Deni Ventures
 
 **Payout Preferences section**:
 - Auto Withdraw Threshold select: ₦50,000 / **₦100,000** (selected) / ₦200,000

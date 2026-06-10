@@ -1,4 +1,4 @@
-# Kora — User Dashboard Spec
+# Deni — User Dashboard Spec
 
 > Design system: see `ui-context.md` for all tokens, components, layout shell, and shared CSS.  
 > This file covers only the customer-facing dashboard: pages, state, data, interactions, and flows.
@@ -511,7 +511,7 @@ Right column — Recent Transactions panel:
 **Bank Transfer tab (payStep 1)**:
 - Static info display (no form):
   - Bank: GTBank
-  - Account Name: Kora Payments Ltd
+  - Account Name: Deni Payments Ltd
   - Account Number: 012 345 6789 (mono)
 
 **Mobile Money tab (payStep 2)**:

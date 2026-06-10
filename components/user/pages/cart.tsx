@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "@/components/user/user-context";
-import { calcSubtotal, calcDelivery } from "@/lib/data/user";
+import { calcSubtotal, calcDelivery, calcTotalWeight, MIN_ORDER_KG } from "@/lib/data/user";
 import { ChevronIcon, MinusIcon, PlusIcon, XIcon } from "@/components/user/icons";
 import type { UserAddress, PaymentMethod } from "@/lib/types/user";
 import { useRouter } from "next/navigation";
@@ -12,15 +12,30 @@ type CheckoutStep = "review" | "address" | "payment" | "confirm";
 export function CartPage() {
   const { cartItems, setCartItems, addresses, paymentMethods, showToast } = useUser();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
   const [checkout, setCheckout] = useState(false);
   const [step, setStep] = useState(0);
   const [selectedAddr, setSelectedAddr] = useState<UserAddress | null>(null);
   const [selectedPay, setSelectedPay] = useState<PaymentMethod | null>(null);
   const [confirming, setConfirming] = useState(false);
+  const [recentOrders, setRecentOrders] = useState<{ id: string; status: string; createdAt: string }[]>([]);
+
+  useEffect(() => {
+    fetch("/api/orders")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.orders)
+          setRecentOrders(data.orders.filter((o: { status: string }) => o.status !== "PENDING").slice(0, 3));
+      })
+      .catch(() => {});
+  }, []);
 
   const sub = calcSubtotal(cartItems);
   const delivery = calcDelivery(sub, cartItems.length);
   const total = sub + delivery;
+  const totalKg = calcTotalWeight(cartItems);
+  const meetsMinWeight = totalKg >= MIN_ORDER_KG;
 
   function updateQty(name: string, delta: number) {
     setCartItems((prev) =>
@@ -31,6 +46,10 @@ export function CartPage() {
   function handleProceedCheckout() {
     if (cartItems.length === 0) {
       showToast("Cart is empty");
+      return;
+    }
+    if (!meetsMinWeight) {
+      showToast(`Minimum order is ${MIN_ORDER_KG}kg (${(MIN_ORDER_KG - totalKg).toFixed(2)}kg more needed)`, "warning");
       return;
     }
     setCheckout(true);
@@ -62,9 +81,9 @@ export function CartPage() {
       {!checkout ? (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: 12 }}>
           <div style={{ background: "#fff", borderRadius: 8, boxShadow: "0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)", padding: 16 }}>
-            {cartItems.length === 0 ? (
+            {!mounted ? null : cartItems.length === 0 ? (
               <div style={{ textAlign: "center", padding: "32px 0" }}>
-                <div style={{ fontSize: 36, color: "var(--stone)", marginBottom: 8 }}>\uD83D\uDED2</div>
+                <div style={{ fontSize: 36, color: "var(--stone)", marginBottom: 8 }}>{'\uD83D\uDED2'}</div>
                 <div style={{ fontSize: 14, fontWeight: 500, color: "var(--muted)", marginBottom: 4 }}>Your cart is empty</div>
                 <p style={{ fontSize: 12, color: "var(--ash)", margin: "0 0 12px" }}>Browse our shop to find something delicious</p>
                 <button onClick={() => { router.push("/user/shop"); }} style={{ padding: "6px 14px", fontSize: 12, borderRadius: 6, border: "none", background: "var(--primary)", color: "#fff", cursor: "pointer" }}>Browse Shop</button>
@@ -94,23 +113,38 @@ export function CartPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div style={{ background: "#fff", borderRadius: 8, boxShadow: "0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)", padding: 16 }}>
               <div style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--ink)", marginBottom: 12 }}>Summary</div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--body)", marginBottom: 6 }}>
-                <span>Subtotal</span><span>{'\u20A6'}{sub.toFixed(2)}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--body)", marginBottom: 6 }}>
-                <span>Delivery</span><span>{delivery === 0 ? "Free" : `\u20A6${delivery.toFixed(2)}`}</span>
-              </div>
-              <div style={{ borderTop: "1px solid var(--hairline)", margin: "8px 0", paddingTop: 8, display: "flex", justifyContent: "space-between", fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>
-                <span>Total</span><span>{'\u20A6'}{total.toFixed(2)}</span>
-              </div>
-              <button onClick={handleProceedCheckout} disabled={cartItems.length === 0} style={{ width: "100%", padding: "8px 0", marginTop: 8, fontSize: 13, fontWeight: 600, borderRadius: 6, border: "none", background: cartItems.length === 0 ? "var(--surface-soft)" : "var(--primary)", color: "#fff", cursor: cartItems.length === 0 ? "default" : "pointer", opacity: cartItems.length === 0 ? 0.5 : 1 }}>
-                Proceed to Checkout \u2192
-              </button>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--body)", marginBottom: 6 }}>
+                    <span>Subtotal</span><span>{'\u20A6'}{sub.toFixed(2)}</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--body)", marginBottom: 6 }}>
+                    <span>Weight</span><span>{totalKg.toFixed(2)} kg</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--body)", marginBottom: 6 }}>
+                    <span>Delivery</span><span>{delivery === 0 ? "Free" : `\u20A6${delivery.toFixed(2)}`}</span>
+                  </div>
+                  <div style={{ borderTop: "1px solid var(--hairline)", margin: "8px 0", paddingTop: 8, display: "flex", justifyContent: "space-between", fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>
+                    <span>Total</span><span>{'\u20A6'}{total.toFixed(2)}</span>
+                  </div>
+                  {!meetsMinWeight && (
+                    <div style={{ fontSize: 11, color: "var(--danger)", marginTop: 8, textAlign: "center" }}>
+                      Minimum order is {MIN_ORDER_KG}kg ({(MIN_ORDER_KG - totalKg).toFixed(2)}kg more needed)
+                    </div>
+                  )}
+                  <button onClick={handleProceedCheckout} disabled={cartItems.length === 0 || !meetsMinWeight} style={{ width: "100%", padding: "8px 0", marginTop: 8, fontSize: 13, fontWeight: 600, borderRadius: 6, border: "none", background: cartItems.length === 0 || !meetsMinWeight ? "var(--surface-soft)" : "var(--primary)", color: "#fff", cursor: cartItems.length === 0 || !meetsMinWeight ? "default" : "pointer", opacity: cartItems.length === 0 || !meetsMinWeight ? 0.5 : 1 }}>
+                    {!meetsMinWeight ? `Add ${(MIN_ORDER_KG - totalKg).toFixed(2)}kg more to proceed` : "Proceed to Checkout \u2192"}
+                  </button>
             </div>
             <div style={{ background: "#fff", borderRadius: 8, boxShadow: "0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)", padding: 16 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--ink)", marginBottom: 8 }}>Recent Activity</div>
-              <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 4 }}>NP-3842 delivered &middot; Yesterday</div>
-              <div style={{ fontSize: 12, color: "var(--muted)" }}>NP-3841 en route &middot; Arriving today</div>
+              <div style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--ink)", marginBottom: 8 }}>Recent Orders</div>
+              {recentOrders.length === 0 ? (
+                <div style={{ fontSize: 12, color: "var(--ash)" }}>No recent orders</div>
+              ) : (
+                recentOrders.map((o) => (
+                  <div key={o.id} style={{ fontSize: 12, color: "var(--muted)", marginBottom: 4, fontFamily: "var(--font-mono)" }}>
+                    {o.id} &middot; {o.status === "DELIVERED" ? "delivered" : o.status === "SHIPPED" ? "shipped" : o.status.toLowerCase()}
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -166,6 +200,7 @@ export function CartPage() {
                 <h3 style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--ink)", margin: "0 0 12px" }}>Confirm Order</h3>
                 <div style={{ fontSize: 13, color: "var(--body)", marginBottom: 6 }}>{cartItems.reduce((s, i) => s + i.qty, 0)} items</div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--body)", marginBottom: 4 }}><span>Subtotal</span><span>{'\u20A6'}{sub.toFixed(2)}</span></div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--body)", marginBottom: 4 }}><span>Weight</span><span>{totalKg.toFixed(2)} kg</span></div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--body)", marginBottom: 4 }}><span>Delivery</span><span>{delivery === 0 ? "Free" : `\u20A6${delivery.toFixed(2)}`}</span></div>
                 <div style={{ borderTop: "1px solid var(--hairline)", margin: "8px 0", paddingTop: 8, display: "flex", justifyContent: "space-between", fontSize: 16, fontWeight: 600, color: "var(--ink)" }}>
                   <span>Total</span><span>{'\u20A6'}{total.toFixed(2)}</span>
@@ -183,6 +218,7 @@ export function CartPage() {
             <div style={{ background: "#fff", borderRadius: 8, boxShadow: "0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)", padding: 16 }}>
               <div style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--ink)", marginBottom: 12 }}>Summary</div>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--body)", marginBottom: 6 }}><span>Subtotal</span><span>{'\u20A6'}{sub.toFixed(2)}</span></div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--body)", marginBottom: 6 }}><span>Weight</span><span>{totalKg.toFixed(2)} kg</span></div>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--body)", marginBottom: 6 }}><span>Delivery</span><span>{delivery === 0 ? "Free" : `\u20A6${delivery.toFixed(2)}`}</span></div>
               <div style={{ borderTop: "1px solid var(--hairline)", margin: "8px 0", paddingTop: 8, display: "flex", justifyContent: "space-between", fontSize: 15, fontWeight: 600, color: "var(--ink)" }}><span>Total</span><span>{'\u20A6'}{total.toFixed(2)}</span></div>
             </div>
@@ -202,17 +238,31 @@ export function CartPage() {
               </button>
             )}
             {step === 3 && (
-              <button onClick={() => {
+              <button onClick={async () => {
                 setConfirming(true);
-                setTimeout(() => {
-                  setCartItems([]);
-                  setCheckout(false);
-                  setStep(0);
+                try {
+                  const res = await fetch("/api/create-checkout-session", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      items: cartItems,
+                      addressId: selectedAddr?.id,
+                    }),
+                  });
+                  const data = await res.json();
+                  if (data.url) {
+                    setCartItems([]);
+                    window.location.href = data.url;
+                  } else {
+                    showToast("Failed to create checkout session", "danger");
+                    setConfirming(false);
+                  }
+                } catch {
+                  showToast("Something went wrong", "danger");
                   setConfirming(false);
-                  showToast("Order placed! \uD83C\uDF89");
-                }, 1200);
+                }
               }} disabled={confirming} style={{ width: "100%", padding: "8px 0", fontSize: 13, fontWeight: 600, borderRadius: 6, border: "none", background: confirming ? "var(--surface-soft)" : "var(--primary)", color: "#fff", cursor: confirming ? "default" : "pointer", opacity: confirming ? 0.7 : 1 }}>
-                {confirming ? "Processing..." : `Place Order \u2014 \u20A6${total.toFixed(2)}`}
+                {confirming ? "Redirecting to payment..." : `Pay with Card \u2014 $${total.toFixed(2)}`}
               </button>
             )}
           </div>

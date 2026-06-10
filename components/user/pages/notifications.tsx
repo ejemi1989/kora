@@ -8,10 +8,15 @@ import { useRouter } from "next/navigation";
 export function NotificationsPage() {
   const { notifs, setNotifs, setPage, showToast } = useUser();
   const router = useRouter();
-  const [detail, setDetail] = useState<number | null>(null);
+  const [detail, setDetail] = useState<number | string | null>(null);
 
-  function markRead(id: number) {
+  function markRead(id: number | string) {
     setNotifs((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+    fetch("/api/notifications/read", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: String(id) }),
+    }).catch(() => {});
   }
 
   if (detail !== null) {
@@ -32,19 +37,15 @@ export function NotificationsPage() {
           <div style={{ fontSize: 11, color: "var(--muted-text)", marginBottom: 12 }}>{notif.time}</div>
           <p style={{ fontSize: 13, color: "var(--body)", lineHeight: 1.5, margin: "0 0 16px" }}>{notif.description}</p>
 
-          {[1, 2, 4].includes(notif.id) && (
+          {notif.title.toLowerCase().includes("order") || notif.title.toLowerCase().includes("paid") ? (
             <button onClick={() => { setPage("orders"); setDetail(null); router.push("/user/orders"); }} style={{ padding: "6px 14px", fontSize: 12, borderRadius: 6, border: "none", background: "var(--primary)", color: "#fff", cursor: "pointer" }}>
               View Order \u2192
             </button>
-          )}
-          {[3, 5].includes(notif.id) && (
+          ) : (
             <div style={{ background: "var(--surface-soft)", borderRadius: 6, padding: 12 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--muted)", marginBottom: 4 }}>
-                <span>Code</span><span>Valid Until</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 600, color: "var(--ink)", fontFamily: "var(--font-mono)" }}>
-                <span>{notif.id === 3 ? "GRAIN20" : "CHEF10"}</span>
-                <span>{notif.id === 3 ? "June 7, 2026" : "June 15, 2026"}</span>
+              <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 4 }}>Promotion</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", fontFamily: "var(--font-mono)" }}>
+                Check the shop for current deals
               </div>
             </div>
           )}

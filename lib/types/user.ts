@@ -3,6 +3,7 @@ export interface UserProduct {
   name: string;
   category: string;
   price: number;
+  weight: number;
   origPrice?: number;
   tag?: "popular" | "sale" | "new";
   rating: number;
@@ -16,6 +17,7 @@ export interface CartItem {
   description: string;
   qty: number;
   unitPrice: number;
+  weight: number;
   emoji: string;
 }
 
@@ -63,7 +65,7 @@ export interface Transaction {
 }
 
 export interface UserNotification {
-  id: number;
+  id: number | string;
   title: string;
   description: string;
   time: string;

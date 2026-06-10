@@ -21,9 +21,9 @@
 
 ## Key Differences from User Dashboard
 
-| Property | Admin | User (Kora) |
+| Property | Admin | User (Deni) |
 |---|---|---|
-| Brand name | Kongo | Kora |
+| Brand name | Kongo | Deni |
 | Currency | KES | ₦ |
 | Sidebar position | Fixed (not off-canvas on desktop) | Fixed width |
 | Toast position | Bottom-right | Bottom-center |

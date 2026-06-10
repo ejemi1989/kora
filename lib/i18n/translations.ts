@@ -21,7 +21,7 @@ export const translations: Record<Language, TranslationMap> = {
     "hero.start-free": "Start for free",
     "hero.watch-video": "Watch video",
 
-    "how.title": "How it works",
+    "how.title": "How Deni Works",
     "how.subtitle": "We offer the best experience for authentic African products",
     "how.step1.title": "Discover",
     "how.step1.body": "Browse authentic African products",
@@ -61,7 +61,7 @@ export const translations: Record<Language, TranslationMap> = {
     "shops.title": "Browse African Markets",
     "shops.subtitle":
       "Discover authentic products from verified sellers across the continent \u2014 from fresh produce to traditional pantry staples.",
-    "shops.cta-title": "Want to sell on Kora?",
+    "shops.cta-title": "Want to sell on Deni?",
     "shops.cta-body":
       "Join hundreds of vendors reaching customers across the diaspora.",
     "shops.cta-button": "Become a Vendor",
@@ -84,7 +84,7 @@ export const translations: Record<Language, TranslationMap> = {
     "shops.cat6.desc":
       "Zobo mixes, sobo ingredients, palm wine, and specialty drinks",
 
-    "how-page.title": "How Kora Works",
+    "how-page.title": "How Deni Works",
     "how-page.subtitle":
       "From discovery to delivery \u2014 we make getting authentic African products simple and secure.",
     "how-page.step1.body":
@@ -165,7 +165,7 @@ export const translations: Record<Language, TranslationMap> = {
     "shops.title": "Browse African Markets",
     "shops.subtitle":
       "Find authentic products from verified sellers across the continent \u2014 from fresh food to traditional pantry goods.",
-    "shops.cta-title": "You want sell for Kora?",
+    "shops.cta-title": "You want sell for Deni?",
     "shops.cta-body":
       "Join hundreds of vendors wey dey reach customers across the diaspora.",
     "shops.cta-button": "Become a Vendor",
@@ -188,7 +188,7 @@ export const translations: Record<Language, TranslationMap> = {
     "shops.cat6.desc":
       "Zobo mixes, sobo ingredients, palm wine, and specialty drinks",
 
-    "how-page.title": "How Kora Take Work",
+    "how-page.title": "How Deni Take Work",
     "how-page.subtitle":
       "From find am to delivery \u2014 we make getting authentic African products easy and safe.",
     "how-page.step1.body":
@@ -270,7 +270,7 @@ export const translations: Record<Language, TranslationMap> = {
     "shops.title": "Vinjari Masoko ya Kiafrika",
     "shops.subtitle":
       "Gundua bidhaa halisi kutoka kwa wauzaji waliothibitishwa kote barani \u2014 kutoka mazao safi hadi vyakula vya kawaida.",
-    "shops.cta-title": "Unataka kuuza kwenye Kora?",
+    "shops.cta-title": "Unataka kuuza kwenye Deni?",
     "shops.cta-body":
       "Jiunge na mamia ya wauzaji wanaowafikia wateja kote ulimwenguni.",
     "shops.cta-button": "Kuwa Muuzaji",
@@ -293,7 +293,7 @@ export const translations: Record<Language, TranslationMap> = {
     "shops.cat6.desc":
       "Mchanganyiko wa zobo, viungo vya sobo, mvinyo wa tende, na vinywaji maalum",
 
-    "how-page.title": "Jinsi Kora Inavyofanya Kazi",
+    "how-page.title": "Jinsi Deni Inavyofanya Kazi",
     "how-page.subtitle":
       "Kutoka ugunduzi hadi utoaji \u2014 tunafanya kupata bidhaa halisi za Kiafrika kuwa rahisi na salama.",
     "how-page.step1.body":

@@ -1,19 +1,93 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "@/components/user/user-context";
-import { TRANSACTIONS } from "@/lib/data/user";
 import { ChevronIcon, PlusIcon } from "@/components/user/icons";
 
+interface ApiPayment {
+  id: string;
+  amount: number;
+  status: string;
+  stripeId: string | null;
+  method: string | null;
+  createdAt: string;
+}
+
+interface ApiOrderItem {
+  product: { name: string };
+  quantity: number;
+  price: number;
+}
+
+interface ApiOrder {
+  id: string;
+  total: number;
+  createdAt: string;
+  items: ApiOrderItem[];
+  payments: ApiPayment[];
+  status: string;
+}
+
+interface Transaction {
+  name: string;
+  ref: string;
+  amount: number;
+  type: "debit" | "credit";
+  date: string;
+  method: string;
+  payment: ApiPayment;
+}
+
 export function PaymentsPage() {
-  const { paymentMethods, showToast } = useUser();
+  const { paymentMethods, setPaymentMethods, showToast } = useUser();
   const [txnView, setTxnView] = useState<number | null>(null);
   const [addPay, setAddPay] = useState(false);
   const [payStep, setPayStep] = useState(0);
   const [savePay, setSavePay] = useState(false);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/orders")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.orders) {
+          const txns: Transaction[] = [];
+          for (const order of data.orders as ApiOrder[]) {
+            if (order.status === "PENDING") continue;
+            const name = order.items.map((i) => i.product.name).slice(0, 2).join(" + ");
+            for (const payment of order.payments) {
+              txns.push({
+                name: name || `Order ${order.id}`,
+                ref: order.id,
+                amount: payment.amount || order.total,
+                type: payment.status === "REFUNDED" ? "credit" : "debit",
+                date: new Date(payment.createdAt || order.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+                method: payment.method === "card" ? "Card" : payment.method || "Stripe",
+                payment,
+              });
+            }
+            if (order.payments.length === 0) {
+              txns.push({
+                name: name || `Order ${order.id}`,
+                ref: order.id,
+                amount: order.total,
+                type: "debit",
+                date: new Date(order.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+                method: "Stripe",
+                payment: { id: "", amount: order.total, status: order.status, stripeId: null, method: null, createdAt: order.createdAt },
+              });
+            }
+          }
+          setTransactions(txns);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   if (txnView !== null) {
-    const txn = TRANSACTIONS[txnView];
+    const txn = transactions[txnView];
     if (!txn) return null;
     return (
       <div>
@@ -22,7 +96,7 @@ export function PaymentsPage() {
         </button>
         <div style={{ background: "#fff", borderRadius: 8, boxShadow: "0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)", padding: 20, maxWidth: 480 }}>
           <div style={{ fontSize: 40, marginBottom: 8 }}>{txn.type === "credit" ? "\u2B07\uFE0F" : "\u2B06\uFE0F"}</div>
-          <div style={{ fontSize: 16, fontWeight: 600, color: "var(--ink)", marginBottom: 4 }}>{'\u20A6'}{txn.amount.toFixed(2)}</div>
+          <div style={{ fontSize: 16, fontWeight: 600, color: "var(--ink)", marginBottom: 4 }}>${txn.amount.toFixed(2)}</div>
           <div style={{ fontSize: 13, color: "var(--body)", marginBottom: 8 }}>{txn.name}</div>
           <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: 999, fontSize: 10, fontWeight: 500, background: "var(--success-bg)", color: "var(--success)", marginBottom: 16, textTransform: "capitalize" }}>{txn.type}</span>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 12px", fontSize: 13 }}>
@@ -33,7 +107,9 @@ export function PaymentsPage() {
             <div style={{ color: "var(--muted)" }}>Payment Method</div>
             <div style={{ color: "var(--body)" }}>{txn.method}</div>
             <div style={{ color: "var(--muted)" }}>Status</div>
-            <div style={{ color: "var(--success)" }}>Completed</div>
+            <div style={{ color: txn.payment.status === "SUCCESS" || txn.payment.status === "REFUNDED" ? "var(--success)" : "var(--warning)" }}>
+              {txn.payment.status === "SUCCESS" ? "Completed" : txn.payment.status === "REFUNDED" ? "Refunded" : txn.payment.status}
+            </div>
           </div>
         </div>
       </div>
@@ -83,7 +159,7 @@ export function PaymentsPage() {
             <div>
               <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 12px" }}>Transfer to the account below:</p>
               <div style={{ fontSize: 13, color: "var(--body)", marginBottom: 6 }}>Bank: GTBank</div>
-              <div style={{ fontSize: 13, color: "var(--body)", marginBottom: 6 }}>Account Name: Kora Payments Ltd</div>
+              <div style={{ fontSize: 13, color: "var(--body)", marginBottom: 6 }}>Account Name: Deni Payments Ltd</div>
               <div style={{ fontSize: 13, color: "var(--body)", fontFamily: "var(--font-mono)" }}>Account Number: 012 345 6789</div>
             </div>
           )}
@@ -103,10 +179,18 @@ export function PaymentsPage() {
           <button onClick={() => {
             setSavePay(true);
             setTimeout(() => {
+              const labels = ["Card", "Bank Transfer", "Mobile Money"];
+              const names = ["Visa Platinum", "GTBank", "OPay Wallet"];
+              const details = ["···· 4829 · exp 08/27", "012 345 6789", "234 803 456 7890"];
+              const types: ("Card" | "Bank" | "Mobile")[] = ["Card", "Bank", "Mobile"];
+              setPaymentMethods((prev) => [
+                ...prev.map((m) => ({ ...m, isDefault: false })),
+                { name: names[payStep], details: details[payStep], type: types[payStep], isDefault: prev.length === 0 },
+              ]);
               setSavePay(false);
               setAddPay(false);
               showToast("Payment method saved");
-            }, 1200);
+            }, 800);
           }} disabled={savePay} style={{ width: "100%", padding: "8px 0", marginTop: 16, fontSize: 13, fontWeight: 500, borderRadius: 6, border: "none", background: savePay ? "var(--surface-soft)" : "var(--primary)", color: "#fff", cursor: savePay ? "default" : "pointer", opacity: savePay ? 0.7 : 1 }}>
             {savePay ? "Saving..." : "Save Payment Method"}
           </button>
@@ -141,22 +225,32 @@ export function PaymentsPage() {
 
         <div style={{ background: "#fff", borderRadius: 8, boxShadow: "0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)" }}>
           <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--hairline)", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--ink)" }}>Recent Transactions</div>
-          {TRANSACTIONS.map((txn, i) => (
-            <div key={txn.ref} onClick={() => setTxnView(i)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderBottom: i < TRANSACTIONS.length - 1 ? "1px solid var(--hairline)" : "none", cursor: "pointer", transition: "background 150ms" }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = "var(--canvas)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
-            >
-              <span style={{ fontSize: 14, color: txn.type === "credit" ? "var(--success)" : "var(--danger)" }}>{txn.type === "credit" ? "\u2193" : "\u2191"}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, color: "var(--body)" }}>{txn.name}</div>
-                <div style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--ash)" }}>{txn.ref}</div>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 13, fontWeight: 500, color: txn.type === "credit" ? "var(--success)" : "var(--ink)" }}>{'\u20A6'}{txn.amount.toFixed(2)}</div>
-                <div style={{ fontSize: 10, color: "var(--ash)" }}>{txn.date}</div>
-              </div>
+          {loading ? (
+            <div style={{ padding: "24px 16px", textAlign: "center", fontSize: 12, color: "var(--ash)" }}>Loading...</div>
+          ) : transactions.length === 0 ? (
+            <div style={{ padding: "24px 16px", textAlign: "center" }}>
+              <div style={{ fontSize: 28, marginBottom: 8 }}>\uD83D\uDCB3</div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: "var(--muted)", marginBottom: 4 }}>No transactions yet</div>
+              <p style={{ fontSize: 11, color: "var(--ash)", margin: 0 }}>Your payment history will appear here after your first purchase.</p>
             </div>
-          ))}
+          ) : (
+            transactions.map((txn, i) => (
+              <div key={`${txn.ref}-${i}`} onClick={() => setTxnView(i)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderBottom: i < transactions.length - 1 ? "1px solid var(--hairline)" : "none", cursor: "pointer", transition: "background 150ms" }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "var(--canvas)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
+              >
+                <span style={{ fontSize: 14, color: txn.type === "credit" ? "var(--success)" : "var(--danger)" }}>{txn.type === "credit" ? "\u2193" : "\u2191"}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, color: "var(--body)" }}>{txn.name}</div>
+                  <div style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--ash)" }}>{txn.ref}</div>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: txn.type === "credit" ? "var(--success)" : "var(--ink)" }}>${txn.amount.toFixed(2)}</div>
+                  <div style={{ fontSize: 10, color: "var(--ash)" }}>{txn.date}</div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

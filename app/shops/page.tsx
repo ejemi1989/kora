@@ -229,7 +229,7 @@ export default function ShopsPage() {
                 marginBottom: "12px",
               }}
             >
-              Want to sell on Kora?
+              Want to sell on Deni?
             </h2>
             <p
               style={{

@@ -76,6 +76,7 @@ function ProductForm({
           <select className="s-fi" value={unit} onChange={(e) => setUnit(e.target.value)}>
             <option>Piece</option>
             <option>Kilogram</option>
+            <option>Tonne</option>
             <option>Litre</option>
             <option>Pack</option>
           </select>

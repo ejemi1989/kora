@@ -4,21 +4,21 @@ const prisma = new PrismaClient();
 
 async function main() {
   const user = await prisma.user.upsert({
-    where: { email: "buyer@kora.com" },
+    where: { email: "buyer@deni.com" },
     update: {},
-    create: { id: "user-1", name: "Amara Okafor", email: "buyer@kora.com", role: "CUSTOMER" },
+    create: { id: "user-1", name: "Amara Okafor", email: "buyer@deni.com", role: "CUSTOMER" },
   });
 
   const seller = await prisma.user.upsert({
-    where: { email: "seller@kora.com" },
+    where: { email: "seller@deni.com" },
     update: {},
-    create: { id: "seller-1", name: "Chidi Okonkwo", email: "seller@kora.com", role: "SELLER" },
+    create: { id: "seller-1", name: "Chidi Okonkwo", email: "seller@deni.com", role: "SELLER" },
   });
 
   const admin = await prisma.user.upsert({
-    where: { email: "admin@kora.com" },
+    where: { email: "admin@deni.com" },
     update: {},
-    create: { id: "admin-1", name: "Admin User", email: "admin@kora.com", role: "ADMIN" },
+    create: { id: "admin-1", name: "Admin User", email: "admin@deni.com", role: "ADMIN" },
   });
 
   const products = [
@@ -60,33 +60,75 @@ async function main() {
   }
 
   const orders = [
-    { id: "order-1", userId: "user-1", status: "DELIVERED" as const, total: 47.20, trackingNumber: "NP-3842" },
-    { id: "order-2", userId: "user-1", status: "SHIPPED" as const, total: 32.50, trackingNumber: "NP-3841" },
-    { id: "order-3", userId: "user-1", status: "PROCESSING" as const, total: 28.80, trackingNumber: "NP-3840" },
-    { id: "order-4", userId: "user-1", status: "PAID" as const, total: 19.95, trackingNumber: "NP-3839" },
-    { id: "order-5", userId: "user-1", status: "DELIVERED" as const, total: 38.40, trackingNumber: "NP-3838" },
-    { id: "order-6", userId: "user-1", status: "DELIVERED" as const, total: 15.60, trackingNumber: "NP-3837" },
+    { id: "NP-0001", userId: "user-1", status: "DELIVERED" as const, total: 47.20, trackingNumber: "NP-0001" },
+    { id: "NP-0002", userId: "user-1", status: "SHIPPED" as const, total: 32.50, trackingNumber: "NP-0002" },
+    { id: "NP-0003", userId: "user-1", status: "PROCESSING" as const, total: 28.80, trackingNumber: "NP-0003" },
+    { id: "NP-0004", userId: "user-1", status: "PAID" as const, total: 19.95, trackingNumber: "NP-0004" },
+    { id: "NP-0005", userId: "user-1", status: "DELIVERED" as const, total: 38.40, trackingNumber: "NP-0005" },
+    { id: "NP-0006", userId: "user-1", status: "DELIVERED" as const, total: 15.60, trackingNumber: "NP-0006" },
   ];
   for (const o of orders) {
     await prisma.order.upsert({ where: { id: o.id }, update: {}, create: o });
   }
 
   const orderItems = [
-    { orderId: "order-1", productId: "prod-1", quantity: 2, price: 14.99 },
-    { orderId: "order-1", productId: "prod-2", quantity: 1, price: 8.50 },
-    { orderId: "order-2", productId: "prod-2", quantity: 1, price: 8.50 },
-    { orderId: "order-2", productId: "prod-3", quantity: 3, price: 4.99 },
-    { orderId: "order-2", productId: "prod-11", quantity: 1, price: 5.90 },
-    { orderId: "order-3", productId: "prod-7", quantity: 2, price: 5.50 },
-    { orderId: "order-3", productId: "prod-5", quantity: 1, price: 7.20 },
-    { orderId: "order-4", productId: "prod-10", quantity: 3, price: 3.50 },
-    { orderId: "order-5", productId: "prod-6", quantity: 2, price: 12.50 },
-    { orderId: "order-6", productId: "prod-10", quantity: 2, price: 3.50 },
+    { orderId: "NP-0001", productId: "prod-1", quantity: 2, price: 14.99 },
+    { orderId: "NP-0001", productId: "prod-2", quantity: 1, price: 8.50 },
+    { orderId: "NP-0002", productId: "prod-2", quantity: 1, price: 8.50 },
+    { orderId: "NP-0002", productId: "prod-3", quantity: 3, price: 4.99 },
+    { orderId: "NP-0002", productId: "prod-11", quantity: 1, price: 5.90 },
+    { orderId: "NP-0003", productId: "prod-7", quantity: 2, price: 5.50 },
+    { orderId: "NP-0003", productId: "prod-5", quantity: 1, price: 7.20 },
+    { orderId: "NP-0004", productId: "prod-10", quantity: 3, price: 3.50 },
+    { orderId: "NP-0005", productId: "prod-6", quantity: 2, price: 12.50 },
+    { orderId: "NP-0006", productId: "prod-10", quantity: 2, price: 3.50 },
   ];
   for (const oi of orderItems) {
     const existing = await prisma.orderItem.findFirst({ where: { orderId: oi.orderId, productId: oi.productId } });
     if (!existing) {
       await prisma.orderItem.create({ data: oi });
+    }
+  }
+
+  const trackingEvents = [
+    { orderId: "NP-0001", step: 1, label: "Order Confirmed", description: "Payment verified successfully", time: "May 23, 09:14 AM" },
+    { orderId: "NP-0001", step: 2, label: "Processing", description: "Order being prepared at warehouse", time: "May 23, 02:30 PM" },
+    { orderId: "NP-0001", step: 3, label: "Shipped", description: "Package dispatched for delivery", time: "May 24, 10:00 AM" },
+    { orderId: "NP-0001", step: 4, label: "Delivered", description: "Package delivered to your address", time: "May 25, 02:15 PM" },
+    { orderId: "NP-0002", step: 1, label: "Order Confirmed", description: "Payment verified successfully", time: "May 24, 11:20 AM" },
+    { orderId: "NP-0002", step: 2, label: "Processing", description: "Order being prepared at warehouse", time: "May 24, 04:45 PM" },
+    { orderId: "NP-0002", step: 3, label: "Shipped", description: "Package dispatched for delivery", time: "May 25, 09:30 AM" },
+    { orderId: "NP-0003", step: 1, label: "Order Confirmed", description: "Payment verified successfully", time: "May 25, 10:00 AM" },
+    { orderId: "NP-0003", step: 2, label: "Processing", description: "Order being prepared at warehouse", time: "May 25, 01:15 PM" },
+    { orderId: "NP-0004", step: 1, label: "Order Confirmed", description: "Payment verified successfully", time: "May 26, 03:30 PM" },
+    { orderId: "NP-0005", step: 1, label: "Order Confirmed", description: "Payment verified successfully", time: "May 27, 09:00 AM" },
+    { orderId: "NP-0005", step: 2, label: "Processing", description: "Order being prepared at warehouse", time: "May 27, 12:00 PM" },
+    { orderId: "NP-0005", step: 3, label: "Shipped", description: "Package dispatched for delivery", time: "May 28, 08:00 AM" },
+    { orderId: "NP-0005", step: 4, label: "Delivered", description: "Package delivered to your address", time: "May 29, 11:30 AM" },
+    { orderId: "NP-0006", step: 1, label: "Order Confirmed", description: "Payment verified successfully", time: "May 28, 02:00 PM" },
+    { orderId: "NP-0006", step: 2, label: "Processing", description: "Order being prepared at warehouse", time: "May 28, 05:30 PM" },
+    { orderId: "NP-0006", step: 3, label: "Shipped", description: "Package dispatched for delivery", time: "May 29, 10:00 AM" },
+    { orderId: "NP-0006", step: 4, label: "Delivered", description: "Package delivered to your address", time: "May 30, 01:45 PM" },
+  ];
+  for (const te of trackingEvents) {
+    const existing = await prisma.trackingEvent.findFirst({ where: { orderId: te.orderId, step: te.step } });
+    if (!existing) {
+      await prisma.trackingEvent.create({ data: te });
+    }
+  }
+
+  const payments = [
+    { orderId: "NP-0001", amount: 47.20, status: "SUCCESS" as const, stripeId: "seed-pi-1", method: "card" },
+    { orderId: "NP-0002", amount: 32.50, status: "SUCCESS" as const, stripeId: "seed-pi-2", method: "card" },
+    { orderId: "NP-0003", amount: 28.80, status: "SUCCESS" as const, stripeId: "seed-pi-3", method: "card" },
+    { orderId: "NP-0004", amount: 19.95, status: "SUCCESS" as const, stripeId: "seed-pi-4", method: "card" },
+    { orderId: "NP-0005", amount: 38.40, status: "SUCCESS" as const, stripeId: "seed-pi-5", method: "card" },
+    { orderId: "NP-0006", amount: 15.60, status: "SUCCESS" as const, stripeId: "seed-pi-6", method: "card" },
+  ];
+  for (const p of payments) {
+    const existing = await prisma.payment.findUnique({ where: { orderId: p.orderId } });
+    if (!existing) {
+      await prisma.payment.create({ data: p });
     }
   }
 
@@ -111,19 +153,7 @@ async function main() {
     await prisma.wishlistItem.upsert({ where: { id: w.id }, update: {}, create: w });
   }
 
-  const notifications = [
-    { id: "notif-1", userId: "user-1", type: "order_delivered", message: "Order NP-3842 Delivered — Jollof Rice Party Pack has arrived at your door", read: true },
-    { id: "notif-2", userId: "user-1", type: "order_shipped", message: "NP-3841 on the way — Your Suya Spice Set is out for delivery", read: false },
-    { id: "notif-3", userId: "user-1", type: "promo", message: "Flash Sale: 20% off Grains — Rice, beans, yam flour. Stock up and save!", read: false },
-    { id: "notif-4", userId: "user-1", type: "order_processing", message: "Order NP-3840 Packed — Your order is being prepared at the warehouse", read: false },
-    { id: "notif-5", userId: "user-1", type: "new_product", message: "New: Chef's Special Box — Curated ingredients for Egusi + Fufu", read: true },
-    { id: "notif-6", userId: "user-1", type: "referral", message: "Referral Bonus Earned — You earned ₦1,500. Tunde signed up with your link", read: false },
-  ];
-  for (const n of notifications) {
-    await prisma.notification.upsert({ where: { id: n.id }, update: {}, create: n });
-  }
-
-  console.log("Seed complete: 3 users, 12 products, cart, 6 orders, 3 addresses, 6 wishlist, 6 notifications");
+  console.log("Seed complete: 3 users, 12 products, cart, 6 orders, 3 addresses, 6 wishlist, 18 tracking events, 6 payments");
 }
 
 main().catch((e) => { console.error(e); process.exit(1); }).finally(() => prisma.$disconnect());

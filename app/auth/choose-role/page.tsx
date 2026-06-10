@@ -58,9 +58,9 @@ export default function ChooseRolePage() {
         <div style={{ marginBottom: 32, textAlign: "center" }}>
           <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none", marginBottom: 24 }}>
             <span style={{ width: 28, height: 28, borderRadius: 6, background: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 14 }}>N</span>
-            <span style={{ color: "var(--ink)", fontSize: 16, fontWeight: 600, letterSpacing: "-0.03em" }}>Kora</span>
+            <span style={{ color: "var(--ink)", fontSize: 16, fontWeight: 600, letterSpacing: "-0.03em" }}>Deni</span>
           </Link>
-          <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em", color: "var(--ink)", margin: 0 }}>Welcome to Kora!</h1>
+          <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em", color: "var(--ink)", margin: 0 }}>Welcome to Deni!</h1>
           <p style={{ fontSize: 14, color: "var(--muted-text)", marginTop: 4 }}>Tell us about yourself</p>
         </div>
 

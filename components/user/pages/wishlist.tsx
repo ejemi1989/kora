@@ -1,11 +1,14 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useUser } from "@/components/user/user-context";
 import { XIcon } from "@/components/user/icons";
 import { useRouter } from "next/navigation";
 
 export function WishlistPage() {
   const { wishlist, setWishlist, addToCart, showToast, setPage } = useUser();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
   const router = useRouter();
 
   function handleRemove(id: number) {
@@ -18,7 +21,7 @@ export function WishlistPage() {
     showToast("Added to cart");
   }
 
-  if (wishlist.length === 0) {
+  if (!mounted || wishlist.length === 0) {
     return (
       <div>
         <h1 style={{ fontSize: 20, fontWeight: 600, letterSpacing: "-0.03em", color: "var(--ink)", marginBottom: 4 }}>Wishlist</h1>

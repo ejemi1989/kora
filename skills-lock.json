@@ -15,6 +15,11 @@
       "source": "docs.stripe.com",
       "sourceType": "well-known",
       "computedHash": "a0f0bf709f65ba8d7aa8d55322d030e6b3f16756cb6f0be80463395306305ef3"
+    },
+    "frontend-patterns": {
+      "source": "local",
+      "sourceType": "local",
+      "computedHash": "fbaea313237c8031d8db5fa1064fac16257394cd9419547329b54dcdadc9454e"
     }
   }
 }

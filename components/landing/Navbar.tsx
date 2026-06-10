@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Show, UserButton } from "@clerk/nextjs";
 import { useLanguage } from "@/lib/i18n/language-context";
 
@@ -29,6 +30,15 @@ export function Navbar() {
         style={{ maxWidth: "var(--max)", padding: "0 var(--pad)" }}
       >
         <div className="flex items-center" style={{ gap: "36px" }}>
+          <Link href="/">
+            <Image
+              src="/images/Deni.png"
+              alt="Deni"
+              width={28}
+              height={28}
+              style={{ borderRadius: "6px" }}
+            />
+          </Link>
           {navLinks.map((label) => (
             <Link
               key={label}

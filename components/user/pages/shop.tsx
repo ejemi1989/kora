@@ -21,7 +21,7 @@ export function ShopPage() {
     setLoadingId(product.id);
     const existing = cartItems.find((i) => i.id === product.id);
     setTimeout(() => {
-      addToCart({ id: product.id, name: product.name, price: product.price, description: product.description, emoji: product.emoji });
+      addToCart({ id: product.id, name: product.name, price: product.price, description: product.description, emoji: product.emoji, weight: product.weight });
       setLoadingId(null);
       const newQty = (existing?.qty || 0) + 1;
       showToast(`\u2705 ${product.name} \u2014 Qty: ${newQty}`);
@@ -94,8 +94,9 @@ export function ShopPage() {
                 <div style={{ padding: "10px" }}>
                   <div style={{ fontSize: 12, fontWeight: 500, color: "var(--ink)", marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{product.name}</div>
                   {product.description && <div style={{ fontSize: 10, color: "var(--ash)", marginBottom: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{product.description}</div>}
-                  <div style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 10, color: "var(--muted)", marginBottom: 4 }}>
-                    <StarIcon size={10} /> {product.rating}
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, color: "var(--muted)", marginBottom: 4 }}>
+                    <span><StarIcon size={10} /> {product.rating}</span>
+                    <span>{product.weight}kg</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 8 }}>
                     <span style={{ fontSize: 13, fontWeight: 600, color: "var(--primary)" }}>{'\u20A6'}{product.price.toFixed(2)}</span>

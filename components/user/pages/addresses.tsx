@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "@/components/user/user-context";
 import { ChevronIcon, PlusIcon } from "@/components/user/icons";
 import type { UserAddress } from "@/lib/types/user";
@@ -19,6 +19,8 @@ const emptyForm: AddressForm = { tag: "Home", name: "", phone: "", address: "", 
 
 export function AddressesPage() {
   const { addresses, setAddresses, showToast } = useUser();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
   const [view, setView] = useState<ViewState>(null);
   const [form, setForm] = useState<AddressForm | null>(null);
   const [saving, setSaving] = useState(false);
@@ -142,21 +144,23 @@ export function AddressesPage() {
         </button>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        {addresses.map((addr) => (
-          <div key={addr.id} onClick={() => setView(addr.id)} style={{ background: "#fff", borderRadius: 8, boxShadow: "0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)", padding: 14, cursor: "pointer", transition: "all 150ms" }}
-            onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 0 0 1px var(--primary), 0 2px 4px rgba(0,0,0,0.04)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)"; }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-              <span style={{ fontSize: 12, fontWeight: 500, color: "var(--ink)" }}>{addr.name}</span>
-              <span style={{ padding: "1px 6px", borderRadius: 4, fontSize: 9, fontWeight: 500, background: "var(--surface-soft)", color: "var(--muted)" }}>{addr.tag}</span>
-              {addr.isDefault && <span style={{ padding: "1px 6px", borderRadius: 4, fontSize: 9, fontWeight: 500, background: "var(--primary-bg)", color: "var(--primary)" }}>Default</span>}
+      {mounted && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          {addresses.map((addr) => (
+            <div key={addr.id} onClick={() => setView(addr.id)} style={{ background: "#fff", borderRadius: 8, boxShadow: "0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)", padding: 14, cursor: "pointer", transition: "all 150ms" }}
+              onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 0 0 1px var(--primary), 0 2px 4px rgba(0,0,0,0.04)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)"; }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                <span style={{ fontSize: 12, fontWeight: 500, color: "var(--ink)" }}>{addr.name}</span>
+                <span style={{ padding: "1px 6px", borderRadius: 4, fontSize: 9, fontWeight: 500, background: "var(--surface-soft)", color: "var(--muted)" }}>{addr.tag}</span>
+                {addr.isDefault && <span style={{ padding: "1px 6px", borderRadius: 4, fontSize: 9, fontWeight: 500, background: "var(--primary-bg)", color: "var(--primary)" }}>Default</span>}
+              </div>
+              <div style={{ fontSize: 12, color: "var(--muted)" }}>{addr.address}</div>
             </div>
-            <div style={{ fontSize: 12, color: "var(--muted)" }}>{addr.address}</div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

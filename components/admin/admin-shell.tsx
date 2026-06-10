@@ -145,7 +145,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
       <aside className={`admin-sidebar ${sidebar ? "open" : ""}`}>
         <div className="admin-sidebar-brand">
           <div className="admin-logo">K</div>
-            <span className="admin-wordmark">Kora</span>
+            <span className="admin-wordmark">Deni</span>
         </div>
         <nav className="admin-sidebar-nav">
           {navGroups.map((group) => (
@@ -166,7 +166,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
       <div className="admin-main">
         <header className="admin-topbar">
           <button className="admin-hamburger" onClick={() => setSidebar(true)}><MenuIcon /></button>
-          <span className="admin-topbar-title">Kora</span>
+          <span className="admin-topbar-title">Deni</span>
           <span className="admin-topbar-sep">/</span>
           <span className="admin-topbar-current">{panelLabels[page] || page}</span>
           <div className="admin-topbar-spacer" />

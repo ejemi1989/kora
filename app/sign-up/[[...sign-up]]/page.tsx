@@ -8,8 +8,8 @@ import { useEffect, useState } from "react";
 type Role = "CUSTOMER" | "SELLER" | "ADMIN";
 
 const roles: { key: Role; label: string; title: string; subtitle: string }[] = [
-  { key: "CUSTOMER", label: "Buyer", title: "Create your account", subtitle: "Join Kora and start ordering" },
-  { key: "SELLER", label: "Seller", title: "Become a seller", subtitle: "List your African food business on Kora" },
+  { key: "CUSTOMER", label: "Buyer", title: "Create your account", subtitle: "Join Deni and start ordering" },
+  { key: "SELLER", label: "Seller", title: "Become a seller", subtitle: "List your African food business on Deni" },
   { key: "ADMIN", label: "Admin", title: "Admin access", subtitle: "Restricted to authorized administrators" },
 ];
 
@@ -147,7 +147,7 @@ export default function SignUpPage() {
         <div>
           <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
             <span style={{ width: 32, height: 32, borderRadius: "var(--radius-sm)", background: color.bg, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--on-primary)", fontWeight: 700, fontSize: 16 }}>N</span>
-            <span style={{ color: "var(--on-primary)", fontSize: 18, fontWeight: 600, letterSpacing: "-0.03em" }}>Kora</span>
+            <span style={{ color: "var(--on-primary)", fontSize: 18, fontWeight: 600, letterSpacing: "-0.03em" }}>Deni</span>
           </Link>
           <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 14, marginTop: 12, marginBottom: 0 }}>
             {role === "CUSTOMER" && "Authentic African food, delivered"}
@@ -170,7 +170,7 @@ export default function SignUpPage() {
           <div className="lg:hidden mb-8">
             <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
               <span style={{ width: 28, height: 28, borderRadius: "var(--radius-xs)", background: color.bg, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--on-primary)", fontWeight: 700, fontSize: 14 }}>N</span>
-              <span style={{ color: "var(--ink)", fontSize: 16, fontWeight: 600, letterSpacing: "-0.03em" }}>Kora</span>
+              <span style={{ color: "var(--ink)", fontSize: 16, fontWeight: 600, letterSpacing: "-0.03em" }}>Deni</span>
             </Link>
           </div>
 
@@ -272,7 +272,7 @@ export default function SignUpPage() {
               </p>
 
               <p style={{ fontSize: 11, color: "var(--muted)", textAlign: "center", marginTop: 12 }}>
-                Secured by Kora
+                Secured by Deni
               </p>
 
               <div style={{ marginTop: 16, textAlign: "center" }}>

@@ -125,8 +125,8 @@ export function Footer() {
             </div>
             <div style={{ marginTop: "24px" }}>
               <Image
-                src="/images/node-90.png"
-                alt="BIUK Africa logo"
+                src="/images/Deni.png"
+                alt="Deni logo"
                 width={68}
                 height={68}
                 style={{ borderRadius: "10px" }}

@@ -89,7 +89,7 @@ export default function HowItWorksPage() {
                 marginBottom: "14px",
               }}
             >
-              How Kora Works
+              How Deni Works
             </h1>
             <p
               style={{

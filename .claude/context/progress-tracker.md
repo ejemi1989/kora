@@ -75,7 +75,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Preload verification for LCP images
 - Zero build errors, zero warnings, all images visible in browser
 
-### User Dashboard (Kora)
+### User Dashboard (Deni)
 - `/lib/types/user.ts` — TypeScript interfaces: UserProduct, CartItem, UserOrder, TrackingEvent, etc.
 - `/lib/data/user.ts` — seed data: 12 products, 8 categories, 4 cart items, 6 orders, etc.
 - `/components/user/user-context.tsx` — React Context with global state + actions
@@ -86,7 +86,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - 10 page components: overview, shop, orders, tracking, cart, wishlist, addresses, payments, notifications, settings
 - All interactions verified via browser testing
 
-### Admin Dashboard (Kora)
+### Admin Dashboard (Deni)
 - `/lib/types/admin.ts`, `/lib/data/admin.ts` — TypeScript interfaces + seed data
 - `/components/admin/admin-context.tsx` — React Context with global state + actions
 - `/components/admin/admin-shell.tsx` — sidebar with 13 nav items in 4 groups
@@ -94,7 +94,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - `/app/admin/[page]/page.tsx` — dynamic route dispatching to 12 page components
 - 12 admin page components including currencies with inline rate editing, set-as-base, etc.
 
-### Seller Dashboard (Kora)
+### Seller Dashboard (Deni)
 - `/lib/types/seller.ts`, `/lib/data/seller.ts` — TypeScript interfaces + seed data
 - `/components/seller/seller-context.tsx` — React Context with global state + actions
 - `/components/seller/seller-shell.tsx` — orange-themed sidebar with 10 nav items
@@ -120,6 +120,8 @@ Update this file whenever the current phase, active feature, or implementation s
 ### Landing Page CTA Fixes
 - `components/landing/Community.tsx` — "Get started" button changed from `href="#"` to `href="/sign-up"`
 - Verified all other CTAs: Hero "Start for free" → `/sign-up`, Navbar "Login" → `/sign-in`, Navbar "Start for free" → `/sign-up`
+- `components/landing/DarkSection.tsx` — Changed from Next.js `<Image>` to plain `<img>` with `width:100%`,`height:auto` for full-bleed edge-to-edge rendering; added `background:#000` to wrapper to prevent white page background showing through transparent PNG areas
+- `app/page.tsx` — Added `import { DarkSection }` and component between HowItWorks and SocialProof (was never rendered before)
 
 ### Sign-In Role Enforcement Fixes
 - **Fix 1 — `useEffect` race condition:** The effect redirecting signed-in users to `/auth/callback` was missing `intended_role` param and fired before `signIn.finalize()`'s navigate callback. Fixed by:
@@ -148,11 +150,11 @@ Update this file whenever the current phase, active feature, or implementation s
 - Full metadata already present: version 1.0.0, 25 tags, tier 2 hybrid execution, 7 triggers covering timeout/corruption/zombie/stale-read scenarios
 - Covers: network fault taxonomy, clock unreliability, process pauses, fencing tokens, Byzantine fault scoping, system model selection
 
-### Brand Alignment: Akara Market → Kora Rename
-- `progress-tracker.md` — updated header from "Seller Dashboard (Akara Market)" to "Seller Dashboard (Kora)"
-- `.claude/context/seller/seller-dashboard.md` — replaced all 10 occurrences of "Akara Market" with "Kora"
+### Brand Alignment: Akara Market → Deni Rename
+- `progress-tracker.md` — updated header from "Seller Dashboard (Akara Market)" to "Seller Dashboard (Deni)"
+- `.claude/context/seller/seller-dashboard.md` — replaced all 10 occurrences of "Akara Market" with "Deni"
 - `.claude/context/seller/seller-dashboard.html` — replaced all 4 occurrences (title, sidebar brand, overview subtitle, settings form values)
-- Consistency: seller dashboard now matches existing "Kora" naming used for the user dashboard
+- Consistency: seller dashboard now matches existing "Deni" naming used for the user dashboard
 
 ### Order Tracking: Seller/Admin Add Tracking Numbers
 - **Types** — added `trackingNumber?: string` to `SellerOrder`, `AdminOrder`, `UserOrder`
@@ -173,15 +175,31 @@ Update this file whenever the current phase, active feature, or implementation s
   - Shows tracking number badge in order detail card when present
 - **Bonus fixes** — Fixed 3 pre-existing TS errors: missing `PageId` import in `app/user/[page]/page.tsx`, missing `SellerPageId` duplicate, missing `AdminPageId` import in `admin-shell.tsx`
 
-### Brand Alignment: Kongo → Kora (Admin Dashboard)
-- `components/admin/admin-shell.tsx` — sidebar wordmark `kongo` → `Kora`, topbar breadcrumb `Kongo` → `Kora`
-- `components/seller/seller-shell.tsx` — sidebar wordmark `akara market` → `Kora`
-- `components/seller/pages/settings.tsx` — email `hello@akaramarket.com` → `hello@kora.com`
+### Brand Alignment: Kongo → Deni (Admin Dashboard)
+- `components/admin/admin-shell.tsx` — sidebar wordmark `kongo` → `Deni`, topbar breadcrumb `Kongo` → `Deni`
+- `components/seller/seller-shell.tsx` — sidebar wordmark `akara market` → `Deni`
+- `components/seller/pages/settings.tsx` — email `hello@akaramarket.com` → `hello@deni.com`
 - All visible "Kongo" and "Akara Market" references removed from admin and seller UI code
 
 ### Notification Subtitle Visibility Fix
 - `components/user/user-shell.tsx` — dropdown description/time/unread colors changed from `var(--muted)`/`var(--ash)` to `var(--muted-text)`
 - `components/user/pages/notifications.tsx` — full page description, time, and "X unread" all changed to `var(--muted-text)`
+
+### Seller Product Unit: Tonne Added
+- `components/seller/pages/products.tsx` — Added `<option>Tonne</option>` to unit dropdown (options: Piece, Kilogram, Tonne, Litre, Pack)
+
+### Clerk JS CDN Redirect Fix
+- `NEXT_PUBLIC_CLERK_JS_VERSION=6.13.0` added to `.env` — pins exact Clerk JS version to bypass 307 redirect
+- Root cause: `@clerk/shared@4.14.0` resolves version `6.13.0` to major tag `@6`, producing URL `.../npm/@clerk/clerk-js@6/dist/clerk.browser.js` which the CDN 307-redirects to `@6.12.1`; `crossorigin="anonymous"` script tags can fail to follow the redirect in some browsers
+- Fix loads `.../npm/@clerk/clerk-js@6.13.0/dist/clerk.browser.js` directly (200, no redirect)
+
+### Minimum Order Weight (40kg)
+- `lib/types/user.ts` — added `weight: number` to `UserProduct` and `CartItem` types
+- `lib/data/user.ts` — added per-product weight values (kg), `calcTotalWeight()` helper, `MIN_ORDER_KG = 40` constant
+- `components/user/user-context.tsx` — `addToCart` now passes `weight` through to `CartItem`
+- `components/user/pages/shop.tsx` — weight displayed per product card; weight passed when adding to cart
+- `components/user/pages/cart.tsx` — total weight shown in summary sidebar and checkout flow; "Proceed to Checkout" button disabled with guidance message when below 40kg; `handleProceedCheckout` blocks with toast if underweight
+- `app/api/create-checkout-session/route.ts` — server-side 40kg validation returns 400 if underweight
 
 ## Build Verification
 
