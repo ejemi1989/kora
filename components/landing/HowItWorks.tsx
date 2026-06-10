@@ -1,35 +1,23 @@
+"use client";
+
 import Image from "next/image";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 const steps = [
-  {
-    img: "step-1.png",
-    title: "Discover",
-    body: "Browse authentic African products",
-  },
-  {
-    img: "step-2.png",
-    title: "Order & Pay",
-    body: "Fast checkout with secure payments",
-  },
-  {
-    img: "step-3.png",
-    title: "Track Live",
-    body: "See your order in real-time.",
-  },
-  {
-    img: "step-4.png",
-    title: "Receive",
-    body: "Delivered fresh to your doorstep",
-  },
+  { img: "step-1.png", key: "how.step1" },
+  { img: "step-2.png", key: "how.step2" },
+  { img: "step-3.png", key: "how.step3" },
+  { img: "step-4.png", key: "how.step4" },
 ];
 
 export function HowItWorks() {
+  const { t } = useLanguage();
+
   return (
     <section
       className="relative overflow-hidden"
       style={{ padding: "80px var(--pad)", background: "#fff" }}
     >
-      {/* Side swirls */}
       <div
         className="pointer-events-none absolute z-0 hidden lg:block"
         style={{
@@ -39,9 +27,7 @@ export function HowItWorks() {
           height: "100%",
           opacity: 0.4,
         }}
-      >
-
-      </div>
+      />
       <div
         className="pointer-events-none absolute z-0 hidden lg:block"
         style={{
@@ -51,9 +37,7 @@ export function HowItWorks() {
           height: "100%",
           opacity: 0.4,
         }}
-      >
-
-      </div>
+      />
 
       <div
         className="relative z-10 mx-auto"
@@ -68,7 +52,7 @@ export function HowItWorks() {
             marginBottom: "6px",
           }}
         >
-          How it works
+          {t("how.title")}
         </h2>
         <p
           style={{
@@ -78,7 +62,7 @@ export function HowItWorks() {
             marginBottom: "40px",
           }}
         >
-          We offer the best experience for authentic African products
+          {t("how.subtitle")}
         </p>
 
         <div
@@ -89,10 +73,10 @@ export function HowItWorks() {
           }}
         >
           {steps.map((s) => (
-            <div key={s.title}>
+            <div key={s.key}>
               <Image
                 src={`/images/${s.img}`}
-                alt={s.title}
+                alt={t(`${s.key}.title`)}
                 width={400}
                 height={300}
                 className="w-full"
@@ -111,7 +95,7 @@ export function HowItWorks() {
                   marginBottom: "3px",
                 }}
               >
-                {s.title}
+                {t(`${s.key}.title`)}
               </p>
               <p
                 style={{
@@ -120,7 +104,7 @@ export function HowItWorks() {
                   lineHeight: 1.5,
                 }}
               >
-                {s.body}
+                {t(`${s.key}.body`)}
               </p>
             </div>
           ))}

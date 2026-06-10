@@ -1,7 +1,12 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export function Hero() {
+  const { t } = useLanguage();
+
   return (
     <section
       className="relative overflow-hidden"
@@ -10,7 +15,6 @@ export function Hero() {
         background: "#fff",
       }}
     >
-      {/* Swirl overlays */}
       <div
         className="pointer-events-none absolute inset-0 z-0"
         style={{ opacity: 0.4 }}
@@ -33,9 +37,7 @@ export function Hero() {
           height: "100%",
           opacity: 0.4,
         }}
-      >
-
-      </div>
+      />
       <div
         className="pointer-events-none absolute z-0 hidden lg:block"
         style={{
@@ -45,9 +47,7 @@ export function Hero() {
           height: "100%",
           opacity: 0.4,
         }}
-      >
-
-      </div>
+      />
 
       <div
         className="hero-row relative z-10 mx-auto flex items-center"
@@ -56,7 +56,6 @@ export function Hero() {
           gap: "60px",
         }}
       >
-        {/* Left column */}
         <div className="w-full md:basis-[42%] md:max-w-[42%]">
           <h1
             className="hero-headline"
@@ -69,7 +68,7 @@ export function Hero() {
               marginBottom: "20px",
             }}
           >
-            Authentic African Food, Delivered Anywhere
+            {t("hero.title")}
           </h1>
           <p
             style={{
@@ -81,37 +80,36 @@ export function Hero() {
               marginBottom: "36px",
             }}
           >
-            Shop your favorite African groceries, pay securely, and track your
-            delivery in real time. We deliver the best in real time
+            {t("hero.body")}
           </p>
-          <div className="flex" style={{ gap: "16px" }}>
+          <div className="flex flex-wrap items-center" style={{ gap: "16px" }}>
             <Link
               href="/sign-up"
               style={{
                 background: "var(--pr)",
                 color: "#fff",
                 padding: "12px 24px",
-                fontSize: 14,
-                fontWeight: 520,
-                borderRadius: "var(--radius-xs)",
+                fontSize: 15,
+                fontWeight: 600,
+                borderRadius: "24px",
                 cursor: "pointer",
                 textDecoration: "none",
                 display: "inline-block",
               }}
             >
-              Start for free
+              {t("hero.start-free")}
             </Link>
             <a
               href="#"
-              className="flex items-center"
+              className="flex items-center justify-center"
               style={{
                 background: "#fff",
                 border: "1px solid rgba(208,230,254,1)",
                 borderRadius: "24px",
-                padding: "10px 18px",
+                padding: "12px 24px",
                 boxShadow: "0 2px 4px rgba(0,0,0,0.5)",
-                fontSize: "17.7px",
-                fontWeight: 700,
+                fontSize: 15,
+                fontWeight: 600,
                 lineHeight: "21.6px",
                 color: "var(--navy)",
                 gap: "8px",
@@ -122,12 +120,11 @@ export function Hero() {
                 alt=""
                 style={{ width: "12px", height: "14px" }}
               />
-              Watch video
+              {t("hero.watch-video")}
             </a>
           </div>
         </div>
 
-        {/* Right column */}
         <div className="w-full md:flex-1">
           <Image
             src="/images/node-80.png"

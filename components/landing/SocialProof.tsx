@@ -1,26 +1,29 @@
+"use client";
+
 import Image from "next/image";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 const galleryImages = [
-  { file: "gfinal_1.png", alt: "Person" },
-  { file: "gfinal_2.png", alt: "Palm fruit and tomatoes" },
-  { file: "gfinal_3.png", alt: "Dried fish" },
-  { file: "gfinal_4.png", alt: "Person" },
-  { file: "", alt: "White grain in clay bowl" },
-  { file: "groundnut.png", alt: "Groundnuts" },
-  { file: "gfinal_7.png", alt: "Person" },
+  "gfinal_1.png",
+  "gfinal_2.png",
+  "gfinal_3.png",
+  "gfinal_4.png",
+  "Gr.png",
+  "groundnut.png",
+  "gfinal_7.png",
 ];
 
 export function SocialProof() {
+  const { t } = useLanguage();
+
   return (
-    <section>
+    <section className="relative overflow-hidden" style={{ background: "#fff" }}>
       <div
-        style={{
-          padding: "72px var(--pad) 32px",
-          maxWidth: "var(--max)",
-          margin: "0 auto",
-        }}
+        className="mx-auto"
+        style={{ maxWidth: "var(--max)", padding: "72px var(--pad) 32px" }}
       >
         <h2
+          className="social-headline"
           style={{
             fontSize: "44px",
             fontWeight: 400,
@@ -29,34 +32,35 @@ export function SocialProof() {
             maxWidth: "480px",
           }}
         >
-          Used by Africans in diaspora just like you to order products in
-          Africa.
+          {t("social.headline")}
         </h2>
       </div>
-
-      {/* Full-bleed gallery */}
       <div
-        className="gallery-grid grid w-full"
+        className="gallery-grid grid"
         style={{
           gridTemplateColumns: "repeat(7,1fr)",
           gap: 0,
+          width: "100%",
         }}
       >
-        {galleryImages.map((img) => (
-          <div
-            key={img.file}
-            className="overflow-hidden"
-            style={{ aspectRatio: "1" }}
-          >
-            <Image
-              src={`/images/${img.file}`}
-              alt={img.alt}
-              width={200}
-              height={200}
-              className="block h-full w-full object-cover transition-transform duration-300 hover:scale-[1.03]"
-            />
-          </div>
-        ))}
+          {galleryImages.map((img, i) => (
+            <div
+              key={i}
+              className="gal-cell"
+              style={{
+                aspectRatio: "1",
+                overflow: "hidden",
+              }}
+            >
+              <Image
+                src={`/images/${img}`}
+                alt=""
+                width={200}
+                height={200}
+                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+              />
+            </div>
+          ))}
       </div>
     </section>
   );

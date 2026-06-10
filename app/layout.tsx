@@ -1,6 +1,7 @@
-import {ClerkProvider} from "@clerk/nextjs";
+import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { LanguageProvider } from "@/lib/i18n/language-context";
 import "./globals.css";
 
 const inter = Inter({
@@ -30,6 +31,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
+        <LanguageProvider>
         <ClerkProvider
           appearance={{
             variables: {
@@ -64,6 +66,7 @@ export default function RootLayout({
         >
           {children}
         </ClerkProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

@@ -3,17 +3,19 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useLanguage } from "@/lib/i18n/language-context";
 
-const bulletItems = [
-  "Browse thousands of authentic products",
-  "Shop with confidence",
-  "Feel connected",
-  "Every seller is identity-verified",
-  "Secure checkout with full buyer protection",
-  "Track your order from the artisan's hands to your front door.",
+const communityItemKeys = [
+  "community.item1",
+  "community.item2",
+  "community.item3",
+  "community.item4",
+  "community.item5",
+  "community.item6",
 ];
 
 export function Community() {
+  const { t } = useLanguage();
   const [activeDot, setActiveDot] = useState(2);
   const totalDots = 5;
 
@@ -22,7 +24,6 @@ export function Community() {
       className="relative overflow-hidden"
       style={{ padding: "80px var(--pad)", background: "#fff" }}
     >
-      {/* Side swirls */}
       <div
         className="pointer-events-none absolute z-0 hidden lg:block"
         style={{
@@ -68,7 +69,6 @@ export function Community() {
           gap: "72px",
         }}
       >
-        {/* Left - Image + Dots */}
         <div>
           <div
             style={{
@@ -79,7 +79,7 @@ export function Community() {
           >
             <Image
               src="/images/node-120.png"
-              alt="Community — Africa map with silhouettes"
+              alt="Community"
               width={800}
               height={600}
               className="w-full h-auto"
@@ -87,7 +87,6 @@ export function Community() {
             />
           </div>
 
-          {/* Dots */}
           <div
             className="flex justify-center"
             style={{ gap: "6px", marginTop: "12px" }}
@@ -96,7 +95,6 @@ export function Community() {
               <button
                 key={i}
                 type="button"
-                className="comm-dot"
                 onClick={() => setActiveDot(i)}
                 style={{
                   width: activeDot === i ? "20px" : "8px",
@@ -127,7 +125,6 @@ export function Community() {
           </p>
         </div>
 
-        {/* Right - Text */}
         <div>
           <h2
             className="community-label"
@@ -140,7 +137,7 @@ export function Community() {
               marginBottom: "12px",
             }}
           >
-            Our Community
+            {t("community.title")}
           </h2>
           <p
             style={{
@@ -152,13 +149,13 @@ export function Community() {
               marginBottom: "18px",
             }}
           >
-            We love to connect you to the source
+            {t("community.subtitle")}
           </p>
 
           <ul style={{ marginBottom: "32px", listStyle: "none", padding: 0 }}>
-            {bulletItems.map((item) => (
+            {communityItemKeys.map((key) => (
               <li
-                key={item}
+                key={key}
                 style={{
                   fontSize: "17.3px",
                   fontWeight: 400,
@@ -167,7 +164,7 @@ export function Community() {
                   color: "var(--body-landing)",
                 }}
               >
-                &bull; {item}
+                &bull; {t(key)}
               </li>
             ))}
           </ul>
@@ -190,7 +187,7 @@ export function Community() {
             onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
             onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
           >
-            Get started
+            {t("community.cta")}
           </Link>
         </div>
       </div>
