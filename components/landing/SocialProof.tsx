@@ -43,24 +43,24 @@ export function SocialProof() {
           width: "100%",
         }}
       >
-          {galleryImages.map((img, i) => (
-            <div
-              key={i}
-              className="gal-cell"
-              style={{
-                aspectRatio: "1",
-                overflow: "hidden",
-              }}
-            >
-              <Image
-                src={`/images/${img}`}
-                alt=""
-                width={200}
-                height={200}
-                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-              />
-            </div>
-          ))}
+        {galleryImages.map((img, i) => (
+          <div
+            key={i}
+            className="gal-cell"
+            style={{
+              aspectRatio: "1",
+              overflow: "hidden",
+            }}
+          >
+            <Image
+              src={`/images/${img}`}
+              alt=""
+              width={200}
+              height={200}
+              className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+            />
+          </div>
+        ))}
       </div>
     </section>
   );

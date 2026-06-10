@@ -10,18 +10,21 @@ import type {
 } from "@/lib/types/user";
 
 export const PRODUCTS: UserProduct[] = [
-  { id: 101, name: "Jollof Rice Party Pack", category: "Grains & Rice", price: 14.99, weight: 2.5, tag: "popular", rating: 4.8, description: "2.5kg · Feeds 8-10", emoji: "\uD83C\uDF5A" },
-  { id: 102, name: "Suya Spice Set", category: "Spices & Seasoning", price: 8.50, weight: 0.18, origPrice: 10.00, tag: "sale", rating: 4.9, description: "180g · Signature blend", emoji: "\uD83C\uDF36\uFE0F" },
-  { id: 103, name: "Plantain Chips (3 pk)", category: "Snacks", price: 4.99, weight: 0.5, tag: "popular", rating: 4.5, description: "Spicy · Sweet · Garlic", emoji: "\uD83C\uDF4C" },
-  { id: 104, name: "Egusi Soup Mix", category: "Soups & Stews", price: 6.75, weight: 0.5, rating: 4.6, description: "500g · Pre-ground", emoji: "\uD83E\uDD63" },
-  { id: 105, name: "Ogbono Powder", category: "Soups & Stews", price: 7.20, weight: 0.5, rating: 4.7, emoji: "\uD83C\uDF30" },
-  { id: 106, name: "Smoked Catfish", category: "Fish & Seafood", price: 12.50, weight: 1.0, tag: "popular", rating: 4.9, emoji: "\uD83D\uDC1F" },
-  { id: 107, name: "Fufu Flour", category: "Grains & Rice", price: 5.50, weight: 1.0, rating: 4.4, emoji: "\uD83E\uDD63" },
-  { id: 108, name: "Zobo Drink Mix", category: "Beverages", price: 4.50, weight: 0.25, tag: "new", rating: 4.3, emoji: "\uD83E\uDED0" },
-  { id: 109, name: "Coconut Rice", category: "Grains & Rice", price: 6.80, weight: 1.0, rating: 4.5, emoji: "\uD83E\uDD65" },
-  { id: 110, name: "Groundnut Cake", category: "Snacks", price: 3.50, weight: 0.5, rating: 4.2, emoji: "\uD83E\uDD5C" },
-  { id: 111, name: "Palm Oil (1L)", category: "Oils & Condiments", price: 5.90, weight: 1.0, rating: 4.6, emoji: "\uD83D\uDFE0" },
-  { id: 112, name: "Garri (Ijebu)", category: "Grains & Rice", price: 4.20, weight: 1.0, tag: "popular", rating: 4.7, emoji: "\uD83C\uDF3E" },
+  { id: 1, name: "Gari Ijebu", category: "Grains & Rice", price: 10000, weight: 1.0, tag: "popular", rating: 4.7, description: "1kg · Premium fine Ijebu Garri", emoji: "🌾" },
+  { id: 2, name: "Ofada Rice", category: "Grains & Rice", price: 15000, weight: 1.0, tag: "popular", rating: 4.8, description: "1kg · Authentic local Ofada rice", emoji: "🍚" },
+  { id: 3, name: "Yam", category: "Vegetables", price: 8000, weight: 1.0, rating: 4.5, description: "1kg · Large organic white yam tuber", emoji: "🍠" },
+  { id: 4, name: "Cocoa Yam", category: "Vegetables", price: 8000, weight: 1.0, rating: 4.4, description: "1kg · Fresh cocoyam tubers", emoji: "🍠" },
+  { id: 5, name: "Water Yam", category: "Vegetables", price: 6000, weight: 1.0, rating: 4.3, description: "1kg · Premium water yam tubers", emoji: "🍠" },
+  { id: 6, name: "Yam Flour", category: "Grains & Rice", price: 10000, weight: 1.0, rating: 4.6, description: "1kg · Premium elubo for Amala", emoji: "🫓" },
+  { id: 7, name: "Cassava Flour", category: "Grains & Rice", price: 6000, weight: 1.0, rating: 4.4, description: "1kg · High quality cassava flour", emoji: "🫓" },
+  { id: 8, name: "Dried Cray Fish", category: "Fish & Seafood", price: 20000, weight: 1.0, tag: "popular", rating: 4.9, description: "1kg · Properly sun-dried whole crayfish", emoji: "🦐" },
+  { id: 9, name: "Snails", category: "Fish & Seafood", price: 24000, weight: 1.0, tag: "popular", rating: 4.8, description: "1kg · Large, clean land snails", emoji: "🐌" },
+  { id: 10, name: "Fresh Plantain", category: "Vegetables", price: 10000, weight: 1.0, rating: 4.6, description: "1kg · Sweet, fresh plantains", emoji: "🍌" },
+  { id: 11, name: "Processed Egusi", category: "Spices & Seasoning", price: 10000, weight: 1.0, rating: 4.7, description: "1kg · Pre-ground peeled melon seeds", emoji: "🥣" },
+  { id: 12, name: "Processed Ogbono", category: "Spices & Seasoning", price: 15000, weight: 1.0, rating: 4.7, description: "1kg · Pure ground Ogbono seeds", emoji: "🥣" },
+  { id: 13, name: "Processed Groundnuts", category: "Snacks", price: 15000, weight: 1.0, rating: 4.5, description: "1kg · Roasted crunchy peanuts", emoji: "🥜" },
+  { id: 14, name: "Red Palm Oil", category: "Oils & Condiments", price: 8000, weight: 1.0, rating: 4.8, description: "1kg · Pure traditional red palm oil", emoji: "🫒" },
+  { id: 15, name: "Dried Fish (Pala, Sawa, Agbodo)", category: "Fish & Seafood", price: 10000, weight: 1.0, rating: 4.7, description: "1kg · Dry fish assortment for native soups", emoji: "🐟" },
 ];
 
 export const CATEGORIES = [
@@ -33,22 +36,23 @@ export const CATEGORIES = [
   "Fish & Seafood",
   "Beverages",
   "Oils & Condiments",
+  "Vegetables",
 ];
 
 export const INITIAL_CART: CartItem[] = [
-  { id: 101, name: "Jollof Rice Party Pack", description: "2.5kg · Feeds 8-10", qty: 2, unitPrice: 14.99, weight: 2.5, emoji: "\uD83C\uDF5A" },
-  { id: 102, name: "Suya Spice Set", description: "180g · Signature blend", qty: 1, unitPrice: 8.50, weight: 0.18, emoji: "\uD83C\uDF36\uFE0F" },
-  { id: 103, name: "Plantain Chips (3 pk)", description: "Spicy · Sweet · Garlic", qty: 3, unitPrice: 4.99, weight: 0.5, emoji: "\uD83C\uDF4C" },
-  { id: 104, name: "Egusi Soup Mix", description: "500g · Pre-ground", qty: 1, unitPrice: 6.75, weight: 0.5, emoji: "\uD83E\uDD63" },
+  { id: 11, name: "Processed Egusi", description: "1kg · Pre-ground peeled melon seeds", qty: 2, unitPrice: 10000, weight: 1.0, emoji: "🥣" },
+  { id: 14, name: "Red Palm Oil", description: "1kg · Pure traditional red palm oil", qty: 1, unitPrice: 8000, weight: 1.0, emoji: "🫒" },
+  { id: 13, name: "Processed Groundnuts", description: "1kg · Roasted crunchy peanuts", qty: 3, unitPrice: 15000, weight: 1.0, emoji: "🥜" },
+  { id: 8, name: "Dried Cray Fish", description: "1kg · Properly sun-dried whole crayfish", qty: 1, unitPrice: 20000, weight: 1.0, emoji: "🦐" },
 ];
 
 export const ORDERS: UserOrder[] = [
-  { id: "NP-3842", items: "Jollof Rice Party Pack · Garri · Egusi Soup Mix", date: "May 24", amount: 47.20, status: "delivered", thumb: "\uD83C\uDF5A", trackingNumber: "TRK-3842" },
-  { id: "NP-3841", items: "Suya Spice Set · Plantain Chips · Palm Oil", date: "May 23", amount: 32.50, status: "shipped", thumb: "\uD83C\uDF36\uFE0F", trackingNumber: "TRK-3841" },
-  { id: "NP-3840", items: "Fufu Flour · Ogbono · Stockfish", date: "May 22", amount: 28.80, status: "packed", thumb: "\uD83E\uDD63", trackingNumber: "TRK-3840" },
-  { id: "NP-3839", items: "Groundnut Cake · Zobo Drink Mix · Coconut Rice", date: "May 21", amount: 19.95, status: "confirmed", thumb: "\uD83E\uDD5C" },
-  { id: "NP-3838", items: "Smoked Catfish · Cassava Flour · Uziza Leaves", date: "May 20", amount: 38.40, status: "delivered", thumb: "\uD83D\uDC1F", trackingNumber: "TRK-3838" },
-  { id: "NP-3837", items: "Agege Bread · Ewa Agoyin Kit · Pepper Sauce", date: "May 19", amount: 15.60, status: "delivered", thumb: "\uD83C\uDF5E", trackingNumber: "TRK-3837" },
+  { id: "NP-3842", items: "Processed Egusi · Gari Ijebu · Processed Ogbono", date: "May 24", amount: 47000, status: "delivered", thumb: "🥣", trackingNumber: "TRK-3842" },
+  { id: "NP-3841", items: "Red Palm Oil · Processed Groundnuts · Snails", date: "May 23", amount: 32500, status: "shipped", thumb: "🫒", trackingNumber: "TRK-3841" },
+  { id: "NP-3840", items: "Cassava Flour · Processed Ogbono · Dried Fish (Pala, Sawa, Agbodo)", date: "May 22", amount: 28800, status: "packed", thumb: "🫓", trackingNumber: "TRK-3840" },
+  { id: "NP-3839", items: "Processed Groundnuts · Yam Flour", date: "May 21", amount: 19950, status: "confirmed", thumb: "🥜" },
+  { id: "NP-3838", items: "Dried Fish (Pala, Sawa, Agbodo) · Cassava Flour", date: "May 20", amount: 38400, status: "delivered", thumb: "🐟", trackingNumber: "TRK-3838" },
+  { id: "NP-3837", items: "Gari Ijebu · Red Palm Oil", date: "May 19", amount: 15600, status: "delivered", thumb: "🌾", trackingNumber: "TRK-3837" },
 ];
 
 export const TRACKING_EVENTS: TrackingEvent[] = [
@@ -72,30 +76,29 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
 ];
 
 export const TRANSACTIONS: Transaction[] = [
-  { name: "Jollof Rice Party Pack", ref: "NP-3842", amount: 47.20, type: "debit", date: "May 24", method: "Visa ···· 4829" },
-  { name: "Wallet Top-up", ref: "WAL-8891", amount: 100.00, type: "credit", date: "May 23", method: "Bank Transfer" },
-  { name: "Suya Spice Set", ref: "NP-3841", amount: 32.50, type: "debit", date: "May 23", method: "Visa ···· 4829" },
-  { name: "Fufu Flour + Ogbono", ref: "NP-3840", amount: 28.80, type: "debit", date: "May 22", method: "OPay" },
-  { name: "Cashback Reward", ref: "CB-APR", amount: 5.00, type: "credit", date: "May 20", method: "Wallet Credit" },
-  { name: "Groundnut Cake Bundle", ref: "NP-3839", amount: 19.95, type: "debit", date: "May 21", method: "Visa ···· 4829" },
+  { name: "Processed Egusi", ref: "NP-3842", amount: 47000, type: "debit", date: "May 24", method: "Visa ···· 4829" },
+  { name: "Wallet Top-up", ref: "WAL-8891", amount: 100000, type: "credit", date: "May 23", method: "Bank Transfer" },
+  { name: "Red Palm Oil", ref: "NP-3841", amount: 32500, type: "debit", date: "May 23", method: "Visa ···· 4829" },
+  { name: "Cassava Flour + Processed Ogbono", ref: "NP-3840", amount: 28800, type: "debit", date: "May 22", method: "OPay" },
+  { name: "Cashback Reward", ref: "CB-APR", amount: 5000, type: "credit", date: "May 20", method: "Wallet Credit" },
+  { name: "Processed Groundnuts", ref: "NP-3839", amount: 19950, type: "debit", date: "May 21", method: "Visa ···· 4829" },
 ];
 
 export const NOTIFICATIONS: UserNotification[] = [
-  { id: 1, title: "Order NP-3842 Delivered", description: "Jollof Rice Party Pack has arrived at your door", time: "2 hours ago", read: false },
-  { id: 2, title: "NP-3841 on the way", description: "Your Suya Spice Set is out for delivery", time: "5 hours ago", read: false },
+  { id: 1, title: "Order NP-3842 Delivered", description: "Processed Egusi has arrived at your door", time: "2 hours ago", read: false },
+  { id: 2, title: "NP-3841 on the way", description: "Your Red Palm Oil is out for delivery", time: "5 hours ago", read: false },
   { id: 3, title: "Flash Sale: 20% off Grains", description: "Rice, beans, yam flour — stock up and save", time: "1 day ago", read: false },
   { id: 4, title: "Order NP-3840 Packed", description: "Your order is being prepared at the warehouse", time: "1 day ago", read: false },
-  { id: 5, title: "New: Chef's Special Box", description: "Curated ingredients for Egusi + Fufu", time: "3 days ago", read: true },
+  { id: 5, title: "New: Chef's Special Box", description: "Curated ingredients for Processed Egusi + Cassava Flour", time: "3 days ago", read: true },
   { id: 6, title: "Referral Bonus Earned", description: "You earned ₦1,500 — Tunde signed up with your link", time: "5 days ago", read: true },
 ];
 
 export const WISHLIST_INITIAL = [
-  { id: 105, name: "Ogbono Powder", price: 7.20, emoji: "\uD83C\uDF30" },
-  { id: 106, name: "Smoked Catfish", price: 12.50, emoji: "\uD83D\uDC1F" },
-  { id: 108, name: "Zobo Drink Mix", price: 4.50, emoji: "\uD83E\uDED0" },
-  { id: 109, name: "Coconut Rice", price: 6.80, emoji: "\uD83E\uDD65" },
-  { id: 110, name: "Groundnut Cake", price: 3.50, emoji: "\uD83E\uDD5C" },
-  { id: 111, name: "Palm Oil (1L)", price: 5.90, emoji: "\uD83D\uDFE0" },
+  { id: 12, name: "Processed Ogbono", price: 15000, emoji: "🥣" },
+  { id: 15, name: "Dried Fish (Pala, Sawa, Agbodo)", price: 10000, emoji: "🐟" },
+  { id: 11, name: "Processed Egusi", price: 10000, emoji: "🥣" },
+  { id: 13, name: "Processed Groundnuts", price: 15000, emoji: "🥜" },
+  { id: 14, name: "Red Palm Oil", price: 8000, emoji: "🫒" },
 ];
 
 export const DELIVERY_FEE_THRESHOLD = 50;

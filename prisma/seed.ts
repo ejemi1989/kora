@@ -22,18 +22,21 @@ async function main() {
   });
 
   const products = [
-    { id: "prod-1", name: "Jollof Rice Party Pack", description: "2.5kg premium parboiled rice with tomato stew base, serves 8-10", price: 14.99, stock: 50, images: ["/images/prod-jollof.png"], category: "Grains & Rice", sellerId: "seller-1", rating: 4.8 },
-    { id: "prod-2", name: "Suya Spice Set", description: "180g signature suya pepper blend with peanut powder", price: 8.50, stock: 100, images: ["/images/prod-suya.png"], category: "Spices & Seasoning", sellerId: "seller-1", rating: 4.9 },
-    { id: "prod-3", name: "Plantain Chips (3 pk)", description: "Spicy, Sweet & Garlic — 3-pack variety", price: 4.99, stock: 75, images: ["/images/prod-chips.png"], category: "Snacks", sellerId: "seller-1", rating: 4.5 },
-    { id: "prod-4", name: "Egusi Soup Mix", description: "500g pre-ground egusi (melon) seeds for traditional soup", price: 6.75, stock: 40, images: ["/images/prod-egusi.png"], category: "Soups & Stews", sellerId: "seller-1", rating: 4.6 },
-    { id: "prod-5", name: "Ogbono Powder", description: "400g ground ogbono seeds — thickens any soup", price: 7.20, stock: 30, images: ["/images/prod-ogbono.png"], category: "Soups & Stews", sellerId: "seller-1", rating: 4.7 },
-    { id: "prod-6", name: "Smoked Catfish", description: "500g whole smoked catfish, rich flavor", price: 12.50, stock: 20, images: ["/images/prod-catfish.png"], category: "Fish & Seafood", sellerId: "seller-1", rating: 4.9 },
-    { id: "prod-7", name: "Fufu Flour", description: "2kg premium cassava flour for smooth fufu", price: 5.50, stock: 60, images: ["/images/prod-fufu.png"], category: "Grains & Rice", sellerId: "seller-1", rating: 4.4 },
-    { id: "prod-8", name: "Zobo Drink Mix", description: "200g dried hibiscus petals with ginger & cloves", price: 4.50, stock: 80, images: ["/images/prod-zobo.png"], category: "Beverages", sellerId: "seller-1", rating: 4.3 },
-    { id: "prod-9", name: "Coconut Rice", description: "1kg specialty coconut rice blend", price: 6.80, stock: 45, images: ["/images/prod-coconut.png"], category: "Grains & Rice", sellerId: "seller-1", rating: 4.5 },
-    { id: "prod-10", name: "Groundnut Cake", description: "300g fresh groundnut cake (kuli-kuli)", price: 3.50, stock: 90, images: ["/images/prod-groundnut.png"], category: "Snacks", sellerId: "seller-1", rating: 4.2 },
-    { id: "prod-11", name: "Palm Oil (1L)", description: "1 litre natural red palm oil", price: 5.90, stock: 35, images: ["/images/prod-palm-oil.png"], category: "Oils & Condiments", sellerId: "seller-1", rating: 4.6 },
-    { id: "prod-12", name: "Garri (Ijebu)", description: "2kg fine Ijebu garri, premium quality", price: 4.20, stock: 55, images: ["/images/prod-garri.png"], category: "Grains & Rice", sellerId: "seller-1", rating: 4.7 },
+    { id: "prod-1", name: "Gari Ijebu", description: "1kg · Premium fine Ijebu Garri", price: 10000, stock: 150, images: ["/images/prod-garri.png"], category: "Grains & Rice", sellerId: "seller-1", rating: 4.7 },
+    { id: "prod-2", name: "Ofada Rice", description: "1kg · Authentic local Ofada rice", price: 15000, stock: 100, images: ["/images/prod-ofada.png"], category: "Grains & Rice", sellerId: "seller-1", rating: 4.8 },
+    { id: "prod-3", name: "Yam", description: "1kg · Large organic white yam tuber", price: 8000, stock: 80, images: ["/images/prod-yam.png"], category: "Vegetables", sellerId: "seller-1", rating: 4.5 },
+    { id: "prod-4", name: "Cocoa Yam", description: "1kg · Fresh cocoyam tubers", price: 8000, stock: 90, images: ["/images/prod-cocoyam.png"], category: "Vegetables", sellerId: "seller-1", rating: 4.4 },
+    { id: "prod-5", name: "Water Yam", description: "1kg · Premium water yam tubers", price: 6000, stock: 60, images: ["/images/prod-wateryam.png"], category: "Vegetables", sellerId: "seller-1", rating: 4.3 },
+    { id: "prod-6", name: "Yam Flour", description: "1kg · Premium elubo for Amala", price: 10000, stock: 120, images: ["/images/prod-yamflour.png"], category: "Grains & Rice", sellerId: "seller-1", rating: 4.6 },
+    { id: "prod-7", name: "Cassava Flour", description: "1kg · High quality cassava flour", price: 6000, stock: 140, images: ["/images/prod-cassavaflour.png"], category: "Grains & Rice", sellerId: "seller-1", rating: 4.4 },
+    { id: "prod-8", name: "Dried Cray Fish", description: "1kg · Properly sun-dried whole crayfish", price: 20000, stock: 70, images: ["/images/prod-crayfish.png"], category: "Fish & Seafood", sellerId: "seller-1", rating: 4.9 },
+    { id: "prod-9", name: "Snails", description: "1kg · Large, clean land snails", price: 24000, stock: 50, images: ["/images/prod-snails.png"], category: "Fish & Seafood", sellerId: "seller-1", rating: 4.8 },
+    { id: "prod-10", name: "Fresh Plantain", description: "1kg · Sweet, fresh plantains", price: 10000, stock: 110, images: ["/images/prod-plantain.png"], category: "Vegetables", sellerId: "seller-1", rating: 4.6 },
+    { id: "prod-11", name: "Processed Egusi", description: "1kg · Pre-ground peeled melon seeds", price: 10000, stock: 130, images: ["/images/prod-egusi.png"], category: "Spices & Seasoning", sellerId: "seller-1", rating: 4.7 },
+    { id: "prod-12", name: "Processed Ogbono", description: "1kg · Pure ground Ogbono seeds", price: 15000, stock: 85, images: ["/images/prod-ogbono.png"], category: "Spices & Seasoning", sellerId: "seller-1", rating: 4.7 },
+    { id: "prod-13", name: "Processed Groundnuts", description: "1kg · Roasted crunchy peanuts", price: 15000, stock: 160, images: ["/images/prod-groundnuts.png"], category: "Snacks", sellerId: "seller-1", rating: 4.5 },
+    { id: "prod-14", name: "Red Palm Oil", description: "1kg · Pure traditional red palm oil", price: 8000, stock: 95, images: ["/images/prod-palmoil.png"], category: "Oils & Condiments", sellerId: "seller-1", rating: 4.8 },
+    { id: "prod-15", name: "Dried Fish (Pala, Sawa, Agbodo)", description: "1kg · Dry fish assortment for native soups", price: 10000, stock: 75, images: ["/images/prod-driedfish.png"], category: "Fish & Seafood", sellerId: "seller-1", rating: 4.7 },
   ];
 
   for (const p of products) {
@@ -47,10 +50,10 @@ async function main() {
   });
 
   const cartItems = [
-    { productId: "prod-1", quantity: 2 },
-    { productId: "prod-2", quantity: 1 },
-    { productId: "prod-3", quantity: 3 },
-    { productId: "prod-4", quantity: 1 },
+    { productId: "prod-11", quantity: 2 },
+    { productId: "prod-14", quantity: 1 },
+    { productId: "prod-13", quantity: 3 },
+    { productId: "prod-8", quantity: 1 },
   ];
   for (const ci of cartItems) {
     const existing = await prisma.cartItem.findFirst({ where: { cartId: "cart-1", productId: ci.productId } });
@@ -60,28 +63,28 @@ async function main() {
   }
 
   const orders = [
-    { id: "NP-0001", userId: "user-1", status: "DELIVERED" as const, total: 47.20, trackingNumber: "NP-0001" },
-    { id: "NP-0002", userId: "user-1", status: "SHIPPED" as const, total: 32.50, trackingNumber: "NP-0002" },
-    { id: "NP-0003", userId: "user-1", status: "PROCESSING" as const, total: 28.80, trackingNumber: "NP-0003" },
-    { id: "NP-0004", userId: "user-1", status: "PAID" as const, total: 19.95, trackingNumber: "NP-0004" },
-    { id: "NP-0005", userId: "user-1", status: "DELIVERED" as const, total: 38.40, trackingNumber: "NP-0005" },
-    { id: "NP-0006", userId: "user-1", status: "DELIVERED" as const, total: 15.60, trackingNumber: "NP-0006" },
+    { id: "NP-0001", userId: "user-1", status: "DELIVERED" as const, total: 35000, trackingNumber: "NP-0001" },
+    { id: "NP-0002", userId: "user-1", status: "SHIPPED" as const, total: 47000, trackingNumber: "NP-0002" },
+    { id: "NP-0003", userId: "user-1", status: "PROCESSING" as const, total: 18000, trackingNumber: "NP-0003" },
+    { id: "NP-0004", userId: "user-1", status: "PAID" as const, total: 30000, trackingNumber: "NP-0004" },
+    { id: "NP-0005", userId: "user-1", status: "DELIVERED" as const, total: 20000, trackingNumber: "NP-0005" },
+    { id: "NP-0006", userId: "user-1", status: "DELIVERED" as const, total: 20000, trackingNumber: "NP-0006" },
   ];
   for (const o of orders) {
     await prisma.order.upsert({ where: { id: o.id }, update: {}, create: o });
   }
 
   const orderItems = [
-    { orderId: "NP-0001", productId: "prod-1", quantity: 2, price: 14.99 },
-    { orderId: "NP-0001", productId: "prod-2", quantity: 1, price: 8.50 },
-    { orderId: "NP-0002", productId: "prod-2", quantity: 1, price: 8.50 },
-    { orderId: "NP-0002", productId: "prod-3", quantity: 3, price: 4.99 },
-    { orderId: "NP-0002", productId: "prod-11", quantity: 1, price: 5.90 },
-    { orderId: "NP-0003", productId: "prod-7", quantity: 2, price: 5.50 },
-    { orderId: "NP-0003", productId: "prod-5", quantity: 1, price: 7.20 },
-    { orderId: "NP-0004", productId: "prod-10", quantity: 3, price: 3.50 },
-    { orderId: "NP-0005", productId: "prod-6", quantity: 2, price: 12.50 },
-    { orderId: "NP-0006", productId: "prod-10", quantity: 2, price: 3.50 },
+    { orderId: "NP-0001", productId: "prod-1", quantity: 2, price: 10000 },
+    { orderId: "NP-0001", productId: "prod-2", quantity: 1, price: 15000 },
+    { orderId: "NP-0002", productId: "prod-2", quantity: 1, price: 15000 },
+    { orderId: "NP-0002", productId: "prod-3", quantity: 3, price: 8000 },
+    { orderId: "NP-0002", productId: "prod-14", quantity: 1, price: 8000 },
+    { orderId: "NP-0003", productId: "prod-7", quantity: 2, price: 6000 },
+    { orderId: "NP-0003", productId: "prod-5", quantity: 1, price: 6000 },
+    { orderId: "NP-0004", productId: "prod-10", quantity: 3, price: 10000 },
+    { orderId: "NP-0005", productId: "prod-6", quantity: 2, price: 10000 },
+    { orderId: "NP-0006", productId: "prod-10", quantity: 2, price: 10000 },
   ];
   for (const oi of orderItems) {
     const existing = await prisma.orderItem.findFirst({ where: { orderId: oi.orderId, productId: oi.productId } });
