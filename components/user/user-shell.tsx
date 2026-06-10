@@ -108,7 +108,7 @@ export function UserShell({ children }: { children: ReactNode }) {
       <aside className={`user-sidebar ${sidebar ? "open" : ""}`}>
         <div className="user-sidebar-brand">
           <div className="user-logo">NP</div>
-          Kora
+          Deni
         </div>
         <nav className="user-nav">
           {navItems.map((item) => (
@@ -132,7 +132,7 @@ export function UserShell({ children }: { children: ReactNode }) {
       <div className="user-main">
         <header className="user-topbar">
           <button className="user-hamburger" onClick={() => setSidebar(true)}><MenuIcon /></button>
-          <span className="user-topbar-title">Kora</span>
+          <span className="user-topbar-title">Deni</span>
           <span className="user-topbar-sub">/ {pageLabels[page] || page}</span>
           <div className="user-topbar-spacer" />
           <div style={{ position: "relative" }}>

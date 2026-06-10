@@ -1,5 +1,5 @@
 export interface UserProduct {
-  id: number;
+  id: string;
   name: string;
   category: string;
   price: number;
@@ -11,7 +11,7 @@ export interface UserProduct {
 }
 
 export interface CartItem {
-  id: number;
+  id: string;
   name: string;
   description: string;
   qty: number;

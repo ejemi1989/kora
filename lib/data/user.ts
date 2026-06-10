@@ -10,18 +10,18 @@ import type {
 } from "@/lib/types/user";
 
 export const PRODUCTS: UserProduct[] = [
-  { id: 101, name: "Jollof Rice Party Pack", category: "Grains & Rice", price: 14.99, tag: "popular", rating: 4.8, description: "2.5kg · Feeds 8-10", emoji: "\uD83C\uDF5A" },
-  { id: 102, name: "Suya Spice Set", category: "Spices & Seasoning", price: 8.50, origPrice: 10.00, tag: "sale", rating: 4.9, description: "180g · Signature blend", emoji: "\uD83C\uDF36\uFE0F" },
-  { id: 103, name: "Plantain Chips (3 pk)", category: "Snacks", price: 4.99, tag: "popular", rating: 4.5, description: "Spicy · Sweet · Garlic", emoji: "\uD83C\uDF4C" },
-  { id: 104, name: "Egusi Soup Mix", category: "Soups & Stews", price: 6.75, rating: 4.6, description: "500g · Pre-ground", emoji: "\uD83E\uDD63" },
-  { id: 105, name: "Ogbono Powder", category: "Soups & Stews", price: 7.20, rating: 4.7, emoji: "\uD83C\uDF30" },
-  { id: 106, name: "Smoked Catfish", category: "Fish & Seafood", price: 12.50, tag: "popular", rating: 4.9, emoji: "\uD83D\uDC1F" },
-  { id: 107, name: "Fufu Flour", category: "Grains & Rice", price: 5.50, rating: 4.4, emoji: "\uD83E\uDD63" },
-  { id: 108, name: "Zobo Drink Mix", category: "Beverages", price: 4.50, tag: "new", rating: 4.3, emoji: "\uD83E\uDED0" },
-  { id: 109, name: "Coconut Rice", category: "Grains & Rice", price: 6.80, rating: 4.5, emoji: "\uD83E\uDD65" },
-  { id: 110, name: "Groundnut Cake", category: "Snacks", price: 3.50, rating: 4.2, emoji: "\uD83E\uDD5C" },
-  { id: 111, name: "Palm Oil (1L)", category: "Oils & Condiments", price: 5.90, rating: 4.6, emoji: "\uD83D\uDFE0" },
-  { id: 112, name: "Garri (Ijebu)", category: "Grains & Rice", price: 4.20, tag: "popular", rating: 4.7, emoji: "\uD83C\uDF3E" },
+  { id: "101", name: "Jollof Rice Party Pack", category: "Grains & Rice", price: 14.99, tag: "popular", rating: 4.8, description: "2.5kg · Feeds 8-10", emoji: "\uD83C\uDF5A" },
+  { id: "102", name: "Suya Spice Set", category: "Spices & Seasoning", price: 8.50, origPrice: 10.00, tag: "sale", rating: 4.9, description: "180g · Signature blend", emoji: "\uD83C\uDF36\uFE0F" },
+  { id: "103", name: "Plantain Chips (3 pk)", category: "Snacks", price: 4.99, tag: "popular", rating: 4.5, description: "Spicy · Sweet · Garlic", emoji: "\uD83C\uDF4C" },
+  { id: "104", name: "Egusi Soup Mix", category: "Soups & Stews", price: 6.75, rating: 4.6, description: "500g · Pre-ground", emoji: "\uD83E\uDD63" },
+  { id: "105", name: "Ogbono Powder", category: "Soups & Stews", price: 7.20, rating: 4.7, emoji: "\uD83C\uDF30" },
+  { id: "106", name: "Smoked Catfish", category: "Fish & Seafood", price: 12.50, tag: "popular", rating: 4.9, emoji: "\uD83D\uDC1F" },
+  { id: "107", name: "Fufu Flour", category: "Grains & Rice", price: 5.50, rating: 4.4, emoji: "\uD83E\uDD63" },
+  { id: "108", name: "Zobo Drink Mix", category: "Beverages", price: 4.50, tag: "new", rating: 4.3, emoji: "\uD83E\uDED0" },
+  { id: "109", name: "Coconut Rice", category: "Grains & Rice", price: 6.80, rating: 4.5, emoji: "\uD83E\uDD65" },
+  { id: "110", name: "Groundnut Cake", category: "Snacks", price: 3.50, rating: 4.2, emoji: "\uD83E\uDD5C" },
+  { id: "111", name: "Palm Oil (1L)", category: "Oils & Condiments", price: 5.90, rating: 4.6, emoji: "\uD83D\uDFE0" },
+  { id: "112", name: "Garri (Ijebu)", category: "Grains & Rice", price: 4.20, tag: "popular", rating: 4.7, emoji: "\uD83C\uDF3E" },
 ];
 
 export const CATEGORIES = [
@@ -36,10 +36,10 @@ export const CATEGORIES = [
 ];
 
 export const INITIAL_CART: CartItem[] = [
-  { id: 101, name: "Jollof Rice Party Pack", description: "2.5kg · Feeds 8-10", qty: 2, unitPrice: 14.99, emoji: "\uD83C\uDF5A" },
-  { id: 102, name: "Suya Spice Set", description: "180g · Signature blend", qty: 1, unitPrice: 8.50, emoji: "\uD83C\uDF36\uFE0F" },
-  { id: 103, name: "Plantain Chips (3 pk)", description: "Spicy · Sweet · Garlic", qty: 3, unitPrice: 4.99, emoji: "\uD83C\uDF4C" },
-  { id: 104, name: "Egusi Soup Mix", description: "500g · Pre-ground", qty: 1, unitPrice: 6.75, emoji: "\uD83E\uDD63" },
+  { id: "101", name: "Jollof Rice Party Pack", description: "2.5kg · Feeds 8-10", qty: 2, unitPrice: 14.99, emoji: "\uD83C\uDF5A" },
+  { id: "102", name: "Suya Spice Set", description: "180g · Signature blend", qty: 1, unitPrice: 8.50, emoji: "\uD83C\uDF36\uFE0F" },
+  { id: "103", name: "Plantain Chips (3 pk)", description: "Spicy · Sweet · Garlic", qty: 3, unitPrice: 4.99, emoji: "\uD83C\uDF4C" },
+  { id: "104", name: "Egusi Soup Mix", description: "500g · Pre-ground", qty: 1, unitPrice: 6.75, emoji: "\uD83E\uDD63" },
 ];
 
 export const ORDERS: UserOrder[] = [
@@ -90,12 +90,12 @@ export const NOTIFICATIONS: UserNotification[] = [
 ];
 
 export const WISHLIST_INITIAL = [
-  { id: 105, name: "Ogbono Powder", price: 7.20, emoji: "\uD83C\uDF30" },
-  { id: 106, name: "Smoked Catfish", price: 12.50, emoji: "\uD83D\uDC1F" },
-  { id: 108, name: "Zobo Drink Mix", price: 4.50, emoji: "\uD83E\uDED0" },
-  { id: 109, name: "Coconut Rice", price: 6.80, emoji: "\uD83E\uDD65" },
-  { id: 110, name: "Groundnut Cake", price: 3.50, emoji: "\uD83E\uDD5C" },
-  { id: 111, name: "Palm Oil (1L)", price: 5.90, emoji: "\uD83D\uDFE0" },
+  { id: "105", name: "Ogbono Powder", price: 7.20, emoji: "\uD83C\uDF30" },
+  { id: "106", name: "Smoked Catfish", price: 12.50, emoji: "\uD83D\uDC1F" },
+  { id: "108", name: "Zobo Drink Mix", price: 4.50, emoji: "\uD83E\uDED0" },
+  { id: "109", name: "Coconut Rice", price: 6.80, emoji: "\uD83E\uDD65" },
+  { id: "110", name: "Groundnut Cake", price: 3.50, emoji: "\uD83E\uDD5C" },
+  { id: "111", name: "Palm Oil (1L)", price: 5.90, emoji: "\uD83D\uDFE0" },
 ];
 
 export const DELIVERY_FEE_THRESHOLD = 50;

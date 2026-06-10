@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { Show, UserButton } from "@clerk/nextjs";
 
-const navLinks = ["Shops", "Sellers", "How it works", "Pricing"];
+const navLinks = [
+  { label: "Shops", href: "/shops" },
+  { label: "Sellers", href: "/sellers" },
+  { label: "How it works", href: "/how-it-works" },
+];
 
 export function Navbar() {
   return (
@@ -19,18 +23,19 @@ export function Navbar() {
         style={{ maxWidth: "var(--max)", padding: "0 var(--pad)" }}
       >
         <div className="flex items-center" style={{ gap: "36px" }}>
-          {navLinks.map((label) => (
+          {navLinks.map((link) => (
             <Link
-              key={label}
-              href="#"
+              key={link.label}
+              href={link.href}
               className="hidden md:inline"
               style={{
                 fontSize: "16px",
                 fontWeight: 500,
                 color: "var(--pr)",
+                textDecoration: "none",
               }}
             >
-              {label}
+              {link.label}
             </Link>
           ))}
         </div>

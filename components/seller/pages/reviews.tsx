@@ -69,7 +69,7 @@ export function ReviewsPage() {
             <div className="s-review-body">{r.text}</div>
             {r.replied && r.replyText && (
               <div className="s-reply-box">
-                <div className="author">Kora · Seller</div>
+                <div className="author">Deni · Seller</div>
                 <div className="text">{r.replyText}</div>
               </div>
             )}

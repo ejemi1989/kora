@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from "react";
 type Role = "CUSTOMER" | "SELLER" | "ADMIN";
 
 const roles: { key: Role; label: string; title: string; subtitle: string }[] = [
-  { key: "CUSTOMER", label: "Buyer", title: "Welcome back", subtitle: "Sign in to your Kora account" },
+  { key: "CUSTOMER", label: "Buyer", title: "Welcome back", subtitle: "Sign in to your Deni account" },
   { key: "SELLER", label: "Seller", title: "Seller portal", subtitle: "Sign in to manage your business" },
   { key: "ADMIN", label: "Admin", title: "Admin panel", subtitle: "Authorized administrators only" },
 ];
@@ -159,7 +159,7 @@ export default function SignInPage() {
         <div>
           <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
             <span style={{ width: 32, height: 32, borderRadius: "var(--radius-sm)", background: color, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--on-primary)", fontWeight: 700, fontSize: 16 }}>N</span>
-            <span style={{ color: "var(--on-primary)", fontSize: 18, fontWeight: 600, letterSpacing: "-0.03em" }}>Kora</span>
+            <span style={{ color: "var(--on-primary)", fontSize: 18, fontWeight: 600, letterSpacing: "-0.03em" }}>Deni</span>
           </Link>
           <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 14, marginTop: 12, marginBottom: 0 }}>
             {role === "CUSTOMER" && "Authentic African food, delivered"}
@@ -182,7 +182,7 @@ export default function SignInPage() {
           <div className="lg:hidden mb-8">
             <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
               <span style={{ width: 28, height: 28, borderRadius: "var(--radius-xs)", background: color, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--on-primary)", fontWeight: 700, fontSize: 14 }}>N</span>
-              <span style={{ color: "var(--ink)", fontSize: 16, fontWeight: 600, letterSpacing: "-0.03em" }}>Kora</span>
+              <span style={{ color: "var(--ink)", fontSize: 16, fontWeight: 600, letterSpacing: "-0.03em" }}>Deni</span>
             </Link>
           </div>
 
@@ -293,7 +293,7 @@ export default function SignInPage() {
               </p>
 
               <p style={{ fontSize: 11, color: "var(--muted)", textAlign: "center", marginTop: 12 }}>
-                Secured by Kora
+                Secured by Deni
               </p>
 
               <div style={{ marginTop: 16, textAlign: "center" }}>

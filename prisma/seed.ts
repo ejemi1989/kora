@@ -4,21 +4,21 @@ const prisma = new PrismaClient();
 
 async function main() {
   const user = await prisma.user.upsert({
-    where: { email: "buyer@kora.com" },
+    where: { email: "buyer@deni.com" },
     update: {},
-    create: { id: "user-1", name: "Amara Okafor", email: "buyer@kora.com", role: "CUSTOMER" },
+    create: { id: "user-1", name: "Amara Okafor", email: "buyer@deni.com", role: "CUSTOMER" },
   });
 
   const seller = await prisma.user.upsert({
-    where: { email: "seller@kora.com" },
+    where: { email: "seller@deni.com" },
     update: {},
-    create: { id: "seller-1", name: "Chidi Okonkwo", email: "seller@kora.com", role: "SELLER" },
+    create: { id: "seller-1", name: "Chidi Okonkwo", email: "seller@deni.com", role: "SELLER" },
   });
 
   const admin = await prisma.user.upsert({
-    where: { email: "admin@kora.com" },
+    where: { email: "admin@deni.com" },
     update: {},
-    create: { id: "admin-1", name: "Admin User", email: "admin@kora.com", role: "ADMIN" },
+    create: { id: "admin-1", name: "Admin User", email: "admin@deni.com", role: "ADMIN" },
   });
 
   const products = [

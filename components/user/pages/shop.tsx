@@ -9,7 +9,7 @@ export function ShopPage() {
   const { cartItems, addToCart, showToast } = useUser();
   const [cat, setCat] = useState("All");
   const [q, setQ] = useState("");
-  const [loadingId, setLoadingId] = useState<number | null>(null);
+  const [loadingId, setLoadingId] = useState<string | null>(null);
 
   const filtered = PRODUCTS.filter((p) => {
     if (cat !== "All" && p.category !== cat) return false;
