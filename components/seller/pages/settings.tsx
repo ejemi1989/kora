@@ -5,14 +5,14 @@ import { useSeller } from "@/components/seller/seller-context";
 
 export function SettingsPage() {
   const { showToast } = useSeller();
-  const [storeName, setStoreName] = useState("Kora");
+  const [storeName, setStoreName] = useState("Deni");
   const [description, setDescription] = useState("Premium African food ingredients — jollof spices, groundnut paste, smoked fish, and more delivered fresh.");
-  const [email, setEmail] = useState("hello@kora.com");
+  const [email, setEmail] = useState("hello@deni.com");
   const [phone, setPhone] = useState("+234 800 AKARA");
 
   const [bankName, setBankName] = useState("GTBank");
   const [accountNumber, setAccountNumber] = useState("0123456789");
-  const [accountName, setAccountName] = useState("Kora Ventures");
+  const [accountName, setAccountName] = useState("Deni Ventures");
   const [autoWithdraw, setAutoWithdraw] = useState("₦100,000");
   const [payoutSchedule, setPayoutSchedule] = useState("Weekly (every Monday)");
 

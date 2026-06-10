@@ -14,7 +14,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Kora",
+  title: "Deni",
   description: "Authentic African food, delivered",
 };
 

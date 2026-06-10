@@ -45,3 +45,11 @@ next-env.d.ts
 .gstack/
 
 /lib/generated/prisma
+
+# IDE / Agent / Tooling files
+.agents/
+.pi/
+.qa-reports/
+.windsurf/
+skills/
+skills-lock.json

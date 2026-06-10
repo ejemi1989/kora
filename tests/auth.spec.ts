@@ -17,7 +17,7 @@ test.describe("Public pages render", () => {
     await page.goto(BASE, { waitUntil: "networkidle" })
     await expect(page.locator("body")).toBeVisible()
     const text = await page.textContent("body")
-    expect(text).toContain("Kora")
+    expect(text).toContain("Deni")
   })
 
   test("sign-in page renders", async ({ page }) => {

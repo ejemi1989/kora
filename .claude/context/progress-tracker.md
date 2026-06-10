@@ -4,11 +4,17 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Order Tracking: Seller/Admin add tracking numbers, Buyer views them — Complete
+- Payment System: Stripe integration — Backend Implementation Complete
 
 ## Current Goal
 
-- Enable seller and admin to assign tracking numbers to orders, and buyers to view them on their tracking page.
+- Implement Stripe Checkout integration, PaymentIntent creation, webhook handling, and checkout UI with Stripe Elements.
+
+## Current Build
+
+- `npm run build` — zero errors
+- `npx tsc --noEmit` — zero errors
+- Dev server at localhost:3001 — all pages render
 
 ## Completed
 
@@ -121,6 +127,25 @@ Update this file whenever the current phase, active feature, or implementation s
 - `components/landing/Community.tsx` — "Get started" button changed from `href="#"` to `href="/sign-up"`
 - Verified all other CTAs: Hero "Start for free" → `/sign-up`, Navbar "Login" → `/sign-in`, Navbar "Start for free" → `/sign-up`
 
+### Pricing Page Added & Removed
+- Created `/pricing` with 3 tiers (Starter Free, Business $29/mo, Enterprise $99/mo), billing toggle via URL search params, FAQ via native `<details>`/`<summary>`
+- Navbar pricing link pointed to `/pricing`
+- **Removed**: Pricing link from Navbar, pricing page deleted
+
+### Contact Page
+- Created `app/contact/page.tsx` — contact cards (email, phone, address), message form
+- Updated "Contact us" links on `/pricing` and `/how-it-works` from `/sign-up` to `/contact`
+
+### Next.js 16: searchParams is a Promise
+- `searchParams` page prop is a `Promise` that must be `await`ed (breaking change from Next.js 15+)
+- Fixed `/pricing` billing toggle and other pages that read `searchParams` synchronously
+
+### Stripe Checkout Flow Fix
+- **Bug**: `CheckoutPageClient` didn't send `x-user-id` header to `/api/payments/create-intent`, so the endpoint returned 401
+- **Fix**: Added `useAuth().userId` + `x-user-id` header to the fetch call in `CheckoutPageClient`
+- Full flow now works: Cart → Checkout API (create Order) → Redirect to `/user/checkout/[orderId]` → Create PaymentIntent (Stripe API) → Stripe Elements card form → `confirmPayment()` → Redirect to `/user/orders`
+- Prices in USD cents (Stripe compatible), test card `4242 4242 4242 4242`
+
 ### Sign-In Role Enforcement Fixes
 - **Fix 1 — `useEffect` race condition:** The effect redirecting signed-in users to `/auth/callback` was missing `intended_role` param and fired before `signIn.finalize()`'s navigate callback. Fixed by:
   - Added `intended_role` query param to useEffect redirect URL
@@ -183,9 +208,63 @@ Update this file whenever the current phase, active feature, or implementation s
 - `components/user/user-shell.tsx` — dropdown description/time/unread colors changed from `var(--muted)`/`var(--ash)` to `var(--muted-text)`
 - `components/user/pages/notifications.tsx` — full page description, time, and "X unread" all changed to `var(--muted-text)`
 
+### Prisma Vercel Production Fix
+- `prisma/schema.prisma` — added `binaryTargets = ["native", "rhel-openssl-3.0.x"]` so `prisma generate` produces Linux-compatible engine binary for Vercel's `rhel-openssl-3.0.x` runtime
+- `package.json` — added `"postinstall": "prisma generate"` so engine is generated during Vercel build
+- `lib/prisma.ts` — replaced lazy dynamic require with standard singleton pattern (`globalThis` cache + `new PrismaClient()`)
+- Removed duplicate `generator client` block (old `prisma-client-js` provider) from schema bottom
+- Build passes zero errors; both engines (`darwin-arm64` + `rhel-openssl-3.0.x`) generated
+
+### Naira Sign (`₦`) Rendering Fix
+- `\u20A6` in JSX text content renders as literal `\u20A6` instead of the Naira sign
+- Fixed 16 occurrences across 6 files: wrapped every `\u20A6` in `{'\u20A6'}` JSX expression
+- Files: `cart.tsx` (8), `orders.tsx` (2), `overview.tsx` (1), `payments.tsx` (2), `shop.tsx` (2), `wishlist.tsx` (1)
+- Template literal usages (`` `\u20A6${...}` ``) were already correct — left untouched
+
+### Muted Text Visibility Fix
+- `app/globals.css` — changed `--muted: #f5f5f5` to `--muted: #000000` (near-white → black)
+- Root cause: `var(--muted)` was used as text color in ~37 places across user components, but `--muted` was `#f5f5f5` — nearly invisible on white background
+- `--muted` is only used as text color in these components (never as background), so the change is safe
+
+### Shop "Add Again" Qty Display
+- `components/user/pages/shop.tsx` — button now shows current cart qty: `Add again (2)` instead of plain `Add again`
+- Added `cartQty()` helper to look up current qty from cart state
+- Toast message now shows product name + new qty: `✅ Product Name — Qty: 3`
+
+### Cart localStorage Persistence
+- `components/user/user-context.tsx` — cart state now persists to `localStorage` under key `kora-cart`
+- Lazy initializer reads saved cart on mount; `useEffect` writes on every cart change
+- Cart survives page refreshes and tab closures; reverts to `INITIAL_CART` only if no saved state found
+
+### Payment System Context
+- `.claude/context/payment.md` — comprehensive payment system architecture document covering:
+  - Stripe Checkout flow and webhook handling
+  - Prisma Payment model and status transitions
+  - API routes (`POST /api/checkout`, `POST /api/payments/create-intent`, `POST /api/webhooks/stripe`)
+  - What's implemented (UI only — user/admin payments pages with seed data)
+  - What's pending (backend Stripe integration, webhook handler)
+  - Edge cases: duplicate webhooks, delayed confirmation, session expiry, refunds
+  - Environment variables and testing setup
+
+### Payment System Backend Implementation
+- **Packages installed:** `stripe` v22, `@stripe/react-stripe-js`, `@stripe/stripe-js`
+- **`lib/stripe.ts`** — Stripe server client singleton with `2026-05-27.dahlia` API version
+- **`lib/events/index.ts`** — typed event emitter with `on()`, `off()`, `emit()` for `ORDER_CREATED`, `PAYMENT_SUCCEEDED`, `ORDER_SHIPPED`
+- **`lib/services/order.ts`** — `createOrder()` (creates Order + OrderItems in DB transaction, emits `ORDER_CREATED`), `updateOrderStatus()`, `getOrderById()`
+- **`lib/services/payment.ts`** — `createPaymentIntent()` (creates Stripe PaymentIntent + DB Payment record), `handlePaymentSucceeded()` (idempotent — skips if already SUCCESS, updates Payment + Order in transaction, emits `PAYMENT_SUCCEEDED`), `handlePaymentFailed()`
+- **`lib/services/notification.ts`** — `createNotification()`, `getUserNotifications()`, `registerNotificationHandlers()` (subscribes to `PAYMENT_SUCCEEDED` to notify buyer + sellers)
+- **`app/api/checkout/route.ts`** — Updated: creates Order via `createOrder()`, clears DB cart, returns `{ orderId, total }` instead of raw order
+- **`app/api/payments/create-intent/route.ts`** — POST: accepts `{ orderId }`, returns `{ clientSecret, publishableKey }`; reuses existing PaymentIntent if one exists (retrieves from Stripe)
+- **`app/api/webhooks/stripe/route.ts`** — POST: verifies Stripe signature, handles `payment_intent.succeeded` (updates Payment → SUCCESS, Order → PAID, sends notifications) and `payment_intent.payment_failed` (updates Payment → FAILED)
+- **`app/user/checkout/[orderId]/page.tsx`** — Server component rendering checkout page
+- **`app/user/checkout/[orderId]/CheckoutPageClient.tsx`** — Client component: fetches clientSecret on mount, renders `<Elements>` wrapper
+- **`components/user/pages/StripeCheckoutForm.tsx`** — Stripe Elements `<PaymentElement>` form with `confirmPayment()`; handles both redirect (3D Secure) and non-redirect card payments; shows errors inline; success redirects to `/user/orders`
+- **`components/user/pages/cart.tsx`** — "Place Order" button now calls POST `/api/checkout` with `useAuth().userId`, clears cart on success, redirects to `/user/checkout/[orderId]`
+- **`.env`** — Added `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` (placeholder values)
+
 ## Build Verification
 
-- `npm run build` passes with zero errors
+- `npm run build` passes with zero errors (18 routes, including 3 new: `/api/payments/create-intent`, `/api/webhooks/stripe`, `/user/checkout/[orderId]`)
 - `npx tsc --noEmit` passes with zero errors
 - Dev server at localhost:3001 — all pages render correctly
 - `.env`: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...`, `CLERK_SECRET_KEY=sk_test_...` (test/dev keys, no `NEXT_PUBLIC_CLERK_PROXY_URL`)
@@ -193,11 +272,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Steps
 
+- Add `charge.refunded` webhook handler for automated refund processing
+- Wire notification UI to display real notifications from DB (currently mock data)
+- Add `PAYMENT_FAILED` event to send buyer notification
 - Run QA tier on existing dashboards using the QA skill to baseline health scores
-- Verify role-mismatch enforcement end-to-end: Seller using Buyer tab → gets error banner pointing to Seller tab
-- Verify Google OAuth with role tabs: signing in via Google on Seller tab → redirects to Seller dashboard (or error if alternate role)
-- Existing user role selection flow unchanged (`/auth/choose-role` still works for users without `unsafeMetadata.role`)
-- Verify role-scoped proxy redirects: CUSTOMER visiting `/seller/overview` or `/admin/overview` → redirected to `/user/overview`
+- Run Stripe CLI webhook listener: `stripe listen --forward-to localhost:3000/api/webhooks/stripe`
 
 ## Open Questions
 
@@ -220,3 +299,9 @@ Update this file whenever the current phase, active feature, or implementation s
 - **Tailwind CSS v4** with `@theme inline` for token mapping; landing tokens separate from dashboard tokens
 - **`priority` prop avoided** — Next.js 16 deprecates it; `preload` used instead on LCP images
 - **Dual URL + context navigation** — `useRouter.push()` for actual page navigation, context `setPage` for sidebar active state; `[page]/page.tsx` syncs URL param → context via `useEffect`
+- **Stripe Elements over Stripe Checkout** — Embedded `<PaymentElement>` form instead of hosted Checkout page; gives control over the UI while Stripe handles security (PCI compliance)
+- **Service layer (`/lib/services/`)** — Business logic extracted from route handlers for testability; each service has a single responsibility (order, payment, notification)
+- **Event system (`/lib/events/`)** — In-process pub/sub decouples payment confirmation from notifications; `PAYMENT_SUCCEEDED` event triggers notification creation without the webhook handler needing to know about it
+- **Idempotent webhook handling** — `handlePaymentSucceeded()` checks `Payment.status` before updating; prevents duplicate processing if Stripe retries
+- **`x-user-id` header auth in API routes** — Consistent with existing pattern used by cart, product, and checkout routes; Clerk `useAuth().userId` on the client passes the user ID via header
+- **Checkout at `/user/checkout/[orderId]`** — Separate route from dynamic `[page]` routing so the checkout flow has its own URL; inherits user dashboard layout (sidebar + topbar)

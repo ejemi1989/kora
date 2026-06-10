@@ -5,7 +5,7 @@ import type { CartItem, UserNotification, PageId, UserAddress, PaymentMethod } f
 import { INITIAL_CART, NOTIFICATIONS, ADDRESSES, PAYMENT_METHODS, TRANSACTIONS, WISHLIST_INITIAL, calcTotal } from "@/lib/data/user";
 
 export interface WishlistItem {
-  id: number;
+  id: string;
   name: string;
   price: number;
   emoji?: string;
@@ -37,7 +37,7 @@ interface UserContextValue {
   setWishlist: React.Dispatch<React.SetStateAction<WishlistItem[]>>;
   cartCount: number;
   cartTotal: number;
-  addToCart: (product: { id: number; name: string; price: number; description?: string; emoji?: string }) => void;
+  addToCart: (product: { id: string; name: string; price: number; description?: string; emoji?: string }) => void;
 }
 
 const UserContext = createContext<UserContextValue | null>(null);
@@ -47,17 +47,24 @@ let toastId = 0;
 export function UserProvider({ children }: { children: ReactNode }) {
   const [page, setPage] = useState<PageId>("overview");
   const [sidebar, setSidebar] = useState(false);
-  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("kora-cart");
-      if (saved) try { return JSON.parse(saved); } catch {}
-    }
-    return INITIAL_CART;
-  });
+  const [cartItems, setCartItems] = useState<CartItem[]>(INITIAL_CART);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem("kora-cart", JSON.stringify(cartItems));
-  }, [cartItems]);
+    const saved = localStorage.getItem("deni-cart");
+    if (saved) {
+      try {
+        setCartItems(JSON.parse(saved));
+      } catch {}
+    }
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted) {
+      localStorage.setItem("deni-cart", JSON.stringify(cartItems));
+    }
+  }, [cartItems, isMounted]);
   const [notifs, setNotifs] = useState<UserNotification[]>(NOTIFICATIONS);
   const [notifOpen, setNotifOpen] = useState(false);
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
@@ -76,7 +83,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const cartCount = cartItems.reduce((sum, i) => sum + i.qty, 0);
   const cartTotal = calcTotal(cartItems);
 
-  const addToCart = useCallback((product: { id: number; name: string; price: number; description?: string; emoji?: string }) => {
+  const addToCart = useCallback((product: { id: string; name: string; price: number; description?: string; emoji?: string }) => {
     setCartItems((prev) => {
       const existing = prev.find((i) => i.id === product.id);
       if (existing) {

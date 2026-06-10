@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { useUser } from "@/components/user/user-context";
 import { calcSubtotal, calcDelivery } from "@/lib/data/user";
 import { ChevronIcon, MinusIcon, PlusIcon, XIcon } from "@/components/user/icons";
@@ -11,6 +12,7 @@ type CheckoutStep = "review" | "address" | "payment" | "confirm";
 
 export function CartPage() {
   const { cartItems, setCartItems, addresses, paymentMethods, showToast } = useUser();
+  const { userId } = useAuth();
   const router = useRouter();
   const [checkout, setCheckout] = useState(false);
   const [step, setStep] = useState(0);
@@ -202,15 +204,35 @@ export function CartPage() {
               </button>
             )}
             {step === 3 && (
-              <button onClick={() => {
+              <button onClick={async () => {
                 setConfirming(true);
-                setTimeout(() => {
+                try {
+                  const res = await fetch("/api/checkout", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      "x-user-id": userId ?? "",
+                    },
+                    body: JSON.stringify({
+                      addressId: selectedAddr?.id,
+                      items: cartItems.map((item) => ({
+                        productId: String(item.id),
+                        quantity: item.qty,
+                        price: item.unitPrice,
+                      })),
+                    }),
+                  });
+                  if (!res.ok) throw new Error("Checkout failed");
+                  const { orderId } = await res.json();
                   setCartItems([]);
                   setCheckout(false);
                   setStep(0);
+                  router.push(`/user/checkout/${orderId}`);
+                } catch {
+                  showToast("Checkout failed. Please try again.", "danger");
+                } finally {
                   setConfirming(false);
-                  showToast("Order placed! \uD83C\uDF89");
-                }, 1200);
+                }
               }} disabled={confirming} style={{ width: "100%", padding: "8px 0", fontSize: 13, fontWeight: 600, borderRadius: 6, border: "none", background: confirming ? "var(--surface-soft)" : "var(--primary)", color: "#fff", cursor: confirming ? "default" : "pointer", opacity: confirming ? 0.7 : 1 }}>
                 {confirming ? "Processing..." : `Place Order \u2014 \u20A6${total.toFixed(2)}`}
               </button>

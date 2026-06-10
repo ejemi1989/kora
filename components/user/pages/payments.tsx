@@ -83,7 +83,7 @@ export function PaymentsPage() {
             <div>
               <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 12px" }}>Transfer to the account below:</p>
               <div style={{ fontSize: 13, color: "var(--body)", marginBottom: 6 }}>Bank: GTBank</div>
-              <div style={{ fontSize: 13, color: "var(--body)", marginBottom: 6 }}>Account Name: Kora Payments Ltd</div>
+              <div style={{ fontSize: 13, color: "var(--body)", marginBottom: 6 }}>Account Name: Deni Payments Ltd</div>
               <div style={{ fontSize: 13, color: "var(--body)", fontFamily: "var(--font-mono)" }}>Account Number: 012 345 6789</div>
             </div>
           )}
