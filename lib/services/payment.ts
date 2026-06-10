@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { emit } from "@/lib/events";
 
 export async function createPaymentIntent(orderId: string) {
@@ -11,6 +11,8 @@ export async function createPaymentIntent(orderId: string) {
   if (!order) throw new Error("Order not found");
 
   const existingPayment = await prisma.payment.findUnique({ where: { orderId } });
+
+  const stripe = getStripe();
 
   if (existingPayment && existingPayment.stripeId && existingPayment.status !== "FAILED") {
     const paymentIntent = await stripe.paymentIntents.retrieve(existingPayment.stripeId);
