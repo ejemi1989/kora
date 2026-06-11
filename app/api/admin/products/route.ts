@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { serverError } from "@/lib/validation";
+import { requireAdmin, serverError } from "@/lib/validation";
 
 export async function GET() {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
   try {
     const products = await prisma.product.findMany({
       orderBy: { createdAt: "desc" },
@@ -28,6 +30,8 @@ export async function GET() {
 }
 
 export async function PATCH(req: Request) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
   try {
     const { id, status } = await req.json();
     const product = await prisma.product.findUnique({ where: { id } });

@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { serverError } from "@/lib/validation";
+import { requireAdmin, serverError } from "@/lib/validation";
 
 export async function GET() {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
   try {
     const sellerGroups = await prisma.product.groupBy({
       by: ["sellerId"],

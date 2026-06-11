@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 
 export const productCreateSchema = z.object({
   name: z.string().min(1, "Name is required").max(200),
@@ -68,4 +69,12 @@ export function notFound(msg?: string): NextResponse {
 
 export function success<T>(data: T, status = 200): NextResponse {
   return NextResponse.json({ success: true, data }, { status });
+}
+
+export async function requireAdmin(): Promise<{ userId: string } | NextResponse> {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+  return { userId };
 }
