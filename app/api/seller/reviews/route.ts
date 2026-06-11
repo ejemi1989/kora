@@ -31,7 +31,7 @@ export async function GET() {
       customer: r.user.name,
       product: r.product.name,
       rating: r.rating,
-      text: r.text,
+      text: r.comment,
       date: r.createdAt.toISOString().slice(0, 10),
       replied: r.replied,
       replyText: r.replyText ?? undefined,
