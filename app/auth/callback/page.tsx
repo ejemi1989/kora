@@ -1,4 +1,4 @@
-import { auth, currentUser } from "@clerk/nextjs/server"
+import { auth, currentUser, clerkClient } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 
 const dashboardMap: Record<string, string> = {
@@ -26,8 +26,16 @@ export default async function AuthCallbackPage({
     redirect(`/sign-in?error=role_mismatch&expected=${intendedRole}&actual=${actualRole}`)
   }
 
-  if (actualRole && dashboardMap[actualRole]) {
-    redirect(dashboardMap[actualRole])
+  const roleToUse = actualRole || intendedRole
+
+  if (roleToUse && dashboardMap[roleToUse]) {
+    if (!actualRole && intendedRole) {
+      const client = await clerkClient()
+      await client.users.updateUser(clerkUser.id, {
+        unsafeMetadata: { role: intendedRole },
+      })
+    }
+    redirect(dashboardMap[roleToUse])
   }
 
   redirect("/auth/choose-role")
