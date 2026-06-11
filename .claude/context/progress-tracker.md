@@ -193,6 +193,14 @@ Update this file whenever the current phase, active feature, or implementation s
 - Root cause: `@clerk/shared@4.14.0` resolves version `6.13.0` to major tag `@6`, producing URL `.../npm/@clerk/clerk-js@6/dist/clerk.browser.js` which the CDN 307-redirects to `@6.12.1`; `crossorigin="anonymous"` script tags can fail to follow the redirect in some browsers
 - Fix loads `.../npm/@clerk/clerk-js@6.13.0/dist/clerk.browser.js` directly (200, no redirect)
 
+### Landing Page & Shops Page Image Updates
+- **`components/landing/SocialProof.tsx`** — Replaced `gfinal_1.png` → `yam.png`, `gfinal_2.png` → `pepper.png` in gallery images array
+- **`app/shops/page.tsx`** — Updated category card images:
+  - Fresh Produce: `gfinal_2.png` → `veggies.png`
+  - Grains & Staples: `gfinal_5.png` → `groundnut.png`
+  - Spices & Seasonings: `gfinal_6.png` → `pepper.png`
+  - Seafood & Proteins: `gfinal_3.png` → `gfinal_4.png`
+
 ### Minimum Order Weight (40kg)
 - `lib/types/user.ts` — added `weight: number` to `UserProduct` and `CartItem` types
 - `lib/data/user.ts` — added per-product weight values (kg), `calcTotalWeight()` helper, `MIN_ORDER_KG = 40` constant

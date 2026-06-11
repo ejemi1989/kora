@@ -10,39 +10,33 @@ const categories = [
   {
     title: "Fresh Produce",
     desc: "Farm-fresh fruits, vegetables, and herbs sourced directly from local growers",
-    img: "gfinal_2.png",
-    count: "48",
+    img: "veggies.png",
     color: "#ea2804",
   },
   {
     title: "Grains & Staples",
     desc: "Rice, yam, garri, beans, and other everyday essentials",
-    img: "gfinal_5.png",
-    count: "36",
+    img: "groundnut.png",
   },
   {
     title: "Spices & Seasonings",
     desc: "Authentic blends, dried peppers, and traditional flavorings",
-    img: "gfinal_6.png",
-    count: "52",
+    img: "pepper.png",
   },
   {
     title: "Seafood & Proteins",
     desc: "Dried fish, stockfish, crayfish, and premium cuts",
-    img: "gfinal_3.png",
-    count: "24",
+    img: "gfinal_4.png",
   },
   {
     title: "Snacks & Treats",
     desc: "Traditional snacks, chin chin, puff puff mixes, and more",
-    img: "gfinal_1.png",
-    count: "31",
+    img: "Gr.png",
   },
   {
     title: "Beverages",
     desc: "Zobo mixes, sobo ingredients, palm wine, and specialty drinks",
     img: "gfinal_4.png",
-    count: "19",
   },
 ];
 
@@ -160,9 +154,7 @@ export default function ShopsPage() {
                       </div>
                       <div style={{ padding: "16px" }}>
                         <div
-                          className="flex items-center"
                           style={{
-                            justifyContent: "space-between",
                             marginBottom: "6px",
                           }}
                         >
@@ -175,18 +167,6 @@ export default function ShopsPage() {
                           >
                             {cat.title}
                           </h3>
-                          <span
-                            style={{
-                              fontSize: "12px",
-                              fontWeight: 500,
-                              color: "var(--pr)",
-                              background: "rgba(193,45,7,0.08)",
-                              padding: "2px 10px",
-                              borderRadius: "99px",
-                            }}
-                          >
-                            {cat.count}
-                          </span>
                         </div>
                         <p
                           style={{

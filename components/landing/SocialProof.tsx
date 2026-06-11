@@ -4,8 +4,8 @@ import Image from "next/image";
 import { useLanguage } from "@/lib/i18n/language-context";
 
 const galleryImages = [
-  "gfinal_1.png",
-  "gfinal_2.png",
+  "yam.png",
+  "pepper.png",
   "gfinal_3.png",
   "gfinal_4.png",
   "Gr.png",
