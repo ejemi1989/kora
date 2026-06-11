@@ -30,5 +30,5 @@ export default async function AuthCallbackPage({
     redirect(dashboardMap[actualRole])
   }
 
-  redirect("/sign-in")
+  redirect("/auth/choose-role")
 }
