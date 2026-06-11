@@ -13,6 +13,12 @@ const roles: { key: Role; label: string; title: string; subtitle: string }[] = [
   { key: "ADMIN", label: "Admin", title: "Admin access", subtitle: "Restricted to authorized administrators" },
 ];
 
+const emailRoleMap: Record<string, Role> = {
+  "admin@denimarketplace.com": "ADMIN",
+  "seller@denimarketplace.com": "SELLER",
+  "buyer@denimarketplace.com": "CUSTOMER",
+};
+
 const features: Record<Role, string[]> = {
   CUSTOMER: [
     "Browse products from trusted African food vendors",
@@ -62,10 +68,19 @@ export default function SignUpPage() {
     const emailAddress = formData.get("emailAddress") as string;
     const password = formData.get("password") as string;
 
+    const enforcedRole = emailRoleMap[emailAddress.toLowerCase()];
+    const roleToUse = enforcedRole || role;
+
+    if (enforcedRole && enforcedRole !== role) {
+      const correctTab = roles.find((r) => r.key === enforcedRole)?.label;
+      setFormError(`This email must sign up via the "${correctTab}" tab.`);
+      return;
+    }
+
     const { error } = await signUp.password({
       emailAddress,
       password,
-      unsafeMetadata: { role } as any,
+      unsafeMetadata: { role: roleToUse } as any,
     });
     if (error) { setFormError(error.message); return; }
 
@@ -234,6 +249,12 @@ export default function SignUpPage() {
                   <label htmlFor="emailAddress" style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", display: "block", marginBottom: 4 }}>Email address</label>
                   <input
                     id="emailAddress" name="emailAddress" type="email" required
+                    onBlur={(e) => {
+                      const enforcedRole = emailRoleMap[e.target.value.toLowerCase()];
+                      if (enforcedRole && enforcedRole !== role) {
+                        setRole(enforcedRole);
+                      }
+                    }}
                     style={{ width: "100%", height: 40, borderRadius: "var(--radius-sm)", border: "1px solid var(--hairline)", fontSize: 13, padding: "0 12px", background: "var(--surface-card)", color: "var(--ink)" }}
                   />
                   {errors?.fields?.emailAddress && (

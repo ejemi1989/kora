@@ -13,6 +13,12 @@ const roles: { key: Role; label: string; title: string; subtitle: string }[] = [
   { key: "ADMIN", label: "Admin", title: "Admin panel", subtitle: "Authorized administrators only" },
 ];
 
+const emailRoleMap: Record<string, Role> = {
+  "admin@denimarketplace.com": "ADMIN",
+  "seller@denimarketplace.com": "SELLER",
+  "buyer@denimarketplace.com": "CUSTOMER",
+};
+
 const features: Record<Role, string[]> = {
   CUSTOMER: [
     "Browse products from trusted African food vendors",
@@ -69,6 +75,13 @@ export default function SignInPage() {
     const formData = new FormData(e.currentTarget);
     const identifier = formData.get("email") as string;
     const password = formData.get("password") as string;
+
+    const enforcedRole = emailRoleMap[identifier.toLowerCase()];
+    if (enforcedRole && enforcedRole !== role) {
+      const correctTab = roles.find((r) => r.key === enforcedRole)?.label;
+      setFormError(`This account must sign in via the "${correctTab}" tab.`);
+      return;
+    }
 
     const result = await signIn.password({ identifier, password });
     if (result?.error) { setFormError(result.error.message); return; }
@@ -255,6 +268,12 @@ export default function SignInPage() {
                   <label htmlFor="email" style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", display: "block", marginBottom: 4 }}>Email address</label>
                   <input
                     id="email" name="email" type="email" required
+                    onBlur={(e) => {
+                      const enforcedRole = emailRoleMap[e.target.value.toLowerCase()];
+                      if (enforcedRole && enforcedRole !== role) {
+                        setRole(enforcedRole);
+                      }
+                    }}
                     style={{ width: "100%", height: 40, borderRadius: "var(--radius-sm)", border: "1px solid var(--hairline)", fontSize: 13, padding: "0 12px", background: "var(--surface-card)", color: "var(--ink)" }}
                   />
                   {errors?.fields?.identifier && (

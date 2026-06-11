@@ -7,6 +7,12 @@ const dashboardMap: Record<string, string> = {
   CUSTOMER: "/user/overview",
 }
 
+const emailRoleMap: Record<string, string> = {
+  "admin@denimarketplace.com": "ADMIN",
+  "seller@denimarketplace.com": "SELLER",
+  "buyer@denimarketplace.com": "CUSTOMER",
+}
+
 export default async function AuthCallbackPage({
   searchParams,
 }: {
@@ -20,7 +26,20 @@ export default async function AuthCallbackPage({
   const clerkUser = await currentUser()
   if (!clerkUser) redirect("/sign-in")
 
+  const userEmail = clerkUser.emailAddresses[0]?.emailAddress
+  const enforcedRole = userEmail ? emailRoleMap[userEmail] : undefined
+
   const actualRole = (clerkUser.unsafeMetadata?.role as string) || undefined
+
+  if (enforcedRole) {
+    if (!actualRole || actualRole !== enforcedRole) {
+      const client = await clerkClient()
+      await client.users.updateUser(clerkUser.id, {
+        unsafeMetadata: { role: enforcedRole },
+      })
+    }
+    redirect(dashboardMap[enforcedRole])
+  }
 
   if (intendedRole && actualRole && actualRole !== intendedRole) {
     redirect(`/sign-in?error=role_mismatch&expected=${intendedRole}&actual=${actualRole}`)
