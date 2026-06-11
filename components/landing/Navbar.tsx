@@ -3,13 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Show, UserButton } from "@clerk/nextjs";
+import { useUser, UserButton } from "@clerk/nextjs";
 import { useLanguage } from "@/lib/i18n/language-context";
 
 const navLinks = ["Home", "Shops", "How it works"] as const;
 
 export function Navbar() {
   const { t, lang, setLang, languages } = useLanguage();
+  const { isLoaded, isSignedIn } = useUser();
   const [open, setOpen] = useState(false);
 
   const hrefFor = (label: string) =>
@@ -173,39 +174,7 @@ export function Navbar() {
             )}
           </div>
 
-          <Show when="signed-out">
-            <Link
-              href="/sign-in"
-              style={{
-                fontSize: "15.9px",
-                fontWeight: 500,
-                color: "var(--pr)",
-                border: "none",
-                background: "none",
-                cursor: "pointer",
-                textDecoration: "none",
-              }}
-            >
-              {t("nav.login")}
-            </Link>
-            <Link
-              href="/sign-up"
-              style={{
-                background: "var(--pr)",
-                color: "#fff",
-                padding: "10px 20px",
-                borderRadius: "24px",
-                fontSize: "15.9px",
-                fontWeight: 500,
-                border: "1px solid transparent",
-                cursor: "pointer",
-                textDecoration: "none",
-              }}
-            >
-              {t("nav.start-free")}
-            </Link>
-          </Show>
-          <Show when="signed-in">
+          {isLoaded && isSignedIn ? (
             <UserButton
               appearance={{
                 elements: {
@@ -219,7 +188,40 @@ export function Navbar() {
               userProfileMode="navigation"
               userProfileUrl="/user/settings"
             />
-          </Show>
+          ) : (
+            <>
+              <Link
+                href="/sign-in"
+                style={{
+                  fontSize: "15.9px",
+                  fontWeight: 500,
+                  color: "var(--pr)",
+                  border: "none",
+                  background: "none",
+                  cursor: "pointer",
+                  textDecoration: "none",
+                }}
+              >
+                {t("nav.login")}
+              </Link>
+              <Link
+                href="/sign-up"
+                style={{
+                  background: "var(--pr)",
+                  color: "#fff",
+                  padding: "10px 20px",
+                  borderRadius: "24px",
+                  fontSize: "15.9px",
+                  fontWeight: 500,
+                  border: "1px solid transparent",
+                  cursor: "pointer",
+                  textDecoration: "none",
+                }}
+              >
+                {t("nav.start-free")}
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </nav>

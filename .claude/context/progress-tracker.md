@@ -123,6 +123,12 @@ Update this file whenever the current phase, active feature, or implementation s
 - `components/landing/DarkSection.tsx` — Changed from Next.js `<Image>` to plain `<img>` with `width:100%`,`height:auto` for full-bleed edge-to-edge rendering; added `background:#000` to wrapper to prevent white page background showing through transparent PNG areas
 - `app/page.tsx` — Added `import { DarkSection }` and component between HowItWorks and SocialProof (was never rendered before)
 
+### Navbar Login/Start-for-free Visibility Fix
+- `components/landing/Navbar.tsx` — Replaced `<Show when="signed-out">` and `<Show when="signed-in">` with conditional render based on `useUser().isLoaded && isSignedIn`
+- Root cause: Clerk `<Show>` returns `null` while auth is loading, so when `clerk-js` fails to load (e.g. dev keys in prod, DNS not verified) the marketing CTAs disappear — violating the landing.md spec
+- New behavior: Login + Start for free render unconditionally on the public marketing page; `<UserButton>` only renders when Clerk has loaded AND the user is signed in
+- Build verified: `npx tsc --noEmit` clean, `npx next build` clean, dev server renders the buttons in HTML
+
 ### Sign-In Role Enforcement Fixes
 - **Fix 1 — `useEffect` race condition:** The effect redirecting signed-in users to `/auth/callback` was missing `intended_role` param and fired before `signIn.finalize()`'s navigate callback. Fixed by:
   - Added `intended_role` query param to useEffect redirect URL
