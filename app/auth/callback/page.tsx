@@ -18,8 +18,8 @@ export default async function AuthCallbackPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const { isAuthenticated } = await auth()
-  if (!isAuthenticated) redirect("/sign-in")
+  const { userId } = await auth()
+  if (!userId) redirect("/sign-in")
 
   const intendedRole = (await searchParams).intended_role as string | undefined
 
