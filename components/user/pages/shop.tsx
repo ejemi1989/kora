@@ -1,15 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "@/components/user/user-context";
 import { PRODUCTS, CATEGORIES } from "@/lib/data/user";
 import { SearchIcon, StarIcon } from "@/components/user/icons";
+
+interface PromoBanner {
+  code: string;
+  discount: string;
+  applicableTo: string;
+  minOrder: number;
+  ends: string;
+}
 
 export function ShopPage() {
   const { cartItems, addToCart, showToast } = useUser();
   const [cat, setCat] = useState("All");
   const [q, setQ] = useState("");
   const [loadingId, setLoadingId] = useState<number | null>(null);
+  const [promos, setPromos] = useState<PromoBanner[]>([]);
+
+  useEffect(() => {
+    fetch("/api/promotions")
+      .then((r) => r.json())
+      .then((d) => { if (Array.isArray(d)) setPromos(d); })
+      .catch(() => {});
+  }, []);
 
   const filtered = PRODUCTS.filter((p) => {
     if (cat !== "All" && p.category !== cat) return false;
@@ -48,6 +64,19 @@ export function ShopPage() {
           <SearchIcon size={16} />
         </div>
       </div>
+
+      {promos.length > 0 && (
+        <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
+          {promos.map((p) => (
+            <div key={p.code} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: 8, background: "var(--primary-bg)", border: "1px solid var(--primary)", fontSize: 12 }}>
+              <span style={{ fontWeight: 700, color: "var(--primary)", fontFamily: "var(--font-mono)" }}>{p.code}</span>
+              <span style={{ color: "var(--body)" }}>{p.discount}</span>
+              {p.minOrder > 0 && <span style={{ color: "var(--muted-text)", fontSize: 11 }}>Min ₦{p.minOrder.toLocaleString()}</span>}
+              <span style={{ color: "var(--muted-text)", fontSize: 11 }}>{p.ends !== "Unlimited" ? `Ends ${p.ends}` : "No expiry"}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 20 }}>
         {CATEGORIES.map((c) => (

@@ -1,8 +1,21 @@
 "use client";
 
-import { ADMIN_ANALYTICS_MINI, ADMIN_ANALYTICS_REGIONS, ADMIN_ANALYTICS_CATEGORIES } from "@/lib/data/admin";
+import { useEffect, useState } from "react";
 
 export function AnalyticsPage() {
+  const [mini, setMini] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/admin/analytics")
+      .then((r) => r.json())
+      .then((d) => { if (d) { setMini(d.mini || []); setCategories(d.categories || []); } setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div style={{ textAlign: "center", padding: 48, color: "var(--muted-text)" }}>Loading analytics...</div>;
+
   return (
     <div>
       <style>{`
@@ -34,76 +47,51 @@ export function AnalyticsPage() {
       <div className="page-h">Analytics</div>
       <div className="page-sub">Platform metrics and performance trends</div>
 
-      <div className="mini-grid">
-        {ADMIN_ANALYTICS_MINI.map((m) => (
-          <div key={m.label} className="mini-card">
-            <div className="mini-label">{m.label}</div>
-            <div className="mini-value">{m.value}</div>
-            <div className={`mini-delta ${m.color === "var(--success)" ? "success" : ""}`} style={m.deltaUp && m.color !== "var(--success)" ? { color: "var(--body)" } : undefined}>{m.delta}</div>
-          </div>
-        ))}
-      </div>
+      {mini.length > 0 && (
+        <div className="mini-grid">
+          {mini.map((m: any) => (
+            <div key={m.label} className="mini-card">
+              <div className="mini-label">{m.label}</div>
+              <div className="mini-value">{m.value}</div>
+              <div className={`mini-delta ${m.color === "var(--success)" ? "success" : ""}`} style={m.deltaUp && m.color !== "var(--success)" ? { color: "var(--body)" } : undefined}>{m.delta}</div>
+            </div>
+          ))}
+        </div>
+      )}
 
-      <div className="section-row">
-        <div className="card">
-          <div className="card-h"><h3>Orders by Region</h3></div>
-          <div className="card-b p0">
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Region</th>
-                    <th>Orders</th>
-                    <th>Revenue</th>
-                    <th>%</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ADMIN_ANALYTICS_REGIONS.map((r) => (
-                    <tr key={r.region}>
-                      <td>{r.region}</td>
-                      <td>{r.orders.toLocaleString()}</td>
-                      <td style={{ fontWeight: 500 }}>{r.revenue}</td>
-                      <td>
-                        <span className="mono">{r.pct}%</span>
-                        <div className="bar-mini">
-                          <div className="bar-mini-fill" style={{ width: `${r.pct}%` }} />
-                        </div>
-                      </td>
+      {categories.length > 0 && (
+        <div className="section-row">
+          <div className="card">
+            <div className="card-h"><h3>Top Categories</h3></div>
+            <div className="card-b p0">
+              <div className="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Category</th>
+                      <th>Orders</th>
+                      <th>Revenue</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {categories.map((c: any) => (
+                      <tr key={c.category}>
+                        <td>{c.category}</td>
+                        <td>{c.orders}</td>
+                        <td style={{ fontWeight: 500 }}>{c.revenue}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
+      )}
 
-        <div className="card">
-          <div className="card-h"><h3>Top Categories</h3></div>
-          <div className="card-b p0">
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Category</th>
-                    <th>Orders</th>
-                    <th>Revenue</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ADMIN_ANALYTICS_CATEGORIES.map((c) => (
-                    <tr key={c.category}>
-                      <td>{c.category}</td>
-                      <td>{c.orders.toLocaleString()}</td>
-                      <td style={{ fontWeight: 500 }}>{c.revenue}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
+      {mini.length === 0 && categories.length === 0 && (
+        <div style={{ textAlign: "center", padding: 48, color: "var(--muted-text)" }}>No analytics data available</div>
+      )}
     </div>
   );
 }

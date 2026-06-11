@@ -1,11 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useAdmin } from "@/components/admin/admin-context";
 import { useRouter } from "next/navigation";
-import {
-  ADMIN_BAR_CHART, ADMIN_OVERVIEW_ORDERS, ADMIN_TOP_SELLERS, ADMIN_PLATFORM_HEALTH,
-  ADMIN_PANEL_LABELS,
-} from "@/lib/data/admin";
 import { ChevronIcon } from "@/components/user/icons";
 
 const pillClass: Record<string, string> = {
@@ -16,14 +13,34 @@ const pillClass: Record<string, string> = {
   cancelled: "pill-danger",
 };
 
+interface OverviewData {
+  stats: { label: string; value: string; delta: string; deltaUp: boolean }[];
+  barChart: { month: string; height: number }[];
+  recentOrders: { id: string; customer: string; status: string; amount: string }[];
+  topSellers: { seller: string; revenue: string; orders: number }[];
+  platformHealth: { metric: string; value: string; color: string }[];
+}
+
 export function OverviewPage() {
   const { setPage } = useAdmin();
   const router = useRouter();
+  const [data, setData] = useState<OverviewData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/admin/overview")
+      .then((r) => r.json())
+      .then((d) => { setData(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
 
   function navTo(id: string) {
     setPage(id as any);
     router.push(`/admin/${id}`);
   }
+
+  if (loading) return <div style={{ textAlign: "center", padding: 48, color: "var(--muted-text)" }}>Loading overview...</div>;
+  if (!data) return <div style={{ textAlign: "center", padding: 48, color: "var(--muted-text)" }}>No data available</div>;
 
   return (
     <div>
@@ -80,26 +97,13 @@ export function OverviewPage() {
       <div className="page-sub">Platform dashboard — monitor activity, revenue, and growth</div>
 
       <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-label">Total Users</div>
-          <div className="stat-value">14,283</div>
-          <div className="stat-delta up">↑ +12.4% this month</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Revenue (30d)</div>
-          <div className="stat-value">KES 4.8M</div>
-          <div className="stat-delta up">↑ +8.2% this month</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Orders (30d)</div>
-          <div className="stat-value">2,847</div>
-          <div className="stat-delta up">↑ +15.6% this month</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Active Sellers</div>
-          <div className="stat-value">312</div>
-          <div className="stat-delta down">↓ -2.1% this month</div>
-        </div>
+        {data.stats.map((s) => (
+          <div key={s.label} className="stat-card">
+            <div className="stat-label">{s.label}</div>
+            <div className="stat-value">{s.value}</div>
+            <div className={`stat-delta ${s.deltaUp ? "up" : "down"}`}>{s.delta}</div>
+          </div>
+        ))}
       </div>
 
       <div className="section-row">
@@ -107,9 +111,9 @@ export function OverviewPage() {
           <div className="card-h"><h3>Revenue Trend</h3></div>
           <div className="card-b">
             <div className="bar-chart">
-              {ADMIN_BAR_CHART.map((b) => (
+              {data.barChart.map((b) => (
                 <div key={b.month} className="bar-col">
-                  <div className={`bar ${b.fill ? "fill" : ""}`} style={{ height: `${b.height}%` }} />
+                  <div className="bar" style={{ height: `${Math.max(b.height, 4)}%` }} />
                   <div className="bar-label">{b.month}</div>
                 </div>
               ))}
@@ -123,7 +127,7 @@ export function OverviewPage() {
           <div className="card-b p0">
             <table className="mini-table">
               <tbody>
-                {ADMIN_OVERVIEW_ORDERS.map((o) => (
+                {data.recentOrders.map((o) => (
                   <tr key={o.id}>
                     <td><span className="mono">{o.id}</span></td>
                     <td>{o.customer}</td>
@@ -149,7 +153,7 @@ export function OverviewPage() {
                 <tr><td></td><td></td><td></td></tr>
               </thead>
               <tbody>
-                {ADMIN_TOP_SELLERS.map((s) => (
+                {data.topSellers.map((s) => (
                   <tr key={s.seller}>
                     <td>{s.seller}</td>
                     <td style={{ fontWeight: 500 }}>{s.revenue}</td>
@@ -164,12 +168,9 @@ export function OverviewPage() {
         <div className="card">
           <div className="card-h"><h3>Platform Health</h3></div>
           <div className="card-b">
-            {ADMIN_PLATFORM_HEALTH.map((h) => (
+            {data.platformHealth.map((h) => (
               <div key={h.metric} className="health-item">
                 <span className="health-label">{h.metric}</span>
-                <div className="progress-bar" style={{ flex: 1 }}>
-                  <div className="progress-fill" style={{ width: `${Math.max(h.bar, 4)}%`, background: h.color }} />
-                </div>
                 <span className="health-value">{h.value}</span>
               </div>
             ))}

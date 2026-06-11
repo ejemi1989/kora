@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAdmin } from "@/components/admin/admin-context";
-import { ADMIN_USERS } from "@/lib/data/admin";
 import type { AdminUser } from "@/lib/types/admin";
 import { SearchIcon } from "@/components/user/icons";
 
@@ -17,9 +16,17 @@ const pillClass: Record<string, string> = {
 
 export function UsersPage() {
   const { showToast, openModal, closeModal } = useAdmin();
-  const [users, setUsers] = useState(ADMIN_USERS);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState("All");
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    fetch("/api/admin/users")
+      .then((r) => r.json())
+      .then((d) => { if (Array.isArray(d)) setUsers(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
 
   const filtered = users.filter((u) => {
     if (activeFilter !== "All" && u.status !== activeFilter.toLowerCase()) return false;
@@ -27,19 +34,30 @@ export function UsersPage() {
     return true;
   });
 
+  async function handleAction(user: AdminUser, action: string, label: string) {
+    const res = await fetch("/api/admin/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: user.id, action }),
+    });
+    if (res.ok) {
+      setUsers(users.map((u) => u.id === user.id ? { ...u, status: action === "ban" ? "banned" as const : action === "suspend" ? "suspended" as const : "active" as const } : u));
+      showToast(`${user.name} ${label}`, label === "banned" ? "danger" : "success");
+      closeModal();
+    } else {
+      showToast("Action failed", "danger");
+    }
+  }
+
   function handleBan(user: AdminUser) {
     openModal("Confirm ban", (
       <div>
         <p style={{ fontSize: 13, color: "var(--body)", margin: "0 0 12px" }}>
           Are you sure you want to ban <strong>{user.name}</strong>? This will revoke their access immediately.
         </p>
-        <div className="fg">
-          <label className="label">Reason</label>
-          <textarea className="fi" rows={3} placeholder="Enter reason for ban..." />
-        </div>
         <div className="admin-modal-actions">
           <button className="btn btn-s" onClick={closeModal}>Cancel</button>
-          <button className="btn btn-d" onClick={() => { showToast(`${user.name} banned`, "danger"); closeModal(); }}>Ban user</button>
+          <button className="btn btn-d" onClick={() => handleAction(user, "ban", "banned")}>Ban user</button>
         </div>
       </div>
     ));
@@ -53,7 +71,7 @@ export function UsersPage() {
         </p>
         <div className="admin-modal-actions">
           <button className="btn btn-s" onClick={closeModal}>Cancel</button>
-          <button className="btn btn-p" onClick={() => { setUsers(users.map((u) => u.id === user.id ? { ...u, status: "active" as const } : u)); showToast(`${user.name} reinstated`, "success"); closeModal(); }}>Reinstate</button>
+          <button className="btn btn-p" onClick={() => handleAction(user, "reinstate", "reinstated")}>Reinstate</button>
         </div>
       </div>
     ));
@@ -67,11 +85,13 @@ export function UsersPage() {
         </p>
         <div className="admin-modal-actions">
           <button className="btn btn-s" onClick={closeModal}>Cancel</button>
-          <button className="btn btn-p" onClick={() => { setUsers(users.map((u) => u.id === user.id ? { ...u, status: "active" as const } : u)); showToast(`${user.name} approved`, "success"); closeModal(); }}>Approve</button>
+          <button className="btn btn-p" onClick={() => handleAction(user, "approve", "approved")}>Approve</button>
         </div>
       </div>
     ));
   }
+
+  if (loading) return <div style={{ textAlign: "center", padding: 48, color: "var(--muted-text)" }}>Loading users...</div>;
 
   return (
     <div>
@@ -114,11 +134,6 @@ export function UsersPage() {
         .action-link { font-size:12px; color:var(--primary); cursor:pointer; border:none; background:none; padding:0; }
         .action-link:hover { text-decoration:underline; }
         .action-link.danger { color:var(--danger); }
-        .fi { width:100%; padding:8px 10px; border:1px solid var(--hairline); border-radius:var(--radius-sm); font-size:13px; outline:none; resize:vertical; font-family:inherit; }
-        .fi:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-bg); }
-        .fg { margin-bottom:12px; }
-        .fg:last-child { margin-bottom:0; }
-        .label { font-size:12px; font-weight:450; color:var(--body); display:block; margin-bottom:4px; }
         .admin-modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; }
         .admin-spacer { flex:1; }
         @media (max-width:768px) { .search-wrap { max-width:100%; } }
@@ -141,41 +156,45 @@ export function UsersPage() {
         <button className="btn btn-s" onClick={() => showToast("Export started — CSV will download shortly", "success")}>Export</button>
       </div>
 
-      <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th style={{ width: 30 }}><input type="checkbox" /></th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Location</th>
-              <th>Joined</th>
-              <th>Orders</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((u) => (
-              <tr key={u.id}>
-                <td><input type="checkbox" /></td>
-                <td style={{ fontWeight: 500 }}>{u.name}</td>
-                <td><span className="mono">{u.email}</span></td>
-                <td>{u.location}</td>
-                <td>{u.joined}</td>
-                <td>{u.orders}</td>
-                <td><span className={`pill ${pillClass[u.status]}`}>{u.status}</span></td>
-                <td>
-                  {u.status === "active" && <button className="action-link danger" onClick={() => handleBan(u)}>Ban</button>}
-                  {u.status === "suspended" && <button className="action-link" onClick={() => handleReinstate(u)}>Reinstate</button>}
-                  {u.status === "pending" && <button className="action-link" onClick={() => handleApprove(u)}>Approve</button>}
-                  {u.status === "banned" && <span style={{ fontSize: 12, color: "var(--stone)" }}>—</span>}
-                </td>
+      {filtered.length === 0 ? (
+        <div style={{ textAlign: "center", padding: 48, color: "var(--muted-text)" }}>No users found</div>
+      ) : (
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style={{ width: 30 }}><input type="checkbox" /></th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Location</th>
+                <th>Joined</th>
+                <th>Orders</th>
+                <th>Status</th>
+                <th>Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {filtered.map((u) => (
+                <tr key={u.id}>
+                  <td><input type="checkbox" /></td>
+                  <td style={{ fontWeight: 500 }}>{u.name}</td>
+                  <td><span className="mono">{u.email}</span></td>
+                  <td>{u.location || "—"}</td>
+                  <td>{u.joined}</td>
+                  <td>{u.orders}</td>
+                  <td><span className={`pill ${pillClass[u.status]}`}>{u.status}</span></td>
+                  <td>
+                    {u.status === "active" && <button className="action-link danger" onClick={() => handleBan(u)}>Ban</button>}
+                    {u.status === "suspended" && <button className="action-link" onClick={() => handleReinstate(u)}>Reinstate</button>}
+                    {u.status === "pending" && <button className="action-link" onClick={() => handleApprove(u)}>Approve</button>}
+                    {u.status === "banned" && <span style={{ fontSize: 12, color: "var(--stone)" }}>—</span>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

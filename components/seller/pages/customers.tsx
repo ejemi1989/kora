@@ -1,9 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 import { useSeller } from "@/components/seller/seller-context";
-import { SELLER_CUSTOMERS } from "@/lib/data/seller";
 import { SearchIcon } from "@/components/user/icons";
+
+interface CustomerHistoryEntry {
+  order: string;
+  product: string;
+  amount: string;
+  status: string;
+  statusClass: string;
+  date: string;
+}
+
+interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  location: string;
+  status: string;
+  initials: string;
+  bg: string;
+  fg: string;
+  orders: number;
+  spent: number;
+  last: string;
+  history: CustomerHistoryEntry[];
+}
 
 const statusBadge: Record<string, string> = {
   Regular: "s-badge-reg",
@@ -12,22 +37,31 @@ const statusBadge: Record<string, string> = {
 
 export function CustomersPage() {
   const { openModal, closeModal } = useSeller();
+  const { isSignedIn } = useUser();
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  const filtered = SELLER_CUSTOMERS.filter(
+  useEffect(() => {
+    if (!isSignedIn) return;
+    fetch("/api/seller/customers")
+      .then((r) => r.json())
+      .then((d) => { if (Array.isArray(d)) setCustomers(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [isSignedIn]);
+
+  const filtered = customers.filter(
     (c) => c.name.toLowerCase().includes(search.toLowerCase()) || c.email.toLowerCase().includes(search.toLowerCase())
   );
 
-  function viewCustomer(id: string) {
-    const c = SELLER_CUSTOMERS.find((c) => c.id === id);
-    if (!c) return;
+  function viewCustomer(c: Customer) {
     openModal(c.name, (
       <div>
         <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
           <div style={{ width: 44, height: 44, borderRadius: "50%", background: c.bg, color: c.fg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 600 }}>{c.initials}</div>
           <div>
             <div style={{ fontWeight: 600, fontSize: 15 }}>{c.name}</div>
-            <div style={{ fontSize: 12.5, color: "var(--muted-text)", marginTop: 2 }}>{c.email} · {c.phone} · {c.location}</div>
+            <div style={{ fontSize: 12.5, color: "var(--muted-text)", marginTop: 2 }}>{c.email}{c.phone ? ` · ${c.phone}` : ""}{c.location ? ` · ${c.location}` : ""}</div>
           </div>
           <span style={{ marginLeft: "auto" }}><span className={`s-badge ${statusBadge[c.status]}`}>{c.status}</span></span>
         </div>
@@ -117,6 +151,7 @@ export function CustomersPage() {
         .s-cust-stats { text-align:right; }
         .s-cust-stats .val { font-size:13px; font-weight:500; }
         .s-cust-stats .lbl { font-size:10px; color:var(--ash); }
+        .s-loading { text-align:center; padding:48px 0; color:var(--muted-text); font-size:14px; }
         @media (max-width:768px) { .s-search-wrap { width:100%; } }
       `}</style>
 
@@ -130,21 +165,27 @@ export function CustomersPage() {
         </div>
       </div>
 
-      <div className="s-customer-list">
-        {filtered.map((c) => (
-          <div key={c.id} className="s-customer-card" onClick={() => viewCustomer(c.id)}>
-            <div className="s-cust-avatar" style={{ background: c.bg, color: c.fg }}>{c.initials}</div>
-            <div className="s-cust-info">
-              <div className="s-cust-name">{c.name}</div>
-              <div className="s-cust-meta">{c.email} · {c.location} · {c.last}</div>
+      {loading ? (
+        <div className="s-loading">Loading customers...</div>
+      ) : filtered.length === 0 ? (
+        <div className="s-loading">No customers found</div>
+      ) : (
+        <div className="s-customer-list">
+          {filtered.map((c) => (
+            <div key={c.id} className="s-customer-card" onClick={() => viewCustomer(c)}>
+              <div className="s-cust-avatar" style={{ background: c.bg, color: c.fg }}>{c.initials}</div>
+              <div className="s-cust-info">
+                <div className="s-cust-name">{c.name}</div>
+                <div className="s-cust-meta">{c.email}{c.location ? ` · ${c.location}` : ""} · {c.last}</div>
+              </div>
+              <div className="s-cust-stats">
+                <div className="val">{c.orders} orders</div>
+                <div className="lbl">₦{c.spent.toLocaleString()}</div>
+              </div>
             </div>
-            <div className="s-cust-stats">
-              <div className="val">{c.orders} orders</div>
-              <div className="lbl">₦{c.spent.toLocaleString()}</div>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,25 +1,55 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 import { useSeller } from "@/components/seller/seller-context";
-import { SELLER_REVIEWS } from "@/lib/data/seller";
-import type { SellerReview } from "@/lib/types/seller";
+
+interface Review {
+  id: string;
+  customer: string;
+  product: string;
+  rating: number;
+  text: string;
+  date: string;
+  replied: boolean;
+  replyText?: string;
+}
 
 export function ReviewsPage() {
-  const { reviews, setReviews, showToast } = useSeller();
-  const [replyInputs, setReplyInputs] = useState<Record<number, string>>({});
+  const { showToast } = useSeller();
+  const { isSignedIn } = useUser();
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [replyInputs, setReplyInputs] = useState<Record<string, string>>({});
 
-  function handleReply(id: number) {
+  useEffect(() => {
+    if (!isSignedIn) return;
+    fetch("/api/seller/reviews")
+      .then((r) => r.json())
+      .then((d) => { if (Array.isArray(d)) setReviews(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [isSignedIn]);
+
+  async function handleReply(id: string) {
     const text = replyInputs[id]?.trim();
     if (!text) {
       showToast("Write a reply first", "error");
       return;
     }
-    setReviews((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, replied: true, replyText: text } : r))
-    );
-    showToast("Reply posted to review", "success");
-    setReplyInputs((prev) => ({ ...prev, [id]: "" }));
+    const res = await fetch("/api/seller/reviews", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reviewId: id, replyText: text }),
+    });
+    if (res.ok) {
+      setReviews((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, replied: true, replyText: text } : r))
+      );
+      showToast("Reply posted to review", "success");
+      setReplyInputs((prev) => ({ ...prev, [id]: "" }));
+    } else {
+      showToast("Failed to post reply", "error");
+    }
   }
 
   function renderStars(count: number) {
@@ -50,42 +80,49 @@ export function ReviewsPage() {
         .s-btn-p:hover { background:var(--primary-deep); }
         .s-btn-s { background:#fff; color:var(--body); border:1px solid var(--hairline); }
         .s-btn-s:hover { background:var(--surface-soft); }
+        .s-loading { text-align:center; padding:48px 0; color:var(--muted-text); font-size:14px; }
       `}</style>
 
       <div className="s-page-h">Reviews</div>
       <div className="s-page-sub">Customer feedback on your products</div>
 
-      <div className="s-review-list">
-        {reviews.map((r: SellerReview) => (
-          <div key={r.id} className="s-review-card">
-            <div className="s-review-h">
-              <div>
-                <div className="s-review-customer">{r.customer}</div>
-                <div className="s-review-product">on {r.product}</div>
-                <div className="s-review-stars">{renderStars(r.rating)}</div>
+      {loading ? (
+        <div className="s-loading">Loading reviews...</div>
+      ) : reviews.length === 0 ? (
+        <div className="s-loading">No reviews yet</div>
+      ) : (
+        <div className="s-review-list">
+          {reviews.map((r) => (
+            <div key={r.id} className="s-review-card">
+              <div className="s-review-h">
+                <div>
+                  <div className="s-review-customer">{r.customer}</div>
+                  <div className="s-review-product">on {r.product}</div>
+                  <div className="s-review-stars">{renderStars(r.rating)}</div>
+                </div>
+                <div className="s-review-date">{r.date}</div>
               </div>
-              <div className="s-review-date">{r.date}</div>
+              <div className="s-review-body">{r.text}</div>
+              {r.replied && r.replyText && (
+                <div className="s-reply-box">
+                  <div className="author">Deni · Seller</div>
+                  <div className="text">{r.replyText}</div>
+                </div>
+              )}
+              {!r.replied && (
+                <div className="s-reply-input">
+                  <input
+                    placeholder="Write a reply..."
+                    value={replyInputs[r.id] || ""}
+                    onChange={(e) => setReplyInputs((prev) => ({ ...prev, [r.id]: e.target.value }))}
+                  />
+                  <button className="s-btn s-btn-p" onClick={() => handleReply(r.id)}>Reply</button>
+                </div>
+              )}
             </div>
-            <div className="s-review-body">{r.text}</div>
-            {r.replied && r.replyText && (
-              <div className="s-reply-box">
-                <div className="author">Deni · Seller</div>
-                <div className="text">{r.replyText}</div>
-              </div>
-            )}
-            {!r.replied && (
-              <div className="s-reply-input">
-                <input
-                  placeholder="Write a reply..."
-                  value={replyInputs[r.id] || ""}
-                  onChange={(e) => setReplyInputs((prev) => ({ ...prev, [r.id]: e.target.value }))}
-                />
-                <button className="s-btn s-btn-p" onClick={() => handleReply(r.id)}>Reply</button>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

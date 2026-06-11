@@ -45,18 +45,8 @@ const navGroups: { label?: string; items: { id: string; label: string; icon: Rea
   },
 ];
 
-const navBadges: Record<string, string> = {
-  notifications: "6",
-  users: "2,847",
-  sellers: "143",
-  products: "12.4K",
-  orders: "486",
-  disputes: "12",
-  currencies: "7",
-};
-
 export function AdminShell({ children }: { children: ReactNode }) {
-  const { page, setPage, sidebar, setSidebar, toasts, modal, closeModal, showToast } = useAdmin();
+  const { page, setPage, sidebar, setSidebar, toasts, modal, closeModal } = useAdmin();
   const router = useRouter();
 
   function handleNav(id: string) {
@@ -108,7 +98,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
         .admin-topbar-search svg { position:absolute; left:7px; top:50%; transform:translateY(-50%); color:var(--stone); pointer-events:none; }
         .admin-notif-btn { position:relative; width:30px; height:30px; border-radius:6px; border:none; background:none; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--body); }
         .admin-notif-btn:hover { background:var(--surface-soft); }
-        .admin-notif-badge { position:absolute; top:-2px; right:-2px; background:var(--danger); color:#fff; font-size:9px; padding:1px 5px; border-radius:999px; font-weight:600; line-height:1.2; }
         .admin-avatar-btn { width:28px; height:28px; border-radius:6px; border:none; background:var(--surface-soft); color:var(--body); font-size:10px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; }
         .admin-content { flex:1; overflow-y:auto; padding:24px 28px; background:var(--canvas); }
         .admin-content::-webkit-scrollbar { width:6px; }
@@ -155,7 +144,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 <button key={item.id} className={`admin-nav-item ${page === item.id ? "active" : ""}`} onClick={() => handleNav(item.id)}>
                   {item.icon}
                   {item.label}
-                  {navBadges[item.id] && <span className="admin-nav-badge">{navBadges[item.id]}</span>}
                 </button>
               ))}
             </div>
@@ -176,7 +164,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </div>
           <button className="admin-notif-btn" onClick={() => { setPage("notifications" as AdminPageId); router.push("/admin/notifications"); }}>
             <BellIcon size={18} />
-            <span className="admin-notif-badge">6</span>
           </button>
           <UserButton />
         </header>

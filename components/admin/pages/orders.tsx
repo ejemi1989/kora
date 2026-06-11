@@ -1,9 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAdmin } from "@/components/admin/admin-context";
-import { ADMIN_ORDERS as ADMIN_ORDERS_DATA } from "@/lib/data/admin";
-import type { AdminOrder } from "@/lib/types/admin";
 import { SearchIcon } from "@/components/user/icons";
 
 const filters = ["All", "Pending", "Confirmed", "Shipped", "Delivered", "Cancelled"];
@@ -16,11 +14,30 @@ const pillClass: Record<string, string> = {
   cancelled: "pill-danger",
 };
 
+interface OrderData {
+  id: string;
+  customer: string;
+  items: number;
+  total: string;
+  payment: string;
+  date: string;
+  status: string;
+  trackingNumber?: string;
+}
+
 export function OrdersPage() {
   const { showToast, openModal, closeModal } = useAdmin();
   const [activeFilter, setActiveFilter] = useState("All");
   const [search, setSearch] = useState("");
-  const [orders, setOrders] = useState(ADMIN_ORDERS_DATA);
+  const [orders, setOrders] = useState<OrderData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/admin/orders")
+      .then((r) => r.json())
+      .then((d) => { if (Array.isArray(d)) setOrders(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
 
   const filtered = orders.filter((o) => {
     if (activeFilter !== "All" && o.status !== activeFilter.toLowerCase()) return false;
@@ -28,7 +45,7 @@ export function OrdersPage() {
     return true;
   });
 
-  function handleView(order: AdminOrder) {
+  function handleView(order: OrderData) {
     openModal(`Order ${order.id}`, (
       <div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 20px", marginBottom: 16 }}>
@@ -54,12 +71,21 @@ export function OrdersPage() {
     ));
   }
 
-  function TrackingSection({ order }: { order: AdminOrder }) {
+  function TrackingSection({ order }: { order: OrderData }) {
     const [tracking, setTracking] = useState(order.trackingNumber || "");
 
-    function saveTracking() {
-      setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, trackingNumber: tracking || undefined } : o)));
-      showToast(`Tracking number saved for ${order.id}`, "success");
+    async function saveTracking() {
+      const res = await fetch("/api/admin/orders", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: order.id, trackingNumber: tracking || null }),
+      });
+      if (res.ok) {
+        setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, trackingNumber: tracking || undefined } : o)));
+        showToast(`Tracking number saved for ${order.id}`, "success");
+      } else {
+        showToast("Failed to save tracking", "danger");
+      }
     }
 
     return (
@@ -78,6 +104,8 @@ export function OrdersPage() {
       </div>
     );
   }
+
+  if (loading) return <div style={{ textAlign: "center", padding: 48, color: "var(--muted-text)" }}>Loading orders...</div>;
 
   return (
     <div>
@@ -137,38 +165,42 @@ export function OrdersPage() {
         </div>
       </div>
 
-      <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Order ID</th>
-              <th>Customer</th>
-              <th>Items</th>
-              <th>Total</th>
-              <th>Payment</th>
-              <th>Date</th>
-              <th>Tracking</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((o) => (
-              <tr key={o.id}>
-                <td><span className="mono">{o.id}</span></td>
-                <td>{o.customer}</td>
-                <td>{o.items} items</td>
-                <td style={{ fontWeight: 500 }}>{o.total}</td>
-                <td>{o.payment}</td>
-                <td>{o.date}</td>
-                <td>{o.trackingNumber ? <span className="mono" style={{ fontSize: 11 }}>{o.trackingNumber}</span> : <span style={{ fontSize: 11, color: "var(--muted-text)" }}>—</span>}</td>
-                <td><span className={`pill ${pillClass[o.status]}`}>{o.status}</span></td>
-                <td><button className="action-link" onClick={() => handleView(o)}>View</button></td>
+      {filtered.length === 0 ? (
+        <div style={{ textAlign: "center", padding: 48, color: "var(--muted-text)" }}>No orders found</div>
+      ) : (
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Payment</th>
+                <th>Date</th>
+                <th>Tracking</th>
+                <th>Status</th>
+                <th>Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {filtered.map((o) => (
+                <tr key={o.id}>
+                  <td><span className="mono">{o.id}</span></td>
+                  <td>{o.customer}</td>
+                  <td>{o.items} items</td>
+                  <td style={{ fontWeight: 500 }}>{o.total}</td>
+                  <td>{o.payment}</td>
+                  <td>{o.date}</td>
+                  <td>{o.trackingNumber ? <span className="mono" style={{ fontSize: 11 }}>{o.trackingNumber}</span> : <span style={{ fontSize: 11, color: "var(--muted-text)" }}>—</span>}</td>
+                  <td><span className={`pill ${pillClass[o.status]}`}>{o.status}</span></td>
+                  <td><button className="action-link" onClick={() => handleView(o)}>View</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

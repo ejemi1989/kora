@@ -1,9 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAdmin } from "@/components/admin/admin-context";
-import { ADMIN_NOTIFICATIONS } from "@/lib/data/admin";
-import type { AdminNotification } from "@/lib/types/admin";
 import { useRouter } from "next/navigation";
 import { BellIcon, AlertIcon, CheckIcon, InfoIcon, BarChartIcon, CardIcon, StoreIcon, ListIcon, UsersIcon } from "@/components/user/icons";
 
@@ -33,13 +31,36 @@ function actionIcon(target: string) {
   }
 }
 
+interface NotifItem {
+  id: string;
+  title: string;
+  type: "urgent" | "new" | "action" | "info" | "milestone" | "warning";
+  iconBg: string;
+  badge: string;
+  description: string;
+  time: string;
+  actionLabel: string;
+  actionTarget: string;
+  dismissable: boolean;
+  urgent: boolean;
+}
+
 export function NotificationsPage() {
-  const { setPage, notifs, setNotifs, showToast } = useAdmin();
+  const { setPage, showToast } = useAdmin();
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState("All");
+  const [notifs, setNotifs] = useState<NotifItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/admin/notifications")
+      .then((r) => r.json())
+      .then((d) => { if (Array.isArray(d)) setNotifs(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
 
   const filtered = notifs.filter((n) => {
-    if (activeFilter === "Unread") return n.type !== "info" && n.type !== "milestone" && n.type !== "warning"; // heuristic
+    if (activeFilter === "Unread") return n.badge === "new";
     if (activeFilter === "Alerts") return n.type === "urgent" || n.type === "action" || n.type === "warning";
     if (activeFilter === "Orders") return n.type === "new";
     if (activeFilter === "Users") return n.type === "info";
@@ -52,10 +73,27 @@ export function NotificationsPage() {
     router.push(`/admin/${target}`);
   }
 
-  function handleDismiss(id: number) {
+  async function handleDismiss(id: string) {
+    await fetch("/api/admin/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
     setNotifs((prev) => prev.filter((n) => n.id !== id));
     showToast("Dismissed", "success");
   }
+
+  async function markAllRead() {
+    await fetch("/api/admin/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    setNotifs((prev) => prev.map((n) => ({ ...n, badge: "read", dismissable: false })));
+    showToast("All marked as read", "success");
+  }
+
+  if (loading) return <div style={{ textAlign: "center", padding: 48, color: "var(--muted-text)" }}>Loading notifications...</div>;
 
   return (
     <div>
@@ -92,7 +130,7 @@ export function NotificationsPage() {
 
       <div className="notif-header">
         <h3>All notifications</h3>
-        <button className="btn btn-s" onClick={() => { showToast("All marked as read", "success"); }}>Mark all read</button>
+        <button className="btn btn-s" onClick={markAllRead}>Mark all read</button>
       </div>
 
       <div className="filter-chips">
@@ -101,33 +139,37 @@ export function NotificationsPage() {
         ))}
       </div>
 
-      {filtered.map((n) => (
-        <div key={n.id} className={`notif-card ${n.urgent ? "urgent" : ""}`}>
-          <div className={`notif-icon ${n.iconBg}`}>
-            {notifIcon(n.type)}
-          </div>
-          <div className="notif-body">
-            <div className="notif-title">
-              {n.title}
-              <span className="notif-pill">{n.badge}</span>
+      {filtered.length === 0 ? (
+        <div style={{ textAlign: "center", padding: 48, color: "var(--muted-text)" }}>No notifications</div>
+      ) : (
+        filtered.map((n) => (
+          <div key={n.id} className={`notif-card ${n.urgent ? "urgent" : ""}`}>
+            <div className={`notif-icon ${n.iconBg}`}>
+              {notifIcon(n.type)}
             </div>
-            <div className="notif-desc">{n.description}</div>
-            <div className="notif-foot">
-              <span>{n.time}</span>
-              <button className="action-link" onClick={() => handleAction(n.actionTarget)}>
-                {actionIcon(n.actionTarget)}
-                {n.actionLabel}
-              </button>
-              {n.dismissable && (
-                <>
-                  <span style={{ color: "var(--hairline)" }}>·</span>
-                  <button className="action-link" onClick={() => handleDismiss(n.id)} style={{ color: "var(--muted-text)" }}>Dismiss</button>
-                </>
-              )}
+            <div className="notif-body">
+              <div className="notif-title">
+                {n.title}
+                {n.badge === "new" && <span className="notif-pill">new</span>}
+              </div>
+              <div className="notif-desc">{n.description}</div>
+              <div className="notif-foot">
+                <span>{n.time}</span>
+                <button className="action-link" onClick={() => handleAction(n.actionTarget)}>
+                  {actionIcon(n.actionTarget)}
+                  {n.actionLabel}
+                </button>
+                {n.dismissable && (
+                  <>
+                    <span style={{ color: "var(--hairline)" }}>·</span>
+                    <button className="action-link" onClick={() => handleDismiss(n.id)} style={{ color: "var(--muted-text)" }}>Dismiss</button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        ))
+      )}
     </div>
   );
 }

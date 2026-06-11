@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import { useSeller } from "@/components/seller/seller-context";
+import { useCurrency } from "@/lib/hooks/use-currency";
 import {
   HomeIcon, BellIcon, StoreIcon, ListIcon, PackageIcon,
   BarChartIcon, CardIcon, HeartIcon, StarIcon, TagIcon,
@@ -45,6 +46,7 @@ const navGroups: { label?: string; items: { id: string; label: string; icon: Rea
 
 export function SellerShell({ children }: { children: ReactNode }) {
   const { page, setPage, sidebar, setSidebar, toasts, modal, closeModal, showToast } = useSeller();
+  const { currencies, selected, select, loading } = useCurrency();
   const router = useRouter();
 
   function handleNav(id: string) {
@@ -162,6 +164,21 @@ export function SellerShell({ children }: { children: ReactNode }) {
             <SearchIcon size={14} />
             <input placeholder="Search products..." />
           </div>
+          {!loading && currencies.length > 0 && (
+            <select
+              value={selected?.code || ""}
+              onChange={(e) => select(e.target.value)}
+              style={{
+                height: 30, fontSize: 12, border: "1px solid var(--hairline)",
+                borderRadius: 6, background: "var(--canvas)", color: "var(--ink)",
+                padding: "0 6px", cursor: "pointer", outline: "none",
+              }}
+            >
+              {currencies.map((c) => (
+                <option key={c.code} value={c.code}>{c.symbol} {c.code}</option>
+              ))}
+            </select>
+          )}
           <UserButton />
         </header>
         <main className="seller-content">

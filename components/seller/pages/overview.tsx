@@ -1,9 +1,34 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 import { useSeller } from "@/components/seller/seller-context";
 import { useRouter } from "next/navigation";
-import { SELLER_STATS, SELLER_RECENT_ORDERS, SELLER_BAR_CHART } from "@/lib/data/seller";
 import { ChevronIcon } from "@/components/user/icons";
+
+interface Stat {
+  label: string; value: string; delta: string; deltaUp: boolean;
+}
+
+interface RecentOrder {
+  id: string; customer: string; items: number; product: string;
+  total: number; date: string; status: string;
+}
+
+interface BarItem {
+  month: string; revenue: number; orders: number; fill: boolean; height: number;
+}
+
+interface TopProduct {
+  name: string; sales: string;
+}
+
+interface OverviewData {
+  stats: Stat[];
+  recentOrders: RecentOrder[];
+  barChart: BarItem[];
+  topProducts: TopProduct[];
+}
 
 const orderPills: Record<string, string> = {
   delivered: "pill-success",
@@ -15,12 +40,32 @@ const orderPills: Record<string, string> = {
 
 export function OverviewPage() {
   const { setPage } = useSeller();
+  const { isSignedIn } = useUser();
   const router = useRouter();
+  const [data, setData] = useState<OverviewData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!isSignedIn) return;
+    fetch("/api/seller/overview")
+      .then((r) => r.json())
+      .then((d) => { if (d && typeof d === 'object') setData(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [isSignedIn]);
 
   function navTo(id: string) {
     setPage(id as any);
     router.push(`/seller/${id}`);
   }
+
+  if (loading) {
+    return <div style={{ padding: 40, textAlign: "center", color: "var(--muted-text)" }}>Loading...</div>;
+  }
+
+  const stats = data?.stats ?? [];
+  const recentOrders = data?.recentOrders ?? [];
+  const barChart = data?.barChart ?? [];
+  const topProducts = data?.topProducts ?? [];
 
   return (
     <div>
@@ -79,7 +124,7 @@ export function OverviewPage() {
       <div className="s-page-sub">Welcome back! Here&apos;s what&apos;s happening with your store.</div>
 
       <div className="s-stats-grid">
-        {SELLER_STATS.map((stat) => (
+        {stats.map((stat) => (
           <div key={stat.label} className="s-stat-card">
             <div className="s-stat-label">{stat.label}</div>
             <div className="s-stat-value">{stat.value}</div>
@@ -93,7 +138,7 @@ export function OverviewPage() {
           <div className="s-card-h"><h3>Revenue (12 months)</h3></div>
           <div className="s-card-b">
             <div className="s-bar-chart">
-              {SELLER_BAR_CHART.map((b) => (
+              {barChart.map((b) => (
                 <div key={b.month} className="s-bar-col">
                   <div className={`s-bar ${b.fill ? "fill" : ""}`} style={{ height: `${b.height}%` }} />
                   <div className="s-bar-label">{b.month}</div>
@@ -109,7 +154,7 @@ export function OverviewPage() {
           <div className="s-card-b p0">
             <table className="s-mini-table">
               <tbody>
-                {SELLER_RECENT_ORDERS.map((o) => (
+                {recentOrders.map((o) => (
                   <tr key={o.id}>
                     <td><span className="mono">{o.id}</span></td>
                     <td>{o.customer}</td>
@@ -165,12 +210,7 @@ export function OverviewPage() {
                 <tr><td></td><td></td><td></td></tr>
               </thead>
               <tbody>
-                {[
-                  { name: "Jollof Spice Mix", sales: "892 sold" },
-                  { name: "Egusi Soup Mix", sales: "678 sold" },
-                  { name: "Dried Ugwu Leaves", sales: "567 sold" },
-                  { name: "Groundnut Paste", sales: "345 sold" },
-                ].map((p) => (
+                {topProducts.map((p) => (
                   <tr key={p.name}>
                     <td>{p.name}</td>
                     <td style={{ color: "var(--muted-text)" }}>{p.sales}</td>

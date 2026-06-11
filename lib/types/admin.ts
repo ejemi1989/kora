@@ -20,7 +20,7 @@ export interface AdminStat {
 }
 
 export interface AdminUser {
-  id: number;
+  id: string;
   name: string;
   email: string;
   location: string;
@@ -30,25 +30,22 @@ export interface AdminUser {
 }
 
 export interface AdminSeller {
-  id: number;
+  id: string;
   business: string;
-  owner: string;
   category: string;
-  location: string;
   products: number;
   revenue: string;
-  docs: "Verified" | "Pending";
-  status: "active" | "pending" | "rejected";
 }
 
 export interface AdminProduct {
-  id: number;
+  id: string;
   name: string;
   seller: string;
   category: string;
   price: string;
   stock: number;
   sales: number;
+  createdAt: string;
   status: "active" | "pending" | "flagged";
 }
 

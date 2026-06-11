@@ -1,10 +1,23 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useUser } from "@clerk/nextjs";
 import { useSeller } from "@/components/seller/seller-context";
-import { SELLER_PRODUCTS } from "@/lib/data/seller";
-import type { SellerProduct } from "@/lib/types/seller";
 import { SearchIcon, PlusIcon, XIcon } from "@/components/user/icons";
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  stock: number;
+  unit: string;
+  category: string;
+  status: string;
+  images: string[];
+  image: string | null;
+  sales: number;
+  rating: number;
+}
 
 const statusBadges: Record<string, string> = {
   active: "badge-active",
@@ -12,75 +25,99 @@ const statusBadges: Record<string, string> = {
   out_of_stock: "badge-oos",
 };
 
-const EMOJIS = ["🌶️", "🫒", "🐟", "🥬", "🥜", "🥣", "🫓", "🌰", "🍯", "🥥"];
+const DEFAULT_UNITS = ["kg", "Tonne", "Piece", "Pack", "Litre"];
+
+const PALM_OIL_UNITS = ["1L", "5L", "10L", "20L", "25L"];
+
+function getUnitOptions(category: string) {
+  if (category === "Oils & Fats") return PALM_OIL_UNITS;
+  return DEFAULT_UNITS;
+}
 
 function ProductForm({
   editing,
   onSave,
   onCancel,
 }: {
-  editing?: SellerProduct;
-  onSave: (data: { name: string; price: number; stock: number; category: string; unit: string; image: string | null }) => void;
+  editing?: Product;
+  onSave: (data: { name: string; price: number; stock: number; category: string; unit: string; imageUrl: string | null }) => void;
   onCancel: () => void;
 }) {
   const [name, setName] = useState(editing?.name || "");
   const [price, setPrice] = useState(editing?.price.toString() || "");
   const [stock, setStock] = useState(editing?.stock.toString() || "");
   const [category, setCategory] = useState(editing?.category || "Spices & Seasonings");
-  const [unit, setUnit] = useState("Piece");
-  const [image, setImage] = useState<string | null>(editing?.image || null);
+  const [unit, setUnit] = useState(editing?.unit || "1kg");
+  const [imageUrl, setImageUrl] = useState(editing?.image || "");
   const fileRef = useRef<HTMLInputElement>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(editing?.image || null);
 
-  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+  const unitOptions = getUnitOptions(category);
+
+  useEffect(() => {
+    if (!unitOptions.includes(unit)) {
+      setUnit(unitOptions[0]);
+    }
+  }, [category]);
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (file) {
-      setImage(URL.createObjectURL(file));
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+      setImageUrl(url);
     }
   }
 
   function handleSubmit() {
     if (!name.trim()) return;
-    onSave({ name: name.trim(), price: Number(price) || 0, stock: Number(stock) || 0, category, unit, image });
+    onSave({ name: name.trim(), price: Number(price) || 0, stock: Number(stock) || 0, category, unit, imageUrl: previewUrl });
+  }
+
+  function handleRemoveImage() {
+    setPreviewUrl(null);
+    setImageUrl("");
+    if (fileRef.current) fileRef.current.value = "";
   }
 
   return (
     <div>
       <div className="s-fg">
         <label>Product Image</label>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <input ref={fileRef} type="file" accept="image/*" onChange={handleImageChange} style={{ fontSize: 12, flex: 1 }} />
-          {image && (
-            <button className="s-btn s-btn-g s-btn-sm" onClick={() => { setImage(null); if (fileRef.current) fileRef.current.value = ""; }} style={{ fontSize: 11, color: "var(--danger)" }}>
-              <XIcon size={12} />
-            </button>
-          )}
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <input ref={fileRef} type="file" accept="image/*" onChange={handleFileChange} style={{ fontSize: 12 }} />
+          <div style={{ fontSize: 11, color: "var(--muted-text)" }}>Or paste an image URL:</div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <input className="s-fi" value={imageUrl} onChange={(e) => { setImageUrl(e.target.value); setPreviewUrl(e.target.value || null); }} placeholder="https://example.com/image.jpg" style={{ flex: 1 }} />
+            {previewUrl && (
+              <button className="s-btn s-btn-g s-btn-sm" onClick={handleRemoveImage} style={{ color: "var(--danger)" }}><XIcon size={12} /></button>
+            )}
+          </div>
         </div>
-        {image && <img src={image} alt="" style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 8, marginTop: 8, border: "1px solid var(--hairline)" }} />}
+        {previewUrl && <img src={previewUrl} alt="" style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 8, marginTop: 8, border: "1px solid var(--hairline)" }} />}
       </div>
       <div className="s-fg"><label>Product Name</label><input className="s-fi" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Fresh Palm Oil" /></div>
       <div className="s-fr">
         <div className="s-fg"><label>Price (₦)</label><input className="s-fi" type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0" /></div>
         <div className="s-fg"><label>Stock Quantity</label><input className="s-fi" type="number" value={stock} onChange={(e) => setStock(e.target.value)} placeholder="0" /></div>
       </div>
-      <div className="s-fr">
-        <div className="s-fg"><label>Category</label>
-          <select className="s-fi" value={category} onChange={(e) => setCategory(e.target.value)}>
-            <option>Spices & Seasonings</option>
-            <option>Oils & Fats</option>
-            <option>Grains & Rice</option>
-            <option>Fish & Meat</option>
-            <option>Vegetables</option>
-          </select>
-        </div>
-        <div className="s-fg"><label>Unit</label>
-          <select className="s-fi" value={unit} onChange={(e) => setUnit(e.target.value)}>
-            <option>Piece</option>
-            <option>Kilogram</option>
-            <option>Tonne</option>
-            <option>Litre</option>
-            <option>Pack</option>
-          </select>
-        </div>
+      <div className="s-fg"><label>Category</label>
+        <select className="s-fi" value={category} onChange={(e) => setCategory(e.target.value)}>
+          <option>Spices & Seasonings</option>
+          <option>Oils & Fats</option>
+          <option>Grains & Rice</option>
+          <option>Fish & Meat</option>
+          <option>Vegetables</option>
+        </select>
+      </div>
+      <div className="s-fg">
+        <label>Unit / Measurement</label>
+        <select className="s-fi" value={unit} onChange={(e) => setUnit(e.target.value)}>
+          {unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}
+        </select>
+        {category === "Oils & Fats" && (
+          <div style={{ fontSize: 11, color: "var(--muted-text)", marginTop: 4 }}>Palm oil available in 1L, 5L, 10L, 20L, 25L</div>
+        )}
       </div>
       <div className="s-modal-actions">
         <button className="s-btn s-btn-s" onClick={onCancel}>Cancel</button>
@@ -92,9 +129,19 @@ function ProductForm({
 
 export function ProductsPage() {
   const { showToast, openModal, closeModal } = useSeller();
-  const [products, setProducts] = useState(SELLER_PRODUCTS);
+  const { isSignedIn } = useUser();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "draft" | "out_of_stock">("all");
+
+  useEffect(() => {
+    if (!isSignedIn) return;
+    fetch("/api/seller/products")
+      .then((r) => r.json())
+      .then((d) => { if (Array.isArray(d)) setProducts(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [isSignedIn]);
 
   const filtered = products.filter((p) => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase());
@@ -102,55 +149,69 @@ export function ProductsPage() {
     return matchSearch && matchFilter;
   });
 
-  function handleDelete(id: number) {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
-    showToast("Product deleted", "error");
+  async function handleDelete(id: string) {
+    if (!confirm("Delete this product?")) return;
+    const res = await fetch("/api/seller/products", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (res.ok) {
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+      showToast("Product deleted", "error");
+    } else {
+      showToast("Failed to delete product", "error");
+    }
   }
 
-  function handleAdd() {
-    openModal("Add Product", (
+  async function handleCreate(data: { name: string; price: number; stock: number; category: string; unit: string; imageUrl: string | null }) {
+    if (!data.name.trim()) { showToast("Product name is required", "error"); return; }
+    const res = await fetch("/api/seller/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      const product = await res.json();
+      setProducts((prev) => [product, ...prev]);
+      showToast("Product added!", "success");
+      closeModal();
+    } else {
+      const err = await res.json();
+      showToast(err.error || "Failed to create product", "error");
+    }
+  }
+
+  async function handleEdit(p: Product) {
+    openModal(`Edit ${p.name}`, (
       <ProductForm
-        onSave={(data) => {
-          const newId = Math.max(0, ...products.map((p) => p.id)) + 1;
-          const emoji = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
-          const product: SellerProduct = {
-            id: newId,
-            name: data.name,
-            emoji,
-            category: data.category,
-            price: data.price,
-            stock: data.stock,
-            available: data.stock,
-            sales: 0,
-            status: "draft",
-            image: data.image || undefined,
-          };
-          setProducts((prev) => [product, ...prev]);
-          showToast("Product added!", "success");
-          closeModal();
+        editing={p}
+        onSave={async (data) => {
+          if (!data.name.trim()) { showToast("Product name is required", "error"); return; }
+          const res = await fetch("/api/seller/products", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: p.id, ...data }),
+          });
+          if (res.ok) {
+            const updated = await res.json();
+            setProducts((prev) => prev.map((x) => (x.id === p.id ? updated : x)));
+            showToast(`${data.name} updated!`, "success");
+            closeModal();
+          } else {
+            const err = await res.json();
+            showToast(err.error || "Failed to update product", "error");
+          }
         }}
         onCancel={closeModal}
       />
     ));
   }
 
-  function handleEdit(p: SellerProduct) {
-    openModal(`Edit ${p.name}`, (
+  function handleAdd() {
+    openModal("Add Product", (
       <ProductForm
-        editing={p}
-        onSave={(data) => {
-          setProducts((prev) => prev.map((x) => x.id === p.id ? {
-            ...x,
-            name: data.name,
-            price: data.price,
-            stock: data.stock,
-            available: data.stock,
-            category: data.category,
-            image: data.image || undefined,
-          } : x));
-          showToast(`${data.name} updated!`, "success");
-          closeModal();
-        }}
+        onSave={handleCreate}
         onCancel={closeModal}
       />
     ));
@@ -191,9 +252,9 @@ export function ProductsPage() {
         .s-fg label { display:block; font-size:12px; font-weight:450; color:var(--body); margin-bottom:4px; }
         .s-fi { width:100%; height:38px; padding:0 10px; border:1px solid var(--hairline); border-radius:var(--radius-sm); font-size:12px; outline:none; box-sizing:border-box; }
         .s-fi:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-bg); }
-        textarea.s-fi { height:auto; padding:8px 10px; resize:vertical; min-height:60px; }
         .s-fr { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
         .s-modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; }
+        .s-loading { text-align:center; padding:48px 0; color:var(--muted-text); font-size:14px; }
         @media (max-width:768px) { .s-search-wrap { width:100%; } }
       `}</style>
 
@@ -220,43 +281,48 @@ export function ProductsPage() {
         </div>
       </div>
 
-      <div className="s-table-wrap">
-        <table className="s-table">
-          <thead>
-            <tr>
-              <th>Product</th>
-              <th>Category</th>
-              <th>Price</th>
-              <th>Stock</th>
-              <th>Sales</th>
-              <th>Status</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((p) => (
-              <tr key={p.id}>
-                <td>
-                  {p.image && <img src={p.image} alt="" style={{ width: 20, height: 20, borderRadius: 4, objectFit: "cover", marginRight: 6, verticalAlign: "middle" }} />}
-                  <span style={{ marginRight: p.image ? 0 : 6 }}>{p.emoji}</span>
-                  {p.name}
-                </td>
-                <td style={{ color: "var(--muted-text)" }}>{p.category}</td>
-                <td style={{ fontWeight: 500 }}>₦{p.price.toLocaleString()}</td>
-                <td>{p.stock}</td>
-                <td>{p.sales}</td>
-                <td><span className={`s-badge ${statusBadges[p.status]}`}>{p.status.replace(/_/g, " ")}</span></td>
-                <td>
-                  <div style={{ display: "flex", gap: 4 }}>
-                    <button className="s-btn s-btn-s s-btn-sm" onClick={() => handleEdit(p)}>Edit</button>
-                    <button className="s-btn s-btn-g s-btn-sm" onClick={() => handleDelete(p.id)}>Delete</button>
-                  </div>
-                </td>
+      {loading ? (
+        <div className="s-loading">Loading products...</div>
+      ) : filtered.length === 0 ? (
+        <div className="s-loading">No products found</div>
+      ) : (
+        <div className="s-table-wrap">
+          <table className="s-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Unit</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Status</th>
+                <th></th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {filtered.map((p) => (
+                <tr key={p.id}>
+                  <td>
+                    {p.image && <img src={p.image} alt="" style={{ width: 20, height: 20, borderRadius: 4, objectFit: "cover", marginRight: 6, verticalAlign: "middle" }} />}
+                    {p.name}
+                  </td>
+                  <td style={{ color: "var(--muted-text)", fontSize: 12 }}>{p.unit}</td>
+                  <td style={{ color: "var(--muted-text)" }}>{p.category}</td>
+                  <td style={{ fontWeight: 500 }}>₦{p.price.toLocaleString()}</td>
+                  <td>{p.stock}</td>
+                  <td><span className={`s-badge ${statusBadges[p.status]}`}>{p.status.replace(/_/g, " ")}</span></td>
+                  <td>
+                    <div style={{ display: "flex", gap: 4 }}>
+                      <button className="s-btn s-btn-s s-btn-sm" onClick={() => handleEdit(p)}>Edit</button>
+                      <button className="s-btn s-btn-g s-btn-sm" onClick={() => handleDelete(p.id)}>Delete</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

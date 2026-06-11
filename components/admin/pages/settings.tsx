@@ -5,12 +5,44 @@ import { useAdmin } from "@/components/admin/admin-context";
 
 export function SettingsPage() {
   const { showToast } = useAdmin();
+  const [commission, setCommission] = useState({ default: 8, electronics: 5, food: 10 });
+  const [saving, setSaving] = useState(false);
   const [toggles, setToggles] = useState({
-    autoApprove: true,
-    requireId: true,
+    autoApprove: false,
+    requireId: false,
     international: false,
-    autoRefund: true,
+    autoRefund: false,
   });
+
+  async function saveCommission() {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ section: "commission", values: commission }),
+      });
+      if (res.ok) showToast("Commission settings saved", "success");
+      else showToast("Failed to save commission settings", "danger");
+    } catch {
+      showToast("Failed to save commission settings", "danger");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function toggleSetting(key: string, value: boolean) {
+    setToggles((prev) => ({ ...prev, [key]: value }));
+    try {
+      await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ section: "rules", values: { [key]: value } }),
+      });
+    } catch {
+      setToggles((prev) => ({ ...prev, [key]: !value }));
+    }
+  }
 
   return (
     <div>
@@ -26,6 +58,7 @@ export function SettingsPage() {
         .btn-p { background:var(--primary); color:#fff; }
         .btn-p:hover { background:var(--primary-deep); }
         .btn-p:active { transform:scale(0.98); }
+        .btn-p:disabled { opacity:0.5; cursor:not-allowed; }
         .fg { margin-bottom:14px; }
         .fg:last-child { margin-bottom:0; }
         .label { font-size:12px; font-weight:450; color:var(--body); display:block; margin-bottom:4px; }
@@ -53,17 +86,17 @@ export function SettingsPage() {
           <div className="card-b">
             <div className="fg">
               <label className="label">Default commission rate (%)</label>
-              <input className="fi" type="number" defaultValue={8} />
+              <input className="fi" type="number" value={commission.default} onChange={(e) => setCommission((p) => ({ ...p, default: +e.target.value }))} />
             </div>
             <div className="fg">
               <label className="label">Electronics commission (%)</label>
-              <input className="fi" type="number" defaultValue={5} />
+              <input className="fi" type="number" value={commission.electronics} onChange={(e) => setCommission((p) => ({ ...p, electronics: +e.target.value }))} />
             </div>
             <div className="fg">
               <label className="label">Food commission (%)</label>
-              <input className="fi" type="number" defaultValue={10} />
+              <input className="fi" type="number" value={commission.food} onChange={(e) => setCommission((p) => ({ ...p, food: +e.target.value }))} />
             </div>
-            <button className="btn btn-p" onClick={() => showToast("Commission settings saved", "success")} style={{ marginTop: 4 }}>Save changes</button>
+            <button className="btn btn-p" onClick={saveCommission} disabled={saving} style={{ marginTop: 4 }}>{saving ? "Saving..." : "Save changes"}</button>
           </div>
         </div>
 
@@ -83,7 +116,7 @@ export function SettingsPage() {
                 </div>
                 <button
                   className={`toggle ${toggles[t.key as keyof typeof toggles] ? "on" : "off"}`}
-                  onClick={() => setToggles((prev) => ({ ...prev, [t.key]: !prev[t.key as keyof typeof toggles] }))}
+                  onClick={() => toggleSetting(t.key, !toggles[t.key as keyof typeof toggles])}
                 />
               </div>
             ))}

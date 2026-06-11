@@ -18,7 +18,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { items, addressId } = await request.json();
+    const { items } = await request.json();
     if (!items?.length) {
       return NextResponse.json({ error: "No items provided" }, { status: 400 });
     }

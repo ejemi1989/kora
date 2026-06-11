@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import { useUser } from "@/components/user/user-context";
+import { useCurrency } from "@/lib/hooks/use-currency";
 import {
   GridIcon, HomeIcon, ListIcon, TruckIcon, CartIcon, HeartIcon,
   MapIcon, CardIcon, BellIcon, SettingsIcon, MenuIcon, XIcon,
@@ -27,6 +28,7 @@ export function UserShell({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
   const { page, setPage, sidebar, setSidebar, cartCount, notifs, notifOpen, setNotifOpen, setNotifs, setPage: navigate, toasts } = useUser();
+  const { currencies, selected, select, loading } = useCurrency();
   const router = useRouter();
   const unread = notifs.filter((n) => !n.read).length;
 
@@ -164,6 +166,21 @@ export function UserShell({ children }: { children: ReactNode }) {
               </div>
             )}
           </div>
+          {!loading && currencies.length > 0 && (
+            <select
+              value={selected?.code || ""}
+              onChange={(e) => select(e.target.value)}
+              style={{
+                height: 30, fontSize: 12, border: "1px solid var(--hairline)",
+                borderRadius: 6, background: "var(--canvas)", color: "var(--ink)",
+                padding: "0 6px", cursor: "pointer", outline: "none",
+              }}
+            >
+              {currencies.map((c) => (
+                <option key={c.code} value={c.code}>{c.symbol} {c.code}</option>
+              ))}
+            </select>
+          )}
           <UserButton />
         </header>
         <main className="user-content">

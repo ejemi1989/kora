@@ -1,11 +1,52 @@
 "use client";
 
-import { SELLER_BAR_CHART } from "@/lib/data/seller";
+import { useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 import { ChevronIcon } from "@/components/user/icons";
 
-const barMonths = SELLER_BAR_CHART;
+interface BarMonth {
+  month: string;
+  revenue: number;
+  fill: boolean;
+  height: number;
+}
+
+interface GrowthItem {
+  label: string;
+  value: string;
+  up: boolean;
+}
+
+interface CategoryRow {
+  category: string;
+  revenue: number;
+  orders: number;
+  growth: string;
+}
+
+interface AnalyticsData {
+  totalRevenue: number;
+  totalOrders: number;
+  avgOrderValue: number;
+  avgRating: number;
+  months: BarMonth[];
+  growthTrends: GrowthItem[];
+  categoryPerformance: CategoryRow[];
+}
 
 export function AnalyticsPage() {
+  const { isSignedIn } = useUser();
+  const [data, setData] = useState<AnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!isSignedIn) return;
+    fetch("/api/seller/analytics")
+      .then((r) => r.json())
+      .then((d) => { if (d && typeof d === 'object') setData(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [isSignedIn]);
+
   return (
     <div>
       <style>{`
@@ -43,97 +84,92 @@ export function AnalyticsPage() {
         .s-growth-change { font-size:11px; margin-left:8px; }
         .s-growth-change.up { color:var(--success); }
         .s-growth-change.down { color:var(--danger); }
+        .s-loading { text-align:center; padding:48px 0; color:var(--muted-text); font-size:14px; }
         @media (max-width:768px) { .s-section-row { grid-template-columns:1fr; } }
       `}</style>
 
       <div className="s-page-h">Analytics</div>
       <div className="s-page-sub">Detailed store performance metrics</div>
 
-      <div className="s-mini-stats">
-        <div className="s-mini-stat">
-          <div className="val">₦3.8M</div>
-          <div className="lbl">Annual Revenue</div>
-        </div>
-        <div className="s-mini-stat">
-          <div className="val">2,847</div>
-          <div className="lbl">Total Orders</div>
-        </div>
-        <div className="s-mini-stat">
-          <div className="val">₦1,335</div>
-          <div className="lbl">Avg Order Value</div>
-        </div>
-        <div className="s-mini-stat">
-          <div className="val">4.8★</div>
-          <div className="lbl">Avg Rating</div>
-        </div>
-      </div>
-
-      <div className="s-section-row">
-        <div className="s-card">
-          <div className="s-card-h"><h3>Monthly Revenue</h3></div>
-          <div className="s-card-b">
-            <div className="s-bar-chart">
-              {barMonths.map((b) => (
-                <div key={b.month} className="s-bar-col">
-                  <div className={`s-bar ${b.fill ? "fill" : ""}`} style={{ height: `${b.height}%` }} />
-                  <div className="s-bar-label">{b.month}</div>
-                </div>
-              ))}
+      {loading ? (
+        <div className="s-loading">Loading analytics...</div>
+      ) : data ? (
+        <>
+          <div className="s-mini-stats">
+            <div className="s-mini-stat">
+              <div className="val">₦{data.totalRevenue.toLocaleString()}</div>
+              <div className="lbl">Annual Revenue</div>
+            </div>
+            <div className="s-mini-stat">
+              <div className="val">{data.totalOrders.toLocaleString()}</div>
+              <div className="lbl">Total Orders</div>
+            </div>
+            <div className="s-mini-stat">
+              <div className="val">₦{data.avgOrderValue.toLocaleString()}</div>
+              <div className="lbl">Avg Order Value</div>
+            </div>
+            <div className="s-mini-stat">
+              <div className="val">{data.avgRating}★</div>
+              <div className="lbl">Avg Rating</div>
             </div>
           </div>
-        </div>
 
-        <div className="s-card">
-          <div className="s-card-h"><h3>Growth Trends</h3></div>
-          <div className="s-card-b">
-            {[
-              { label: "Revenue Growth", value: "+12.3%", up: true },
-              { label: "Order Volume", value: "+8.1%", up: true },
-              { label: "Customer Retention", value: "+5.6%", up: true },
-              { label: "Product Returns", value: "-2.1%", up: false },
-              { label: "Avg Order Value", value: "+3.8%", up: true },
-            ].map((g) => (
-              <div key={g.label} className="s-growth-item">
-                <span className="s-growth-label">{g.label}</span>
-                <div>
-                  <span className="s-growth-value">{g.value}</span>
-                  <span className={`s-growth-change ${g.up ? "up" : "down"}`}>
-                    <ChevronIcon size={10} style={{ transform: g.up ? "rotate(180deg)" : "rotate(0deg)", verticalAlign: "middle" }} />
-                    {g.up ? "up" : "down"}
-                  </span>
+          <div className="s-section-row">
+            <div className="s-card">
+              <div className="s-card-h"><h3>Monthly Revenue</h3></div>
+              <div className="s-card-b">
+                <div className="s-bar-chart">
+                  {data.months.map((b) => (
+                    <div key={b.month} className="s-bar-col">
+                      <div className={`s-bar ${b.fill ? "fill" : ""}`} style={{ height: `${b.height}%` }} />
+                      <div className="s-bar-label">{b.month}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
+            </div>
 
-      <div className="s-card">
-        <div className="s-card-h"><h3>Category Performance</h3></div>
-        <div className="s-card-b p0">
-          <table className="s-mini-table">
-            <thead style={{ visibility: "hidden" }}>
-              <tr><td></td><td></td><td></td><td></td></tr>
-            </thead>
-            <tbody>
-              {[
-                { cat: "Spices & Seasonings", revenue: "₦1,245,000", orders: 892, growth: "+15.2%" },
-                { cat: "Oils & Fats", revenue: "₦876,500", orders: 534, growth: "+8.7%" },
-                { cat: "Fish & Meat", revenue: "₦543,200", orders: 312, growth: "+11.3%" },
-                { cat: "Vegetables", revenue: "₦421,800", orders: 567, growth: "+6.1%" },
-                { cat: "Grains & Rice", revenue: "₦298,000", orders: 234, growth: "+4.5%" },
-              ].map((c) => (
-                <tr key={c.cat}>
-                  <td>{c.cat}</td>
-                  <td style={{ fontWeight: 500 }}>{c.revenue}</td>
-                  <td style={{ color: "var(--muted-text)" }}>{c.orders} orders</td>
-                  <td style={{ textAlign: "right" }}><span className="s-pill s-pill-up">{c.growth}</span></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            <div className="s-card">
+              <div className="s-card-h"><h3>Growth Trends</h3></div>
+              <div className="s-card-b">
+                {data.growthTrends.map((g) => (
+                  <div key={g.label} className="s-growth-item">
+                    <span className="s-growth-label">{g.label}</span>
+                    <div>
+                      <span className="s-growth-value">{g.value}</span>
+                      <span className={`s-growth-change ${g.up ? "up" : "down"}`}>
+                        <ChevronIcon size={10} style={{ transform: g.up ? "rotate(180deg)" : "rotate(0deg)", verticalAlign: "middle" }} />
+                        {g.up ? "up" : "down"}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="s-card">
+            <div className="s-card-h"><h3>Category Performance</h3></div>
+            <div className="s-card-b p0">
+              <table className="s-mini-table">
+                <thead style={{ visibility: "hidden" }}>
+                  <tr><td></td><td></td><td></td><td></td></tr>
+                </thead>
+                <tbody>
+                  {data.categoryPerformance.map((c) => (
+                    <tr key={c.category}>
+                      <td>{c.category}</td>
+                      <td style={{ fontWeight: 500 }}>₦{c.revenue.toLocaleString()}</td>
+                      <td style={{ color: "var(--muted-text)" }}>{c.orders} orders</td>
+                      <td style={{ textAlign: "right" }}><span className="s-pill s-pill-up">{c.growth}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }

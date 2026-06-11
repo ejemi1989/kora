@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAdmin } from "@/components/admin/admin-context";
-import { ADMIN_TRANSACTIONS, ADMIN_PAYMENT_STATS } from "@/lib/data/admin";
 import { SearchIcon } from "@/components/user/icons";
 
 const pillClass: Record<string, string> = {
@@ -13,9 +12,19 @@ const pillClass: Record<string, string> = {
 
 export function PaymentsPage() {
   const { showToast, openModal, closeModal } = useAdmin();
+  const [stats, setStats] = useState<{ label: string; value: string }[]>([]);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  const filtered = ADMIN_TRANSACTIONS.filter((t) => {
+  useEffect(() => {
+    fetch("/api/admin/payments")
+      .then((r) => r.json())
+      .then((d) => { if (d) { setStats(d.stats || []); setTransactions(d.transactions || []); } setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const filtered = transactions.filter((t) => {
     if (search && !t.id.toLowerCase().includes(search.toLowerCase()) && !t.customer.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
@@ -48,6 +57,8 @@ export function PaymentsPage() {
       </div>
     ));
   }
+
+  if (loading) return <div style={{ textAlign: "center", padding: 48, color: "var(--muted-text)" }}>Loading payments...</div>;
 
   return (
     <div>
@@ -92,46 +103,52 @@ export function PaymentsPage() {
       <div className="page-h">Payments</div>
       <div className="page-sub">View transactions, process refunds, and manage payouts</div>
 
-      <div className="stats-3">
-        {ADMIN_PAYMENT_STATS.map((s) => (
-          <div key={s.label} className="stat-card">
-            <div className="stat-label">{s.label}</div>
-            <div className="stat-value">{s.value}</div>
-          </div>
-        ))}
-      </div>
+      {stats.length > 0 && (
+        <div className="stats-3">
+          {stats.map((s) => (
+            <div key={s.label} className="stat-card">
+              <div className="stat-label">{s.label}</div>
+              <div className="stat-value">{s.value}</div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="card-h-flex">
         <h3>Transactions</h3>
         <button className="btn btn-p" onClick={handleRefund}>Process refund</button>
       </div>
 
-      <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Transaction ID</th>
-              <th>Customer</th>
-              <th>Method</th>
-              <th>Amount</th>
-              <th>Date</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((t) => (
-              <tr key={t.id}>
-                <td><span className="mono">{t.id}</span></td>
-                <td>{t.customer}</td>
-                <td>{t.method}</td>
-                <td style={{ fontWeight: 500 }}>{t.amount}</td>
-                <td>{t.date}</td>
-                <td><span className={`pill ${pillClass[t.status]}`}>{t.status}</span></td>
+      {filtered.length === 0 ? (
+        <div style={{ textAlign: "center", padding: 48, color: "var(--muted-text)" }}>No transactions found</div>
+      ) : (
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Transaction ID</th>
+                <th>Customer</th>
+                <th>Method</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {filtered.map((t) => (
+                <tr key={t.id}>
+                  <td><span className="mono">{t.id}</span></td>
+                  <td>{t.customer}</td>
+                  <td>{t.method}</td>
+                  <td style={{ fontWeight: 500 }}>{t.amount}</td>
+                  <td>{t.date}</td>
+                  <td><span className={`pill ${pillClass[t.status]}`}>{t.status}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

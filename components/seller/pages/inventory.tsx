@@ -1,9 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 import { useSeller } from "@/components/seller/seller-context";
-import { SELLER_INVENTORY } from "@/lib/data/seller";
 import { SearchIcon } from "@/components/user/icons";
+
+interface InventoryItem {
+  id: string;
+  name: string;
+  emoji: string;
+  category: string;
+  stock: number;
+  available: number;
+  threshold: number;
+  status: "ok" | "low" | "critical";
+}
 
 const statusStyles: Record<string, string> = {
   ok: "s-badge-ok",
@@ -13,9 +24,19 @@ const statusStyles: Record<string, string> = {
 
 export function InventoryPage() {
   const { showToast } = useSeller();
-  const [items, setItems] = useState(SELLER_INVENTORY);
+  const { isSignedIn } = useUser();
+  const [items, setItems] = useState<InventoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "ok" | "low" | "critical">("all");
+
+  useEffect(() => {
+    if (!isSignedIn) return;
+    fetch("/api/seller/inventory")
+      .then((r) => r.json())
+      .then((d) => { if (Array.isArray(d)) setItems(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [isSignedIn]);
 
   const filtered = items.filter((i) => {
     const matchSearch = i.name.toLowerCase().includes(search.toLowerCase());
@@ -23,23 +44,31 @@ export function InventoryPage() {
     return matchSearch && matchFilter;
   });
 
-  function handleRestock(id: number) {
+  async function handleRestock(id: string) {
     const val = prompt("Restock quantity:", "10");
     if (val && !isNaN(Number(val)) && parseInt(val) > 0) {
       const qty = parseInt(val);
-      setItems((prev) =>
-        prev.map((i) =>
-          i.id === id
-            ? {
-                ...i,
-                stock: i.stock + qty,
-                available: i.available + qty,
-                status: i.stock + qty >= i.threshold ? "ok" : i.status,
-              }
-            : i
-        )
-      );
-      showToast(`Restocked ${qty} units`, "success");
+      const res = await fetch("/api/seller/inventory", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: id, quantity: qty }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setItems((prev) =>
+          prev.map((i) =>
+            i.id === id
+              ? {
+                  ...i,
+                  stock: updated.stock,
+                  available: updated.stock,
+                  status: updated.stock >= i.threshold ? "ok" : updated.stock <= 0 ? "critical" : "low",
+                }
+              : i
+          )
+        );
+        showToast(`Restocked ${qty} units`, "success");
+      }
     }
   }
 
@@ -105,7 +134,11 @@ export function InventoryPage() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((i) => (
+            {loading ? (
+              <tr><td colSpan={7} style={{ textAlign: "center", padding: 24, color: "var(--muted-text)" }}>Loading inventory...</td></tr>
+            ) : filtered.length === 0 ? (
+              <tr><td colSpan={7} style={{ textAlign: "center", padding: 24, color: "var(--muted-text)" }}>No inventory items found</td></tr>
+            ) : filtered.map((i) => (
               <tr key={i.id}>
                 <td><span style={{ marginRight: 6 }}>{i.emoji}</span>{i.name}</td>
                 <td style={{ color: "var(--muted-text)" }}>{i.category}</td>

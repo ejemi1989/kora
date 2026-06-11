@@ -38,6 +38,7 @@ model User {
   notifications Notification[]
   addresses     Address[]
   wishlistItems WishlistItem[]
+  reviews       Review[]
 }
 
 model Product {
@@ -46,6 +47,7 @@ model Product {
   description String
   price       Float
   stock       Int
+  unit        String   @default("1kg")
   images      String[]
   category    String
   sellerId    String
@@ -56,6 +58,7 @@ model Product {
   cartItems    CartItem[]
   orderItems   OrderItem[]
   wishlistItems WishlistItem[]
+  reviews      Review[]
 }
 
 model Cart {
@@ -132,6 +135,53 @@ model Payout {
   createdAt DateTime @default(now())
 }
 
+model Promotion {
+  id              String   @id @default(uuid())
+  sellerId        String
+  code            String   @unique
+  discountType    String   @default("percentage")
+  discountValue   Float
+  applicableTo    String   @default("all")
+  minOrder        Float    @default(0)
+  usageCount      Int      @default(0)
+  status          String   @default("draft")
+  startDate       DateTime
+  endDate         DateTime?
+  createdAt       DateTime @default(now())
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  userId    String
+  productId String
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model Notification {
+  id      String   @id @default(uuid())
+  userId  String
+  type    String
+  message String
+  read    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Currency {
+  id     String @id @default(uuid())
+  code   String @unique
+  name   String
+  symbol String
+  rate   Float
+  status String @default("active")
+}
+
 model Address {
   id        String  @id @default(uuid())
   userId    String
@@ -151,15 +201,4 @@ model WishlistItem {
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])
-}
-
-model Notification {
-  id      String   @id @default(uuid())
-  userId  String
-  type    String
-  message String
-  read    Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

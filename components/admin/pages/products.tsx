@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAdmin } from "@/components/admin/admin-context";
-import { ADMIN_PRODUCTS } from "@/lib/data/admin";
 import type { AdminProduct } from "@/lib/types/admin";
 import { SearchIcon } from "@/components/user/icons";
 
@@ -16,9 +15,17 @@ const pStatus: Record<string, string> = {
 
 export function ProductsPage() {
   const { showToast, openModal, closeModal } = useAdmin();
-  const [products, setProducts] = useState(ADMIN_PRODUCTS);
+  const [products, setProducts] = useState<AdminProduct[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState("All");
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    fetch("/api/admin/products")
+      .then((r) => r.json())
+      .then((d) => { if (Array.isArray(d)) setProducts(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
 
   const statusMap: Record<string, string> = { All: "", Approved: "active", Pending: "pending", Flagged: "flagged" };
 
@@ -29,24 +36,35 @@ export function ProductsPage() {
     return true;
   });
 
+  async function moderateProduct(id: string, status: string, msg: string, toastType: "success" | "warning" | "danger") {
+    const res = await fetch("/api/admin/products", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, status }),
+    });
+    if (res.ok) {
+      setProducts(products.map((p) => p.id === id ? { ...p, status: status as "active" | "pending" | "flagged" } : p));
+      showToast(msg, toastType);
+      closeModal();
+    } else {
+      showToast("Action failed", "danger");
+    }
+  }
+
   function handleModerate(product: AdminProduct) {
     openModal("Moderate listing", (
       <div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 20px", marginBottom: 16 }}>
-          {[["Listed by", product.seller], ["Price", product.price], ["Category", product.category], ["Date listed", "May 2026"]].map(([l, v]) => (
+          {[["Listed by", product.seller], ["Price", product.price], ["Category", product.category], ["Date listed", product.createdAt]].map(([l, v]) => (
             <div key={l as string}>
               <div className="di-label">{l}</div>
               <div style={{ fontSize: 13, color: "var(--body)", marginTop: 2 }}>{v}</div>
             </div>
           ))}
         </div>
-        <div className="fg">
-          <label className="label">Admin notes</label>
-          <textarea className="fi" rows={3} placeholder="Add notes about this listing..." />
-        </div>
         <div className="admin-modal-actions">
-          <button className="btn btn-s" onClick={() => { showToast(`${product.name} flagged`, "warning"); closeModal(); }}>Flag for review</button>
-          <button className="btn btn-p" onClick={() => { showToast(`${product.name} approved`, "success"); closeModal(); }}>Approve listing</button>
+          <button className="btn btn-s" onClick={() => moderateProduct(product.id, "flagged", `${product.name} flagged`, "warning")}>Flag for review</button>
+          <button className="btn btn-p" onClick={() => moderateProduct(product.id, "approved", `${product.name} approved`, "success")}>Approve listing</button>
         </div>
       </div>
     ));
@@ -58,7 +76,7 @@ export function ProductsPage() {
         <p style={{ fontSize: 13, color: "var(--body)", margin: "0 0 16px" }}>Approve <strong>{product.name}</strong>? This will make it visible to buyers.</p>
         <div className="admin-modal-actions">
           <button className="btn btn-s" onClick={closeModal}>Cancel</button>
-          <button className="btn btn-p" onClick={() => { setProducts(products.map((p) => p.id === product.id ? { ...p, status: "active" as const } : p)); showToast(`${product.name} approved`, "success"); closeModal(); }}>Approve</button>
+          <button className="btn btn-p" onClick={() => moderateProduct(product.id, "approved", `${product.name} approved`, "success")}>Approve</button>
         </div>
       </div>
     ));
@@ -67,16 +85,16 @@ export function ProductsPage() {
   function handleReview(product: AdminProduct) {
     openModal("Review flagged listing", (
       <div>
-        <div className="alert alert-warn" style={{ marginBottom: 12 }}>
-          <span style={{ fontSize: 13, color: "var(--body)" }}>Flag reason: <strong>Potential counterfeit — price significantly below market average</strong></span>
-        </div>
+        <p style={{ fontSize: 13, color: "var(--body)", margin: "0 0 16px" }}>Review <strong>{product.name}</strong> to determine if it should be approved, flagged, or rejected.</p>
         <div className="admin-modal-actions">
-          <button className="btn btn-d" onClick={() => { showToast(`${product.name} rejected`, "danger"); closeModal(); }}>Reject listing</button>
-          <button className="btn btn-p" onClick={() => { setProducts(products.map((p) => p.id === product.id ? { ...p, status: "active" as const } : p)); showToast(`${product.name} approved`, "success"); closeModal(); }}>Clear flag & approve</button>
+          <button className="btn btn-d" onClick={() => moderateProduct(product.id, "pending", `${product.name} rejected`, "danger")}>Reject listing</button>
+          <button className="btn btn-p" onClick={() => moderateProduct(product.id, "approved", `${product.name} approved`, "success")}>Clear flag & approve</button>
         </div>
       </div>
     ));
   }
+
+  if (loading) return <div style={{ textAlign: "center", padding: 48, color: "var(--muted-text)" }}>Loading products...</div>;
 
   return (
     <div>
@@ -114,10 +132,6 @@ export function ProductsPage() {
         .action-link { font-size:12px; color:var(--primary); cursor:pointer; border:none; background:none; padding:0; }
         .action-link:hover { text-decoration:underline; }
         .di-label { font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ash); }
-        .fi { width:100%; padding:8px 10px; border:1px solid var(--hairline); border-radius:var(--radius-sm); font-size:13px; outline:none; resize:vertical; font-family:inherit; }
-        .fi:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-bg); }
-        .fg { margin-bottom:12px; }
-        .label { font-size:12px; font-weight:450; color:var(--body); display:block; margin-bottom:4px; }
         .admin-modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; }
         .alert { display:flex; align-items:flex-start; gap:8px; padding:10px 14px; border-radius:var(--radius-sm); font-size:13px; }
         .alert-warn { background:rgba(245,166,35,0.1); border:1px solid rgba(245,166,35,0.2); }
@@ -138,40 +152,44 @@ export function ProductsPage() {
         </div>
       </div>
 
-      <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Product</th>
-              <th>Seller</th>
-              <th>Category</th>
-              <th>Price</th>
-              <th>Stock</th>
-              <th>Sales</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((p) => (
-              <tr key={p.id}>
-                <td style={{ fontWeight: 500 }}>{p.name}</td>
-                <td>{p.seller}</td>
-                <td>{p.category}</td>
-                <td style={{ fontWeight: 500 }}>{p.price}</td>
-                <td>{p.stock}</td>
-                <td>{p.sales}</td>
-                <td><span className={`pill ${pStatus[p.status]}`}>{p.status}</span></td>
-                <td>
-                  {p.status === "active" && <button className="action-link" onClick={() => handleModerate(p)}>Moderate</button>}
-                  {p.status === "pending" && <button className="action-link" onClick={() => handleApprove(p)}>Approve</button>}
-                  {p.status === "flagged" && <button className="action-link" onClick={() => handleReview(p)}>Review</button>}
-                </td>
+      {filtered.length === 0 ? (
+        <div style={{ textAlign: "center", padding: 48, color: "var(--muted-text)" }}>No products found</div>
+      ) : (
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Seller</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Sales</th>
+                <th>Status</th>
+                <th>Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {filtered.map((p) => (
+                <tr key={p.id}>
+                  <td style={{ fontWeight: 500 }}>{p.name}</td>
+                  <td>{p.seller}</td>
+                  <td>{p.category}</td>
+                  <td style={{ fontWeight: 500 }}>{p.price}</td>
+                  <td>{p.stock}</td>
+                  <td>{p.sales}</td>
+                  <td><span className={`pill ${pStatus[p.status]}`}>{p.status}</span></td>
+                  <td>
+                    {p.status === "active" && <button className="action-link" onClick={() => handleModerate(p)}>Moderate</button>}
+                    {p.status === "pending" && <button className="action-link" onClick={() => handleApprove(p)}>Approve</button>}
+                    {p.status === "flagged" && <button className="action-link" onClick={() => handleReview(p)}>Review</button>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

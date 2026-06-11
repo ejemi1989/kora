@@ -1,10 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 import { useSeller } from "@/components/seller/seller-context";
-import { SELLER_ORDERS } from "@/lib/data/seller";
-import type { SellerOrder } from "@/lib/types/seller";
 import { SearchIcon } from "@/components/user/icons";
+
+interface Order {
+  id: string;
+  customer: string;
+  items: number;
+  product: string;
+  total: number;
+  date: string;
+  status: string;
+  trackingNumber: string | null;
+}
 
 const filterLabels = ["all", "pending", "processing", "shipped", "delivered", "cancelled"] as const;
 
@@ -18,9 +28,19 @@ const badgeClass: Record<string, string> = {
 
 export function OrdersPage() {
   const { showToast } = useSeller();
-  const [orders, setOrders] = useState(SELLER_ORDERS);
+  const { isSignedIn } = useUser();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<typeof filterLabels[number]>("all");
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    if (!isSignedIn) return;
+    fetch("/api/seller/orders")
+      .then((r) => r.json())
+      .then((d) => { if (Array.isArray(d)) setOrders(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [isSignedIn]);
 
   const filtered = orders.filter((o) => {
     const matchFilter = filter === "all" || o.status === filter;
@@ -28,17 +48,27 @@ export function OrdersPage() {
     return matchFilter && matchSearch;
   });
 
-  function updateStatus(id: string, status: string) {
-    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: status as any } : o)));
+  async function updateStatus(id: string, status: string) {
+    await fetch("/api/seller/orders", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId: id, status }),
+    });
+    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
     showToast(`Order ${id} updated to ${status}`, "success");
   }
 
-  function updateTracking(id: string, tracking: string) {
-    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, trackingNumber: tracking || undefined } : o)));
+  async function updateTracking(id: string, tracking: string) {
+    await fetch("/api/seller/orders", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId: id, trackingNumber: tracking }),
+    });
+    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, trackingNumber: tracking || null } : o)));
     showToast(`Tracking number added to ${id}`, "success");
   }
 
-  function TrackingCell({ order, onUpdate }: { order: SellerOrder; onUpdate: (id: string, v: string) => void }) {
+  function TrackingCell({ order, onUpdate }: { order: Order; onUpdate: (id: string, v: string) => void }) {
     const [editing, setEditing] = useState(false);
     const [val, setVal] = useState(order.trackingNumber || "");
 
@@ -61,6 +91,15 @@ export function OrdersPage() {
           onKeyDown={(e) => { if (e.key === "Enter") { onUpdate(order.id, val); setEditing(false); } }}
         />
         <button className="s-track-set" onClick={() => { onUpdate(order.id, val); setEditing(false); }}>Set</button>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div>
+        <style>{` .s-page-h { font-size:20px; font-weight:600; color:var(--ink); letter-spacing:-0.03em; margin:0 0 4px; } .s-page-sub { font-size:13px; color:var(--muted-text); margin:0 0 20px; }`}</style>
+        <div style={{ padding: 40, textAlign: "center", color: "var(--muted-text)" }}>Loading...</div>
       </div>
     );
   }
