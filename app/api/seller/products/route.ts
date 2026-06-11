@@ -30,8 +30,12 @@ export async function GET() {
     }));
 
     return NextResponse.json(mapped);
-  } catch {
-    return serverError("Failed to fetch products");
+  } catch (error) {
+    console.error("Products GET error:", error);
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : "Failed to fetch products" },
+      { status: 500 }
+    );
   }
 }
 
@@ -76,8 +80,12 @@ export async function POST(request: Request) {
       sales: 0,
       rating: product.rating,
     });
-  } catch {
-    return serverError("Failed to create product");
+  } catch (error) {
+    console.error("Products POST error:", error);
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : "Failed to create product" },
+      { status: 500 }
+    );
   }
 }
 
@@ -134,8 +142,12 @@ export async function PATCH(request: Request) {
       sales: 0,
       rating: updated.rating,
     });
-  } catch {
-    return serverError("Failed to update product");
+  } catch (error) {
+    console.error("Products PATCH error:", error);
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : "Failed to update product" },
+      { status: 500 }
+    );
   }
 }
 
@@ -163,7 +175,11 @@ export async function DELETE(request: Request) {
     await prisma.product.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
-  } catch {
-    return serverError("Failed to delete product");
+  } catch (error) {
+    console.error("Products DELETE error:", error);
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : "Failed to delete product" },
+      { status: 500 }
+    );
   }
 }

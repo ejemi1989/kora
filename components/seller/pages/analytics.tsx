@@ -38,13 +38,26 @@ export function AnalyticsPage() {
   const { isSignedIn } = useUser();
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isSignedIn) return;
     fetch("/api/seller/analytics")
       .then((r) => r.json())
-      .then((d) => { if (d && typeof d === 'object') setData(d); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then((d) => {
+        if (d && d.success === false) {
+          setError(d.error || "Failed to load analytics");
+        } else if (d && d.months && d.growthTrends) {
+          setData(d);
+        } else {
+          setError("Invalid response from server");
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message || "Failed to load analytics");
+        setLoading(false);
+      });
   }, [isSignedIn]);
 
   return (
@@ -93,6 +106,25 @@ export function AnalyticsPage() {
 
       {loading ? (
         <div className="s-loading">Loading analytics...</div>
+      ) : error ? (
+        <div className="s-loading" style={{ color: "var(--danger)" }}>
+          {error}
+          <br />
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              marginTop: 12,
+              padding: "8px 16px",
+              borderRadius: "var(--radius-sm)",
+              border: "1px solid var(--hairline)",
+              background: "var(--surface-card)",
+              cursor: "pointer",
+              fontSize: 13,
+            }}
+          >
+            Reload
+          </button>
+        </div>
       ) : data ? (
         <>
           <div className="s-mini-stats">

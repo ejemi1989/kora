@@ -159,7 +159,11 @@ export async function GET() {
       barChart: monthlyRevenue,
       topProducts,
     });
-  } catch {
-    return serverError("Failed to fetch seller overview");
+  } catch (error) {
+    console.error("Overview GET error:", error);
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : "Failed to fetch seller overview" },
+      { status: 500 }
+    );
   }
 }

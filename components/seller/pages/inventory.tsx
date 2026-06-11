@@ -27,6 +27,7 @@ export function InventoryPage() {
   const { isSignedIn } = useUser();
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "ok" | "low" | "critical">("all");
 
@@ -34,8 +35,20 @@ export function InventoryPage() {
     if (!isSignedIn) return;
     fetch("/api/seller/inventory")
       .then((r) => r.json())
-      .then((d) => { if (Array.isArray(d)) setItems(d); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then((d) => {
+        if (d && d.success === false) {
+          setError(d.error || "Failed to load inventory");
+        } else if (Array.isArray(d)) {
+          setItems(d);
+        } else {
+          setError("Invalid response from server");
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message || "Failed to load inventory");
+        setLoading(false);
+      });
   }, [isSignedIn]);
 
   const filtered = items.filter((i) => {
@@ -136,6 +149,11 @@ export function InventoryPage() {
           <tbody>
             {loading ? (
               <tr><td colSpan={7} style={{ textAlign: "center", padding: 24, color: "var(--muted-text)" }}>Loading inventory...</td></tr>
+            ) : error ? (
+              <tr><td colSpan={7} style={{ textAlign: "center", padding: 24 }}>
+                <div style={{ color: "var(--danger)", marginBottom: 12 }}>{error}</div>
+                <button onClick={() => window.location.reload()} style={{ padding: "8px 16px", borderRadius: "var(--radius-sm)", border: "1px solid var(--hairline)", background: "var(--surface-card)", cursor: "pointer", fontSize: 13 }}>Reload</button>
+              </td></tr>
             ) : filtered.length === 0 ? (
               <tr><td colSpan={7} style={{ textAlign: "center", padding: 24, color: "var(--muted-text)" }}>No inventory items found</td></tr>
             ) : filtered.map((i) => (

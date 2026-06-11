@@ -44,13 +44,26 @@ export function OverviewPage() {
   const router = useRouter();
   const [data, setData] = useState<OverviewData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isSignedIn) return;
     fetch("/api/seller/overview")
       .then((r) => r.json())
-      .then((d) => { if (d && typeof d === 'object') setData(d); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then((d) => {
+        if (d && d.success === false) {
+          setError(d.error || "Failed to load overview");
+        } else if (d && typeof d === 'object' && d.stats) {
+          setData(d);
+        } else {
+          setError("Invalid response from server");
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message || "Failed to load overview");
+        setLoading(false);
+      });
   }, [isSignedIn]);
 
   function navTo(id: string) {
@@ -60,6 +73,27 @@ export function OverviewPage() {
 
   if (loading) {
     return <div style={{ padding: 40, textAlign: "center", color: "var(--muted-text)" }}>Loading...</div>;
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: 40, textAlign: "center" }}>
+        <div style={{ color: "var(--danger)", marginBottom: 12 }}>{error}</div>
+        <button
+          onClick={() => window.location.reload()}
+          style={{
+            padding: "8px 16px",
+            borderRadius: "var(--radius-sm)",
+            border: "1px solid var(--hairline)",
+            background: "var(--surface-card)",
+            cursor: "pointer",
+            fontSize: 13,
+          }}
+        >
+          Reload
+        </button>
+      </div>
+    );
   }
 
   const stats = data?.stats ?? [];

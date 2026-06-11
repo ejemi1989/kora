@@ -31,6 +31,7 @@ export function OrdersPage() {
   const { isSignedIn } = useUser();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<typeof filterLabels[number]>("all");
   const [search, setSearch] = useState("");
 
@@ -38,8 +39,20 @@ export function OrdersPage() {
     if (!isSignedIn) return;
     fetch("/api/seller/orders")
       .then((r) => r.json())
-      .then((d) => { if (Array.isArray(d)) setOrders(d); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then((d) => {
+        if (d && d.success === false) {
+          setError(d.error || "Failed to load orders");
+        } else if (Array.isArray(d)) {
+          setOrders(d);
+        } else {
+          setError("Invalid response from server");
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message || "Failed to load orders");
+        setLoading(false);
+      });
   }, [isSignedIn]);
 
   const filtered = orders.filter((o) => {
@@ -100,6 +113,30 @@ export function OrdersPage() {
       <div>
         <style>{` .s-page-h { font-size:20px; font-weight:600; color:var(--ink); letter-spacing:-0.03em; margin:0 0 4px; } .s-page-sub { font-size:13px; color:var(--muted-text); margin:0 0 20px; }`}</style>
         <div style={{ padding: 40, textAlign: "center", color: "var(--muted-text)" }}>Loading...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div>
+        <style>{` .s-page-h { font-size:20px; font-weight:600; color:var(--ink); letter-spacing:-0.03em; margin:0 0 4px; } .s-page-sub { font-size:13px; color:var(--muted-text); margin:0 0 20px; }`}</style>
+        <div style={{ padding: 40, textAlign: "center" }}>
+          <div style={{ color: "var(--danger)", marginBottom: 12 }}>{error}</div>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              padding: "8px 16px",
+              borderRadius: "var(--radius-sm)",
+              border: "1px solid var(--hairline)",
+              background: "var(--surface-card)",
+              cursor: "pointer",
+              fontSize: 13,
+            }}
+          >
+            Reload
+          </button>
+        </div>
       </div>
     );
   }

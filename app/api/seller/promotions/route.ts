@@ -44,8 +44,12 @@ export async function GET() {
     });
 
     return NextResponse.json(mapped);
-  } catch {
-    return serverError("Failed to fetch promotions");
+  } catch (error) {
+    console.error("Promotions GET error:", error);
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : "Failed to fetch promotions" },
+      { status: 500 }
+    );
   }
 }
 
@@ -102,8 +106,12 @@ export async function POST(request: Request) {
       endDate: promo.endDate ? promo.endDate.toISOString().slice(0, 10) : "",
       ends: formatDate(promo.endDate),
     });
-  } catch {
-    return serverError("Failed to create promotion");
+  } catch (error) {
+    console.error("Promotions POST error:", error);
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : "Failed to create promotion" },
+      { status: 500 }
+    );
   }
 }
 
@@ -170,8 +178,12 @@ export async function PATCH(request: Request) {
       endDate: updated.endDate ? updated.endDate.toISOString().slice(0, 10) : "",
       ends: formatDate(updated.endDate),
     });
-  } catch {
-    return serverError("Failed to update promotion");
+  } catch (error) {
+    console.error("Promotions PATCH error:", error);
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : "Failed to update promotion" },
+      { status: 500 }
+    );
   }
 }
 
@@ -199,7 +211,11 @@ export async function DELETE(request: Request) {
     await prisma.promotion.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
-  } catch {
-    return serverError("Failed to delete promotion");
+  } catch (error) {
+    console.error("Promotions DELETE error:", error);
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : "Failed to delete promotion" },
+      { status: 500 }
+    );
   }
 }

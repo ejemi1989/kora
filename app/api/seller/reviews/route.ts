@@ -38,8 +38,12 @@ export async function GET() {
     }));
 
     return NextResponse.json(mapped);
-  } catch {
-    return serverError("Failed to fetch reviews");
+  } catch (error) {
+    console.error("Reviews GET error:", error);
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : "Failed to fetch reviews" },
+      { status: 500 }
+    );
   }
 }
 
@@ -75,7 +79,11 @@ export async function POST(request: Request) {
       replied: updated.replied,
       replyText: updated.replyText,
     });
-  } catch {
-    return serverError("Failed to reply to review");
+  } catch (error) {
+    console.error("Reviews POST error:", error);
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : "Failed to reply to review" },
+      { status: 500 }
+    );
   }
 }

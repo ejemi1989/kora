@@ -230,7 +230,11 @@ export async function GET() {
       growthTrends,
       categoryPerformance,
     });
-  } catch {
-    return serverError("Failed to fetch analytics");
+  } catch (error) {
+    console.error("Analytics GET error:", error);
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : "Failed to fetch analytics" },
+      { status: 500 }
+    );
   }
 }

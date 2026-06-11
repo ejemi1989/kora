@@ -20,14 +20,27 @@ export function ReviewsPage() {
   const { isSignedIn } = useUser();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [replyInputs, setReplyInputs] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!isSignedIn) return;
     fetch("/api/seller/reviews")
       .then((r) => r.json())
-      .then((d) => { if (Array.isArray(d)) setReviews(d); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then((d) => {
+        if (d && d.success === false) {
+          setError(d.error || "Failed to load reviews");
+        } else if (Array.isArray(d)) {
+          setReviews(d);
+        } else {
+          setError("Invalid response from server");
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message || "Failed to load reviews");
+        setLoading(false);
+      });
   }, [isSignedIn]);
 
   async function handleReply(id: string) {
@@ -88,6 +101,12 @@ export function ReviewsPage() {
 
       {loading ? (
         <div className="s-loading">Loading reviews...</div>
+      ) : error ? (
+        <div className="s-loading" style={{ color: "var(--danger)" }}>
+          {error}
+          <br />
+          <button onClick={() => window.location.reload()} style={{ marginTop: 12, padding: "8px 16px", borderRadius: "var(--radius-sm)", border: "1px solid var(--hairline)", background: "var(--surface-card)", cursor: "pointer", fontSize: 13 }}>Reload</button>
+        </div>
       ) : reviews.length === 0 ? (
         <div className="s-loading">No reviews yet</div>
       ) : (

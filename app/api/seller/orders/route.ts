@@ -75,8 +75,12 @@ export async function GET() {
     }));
 
     return NextResponse.json(orders);
-  } catch {
-    return serverError("Failed to fetch seller orders");
+  } catch (error) {
+    console.error("Orders GET error:", error);
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : "Failed to fetch seller orders" },
+      { status: 500 }
+    );
   }
 }
 
@@ -114,7 +118,11 @@ export async function PATCH(request: Request) {
     }
 
     return NextResponse.json({ success: true });
-  } catch {
-    return serverError("Failed to update order");
+  } catch (error) {
+    console.error("Orders PATCH error:", error);
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : "Failed to update order" },
+      { status: 500 }
+    );
   }
 }

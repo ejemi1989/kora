@@ -121,7 +121,11 @@ export async function GET() {
       .sort((a, b) => b.spent - a.spent);
 
     return NextResponse.json(customers);
-  } catch {
-    return serverError("Failed to fetch customers");
+  } catch (error) {
+    console.error("Customers GET error:", error);
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : "Failed to fetch customers" },
+      { status: 500 }
+    );
   }
 }

@@ -34,8 +34,12 @@ export async function GET() {
     });
 
     return NextResponse.json(items);
-  } catch {
-    return serverError("Failed to fetch inventory");
+  } catch (error) {
+    console.error("Inventory GET error:", error);
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : "Failed to fetch inventory" },
+      { status: 500 }
+    );
   }
 }
 
@@ -62,7 +66,11 @@ export async function PATCH(request: Request) {
     });
 
     return NextResponse.json({ stock: updated.stock });
-  } catch {
-    return serverError("Failed to update inventory");
+  } catch (error) {
+    console.error("Inventory PATCH error:", error);
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : "Failed to update inventory" },
+      { status: 500 }
+    );
   }
 }

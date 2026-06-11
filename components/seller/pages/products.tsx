@@ -132,6 +132,7 @@ export function ProductsPage() {
   const { isSignedIn } = useUser();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "draft" | "out_of_stock">("all");
 
@@ -139,8 +140,20 @@ export function ProductsPage() {
     if (!isSignedIn) return;
     fetch("/api/seller/products")
       .then((r) => r.json())
-      .then((d) => { if (Array.isArray(d)) setProducts(d); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then((d) => {
+        if (d && d.success === false) {
+          setError(d.error || "Failed to load products");
+        } else if (Array.isArray(d)) {
+          setProducts(d);
+        } else {
+          setError("Invalid response from server");
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message || "Failed to load products");
+        setLoading(false);
+      });
   }, [isSignedIn]);
 
   const filtered = products.filter((p) => {
@@ -283,6 +296,25 @@ export function ProductsPage() {
 
       {loading ? (
         <div className="s-loading">Loading products...</div>
+      ) : error ? (
+        <div className="s-loading" style={{ color: "var(--danger)" }}>
+          {error}
+          <br />
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              marginTop: 12,
+              padding: "8px 16px",
+              borderRadius: "var(--radius-sm)",
+              border: "1px solid var(--hairline)",
+              background: "var(--surface-card)",
+              cursor: "pointer",
+              fontSize: 13,
+            }}
+          >
+            Reload
+          </button>
+        </div>
       ) : filtered.length === 0 ? (
         <div className="s-loading">No products found</div>
       ) : (
