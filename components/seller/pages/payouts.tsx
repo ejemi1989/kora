@@ -32,12 +32,26 @@ export function PayoutsPage() {
   const [loading, setLoading] = useState(true);
   const [withdrawAmt, setWithdrawAmt] = useState("");
 
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     if (!isSignedIn) return;
     fetch("/api/seller/payouts")
       .then((r) => r.json())
-      .then((d) => { if (d && typeof d === 'object') setData(d); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then((d) => {
+        if (d && d.success === false) {
+          setError(d.error || "Failed to load payouts");
+        } else if (d && typeof d === 'object' && d.payoutHistory) {
+          setData(d);
+        } else {
+          setError("Invalid response from server");
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message || "Failed to load payouts");
+        setLoading(false);
+      });
   }, [isSignedIn]);
 
   async function handleWithdraw() {
@@ -118,6 +132,25 @@ export function PayoutsPage() {
 
       {loading ? (
         <div className="s-loading">Loading payouts...</div>
+      ) : error ? (
+        <div className="s-loading" style={{ color: "var(--danger)" }}>
+          {error}
+          <br />
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              marginTop: 12,
+              padding: "8px 16px",
+              borderRadius: "var(--radius-sm)",
+              border: "1px solid var(--hairline)",
+              background: "var(--surface-card)",
+              cursor: "pointer",
+              fontSize: 13,
+            }}
+          >
+            Reload
+          </button>
+        </div>
       ) : data ? (
         <>
           <div className="s-stats-grid">

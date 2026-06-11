@@ -17,6 +17,16 @@ export async function GET() {
 
     const productIds = products.map((p) => p.id);
 
+    if (productIds.length === 0) {
+      return NextResponse.json({
+        totalEarnings: 0,
+        available: 0,
+        pendingClearance: 0,
+        thisMonth: 0,
+        payoutHistory: [],
+      });
+    }
+
     const orderItems = await prisma.orderItem.findMany({
       where: { productId: { in: productIds } },
       include: { order: { select: { id: true, status: true, createdAt: true } } },
@@ -70,8 +80,12 @@ export async function GET() {
       thisMonth: Math.round(thisMonthEarnings),
       payoutHistory,
     });
-  } catch {
-    return serverError("Failed to fetch payouts");
+  } catch (error) {
+    console.error("Payouts GET error:", error);
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : "Failed to fetch payouts" },
+      { status: 500 }
+    );
   }
 }
 
@@ -137,7 +151,11 @@ export async function POST(request: Request) {
       status: payout.status.toLowerCase(),
       date: payout.createdAt.toISOString().slice(0, 10),
     });
-  } catch {
-    return serverError("Failed to process withdrawal");
+  } catch (error) {
+    console.error("Payouts POST error:", error);
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : "Failed to process withdrawal" },
+      { status: 500 }
+    );
   }
 }
