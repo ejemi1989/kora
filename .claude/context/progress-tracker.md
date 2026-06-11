@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Order Tracking: Seller/Admin add tracking numbers, Buyer views them — Complete
+- Production Deployment: Live keys, role enforcement, error handling — Complete
 
 ## Current Goal
 
-- Enable seller and admin to assign tracking numbers to orders, and buyers to view them on their tracking page.
+- Ensure denimmarketplace.com is fully functional with live Clerk authentication, role-based access control, and robust error handling across all dashboards.
 
 ## Completed
 
@@ -215,21 +215,90 @@ Update this file whenever the current phase, active feature, or implementation s
 - `components/user/pages/cart.tsx` — total weight shown in summary sidebar and checkout flow; "Proceed to Checkout" button disabled with guidance message when below 40kg; `handleProceedCheckout` blocks with toast if underweight
 - `app/api/create-checkout-session/route.ts` — server-side 40kg validation returns 400 if underweight
 
+### Clerk Live Keys Migration (denimmarketplace.com)
+- `.env` — switched from test keys (`pk_test_...`/`sk_test_...`) to live keys (`pk_live_...`/`sk_live_...`) for denimmarketplace.com
+- Vercel environment variables updated via CLI for all environments (production, preview, development)
+- Test instance (`boss-foal-21`) cannot add custom domains — requires paid plan
+- Live instance (`denimmarketplace.com`) used for production deployment
+- Users (admin@denimarketplace.com, seller@denimarketplace.com, buyer@denimarketplace.com) must be created in live Clerk instance
+
+### Email-to-Role Enforcement
+- `app/auth/callback/page.tsx` — added `emailRoleMap` that enforces:
+  - `admin@denimarketplace.com` → ADMIN role (auto-assigned via `clerkClient().users.updateUser()`)
+  - `seller@denimarketplace.com` → SELLER role
+  - `buyer@denimarketplace.com` → CUSTOMER role
+- Callback now auto-assigns role from `intended_role` param if user has no role set yet
+- Redirects to `/auth/choose-role` only if no role can be determined
+- `app/sign-in/[[...sign-in]]/page.tsx` — added `emailRoleMap` with:
+  - `onBlur` handler on email input auto-switches role tab when recognized email entered
+  - Submit validation blocks sign-in if email doesn't match selected tab
+- `app/sign-up/[[...sign-up]]/page.tsx` — same `emailRoleMap` with:
+  - `onBlur` handler auto-switches role tab
+  - Submit validation blocks sign-up if email doesn't match selected tab
+  - Role stored in `unsafeMetadata` during sign-up
+
+### Dashboard Layout Role Guards
+- `app/user/layout.tsx` — server-side role check:
+  - Redirects to `/sign-in` if not authenticated
+  - If user has role and it's not CUSTOMER, redirects to their correct dashboard
+- `app/seller/layout.tsx` — same pattern:
+  - Requires SELLER role, redirects ADMIN/CUSTOMER to their dashboards
+- `app/admin/layout.tsx` — same pattern:
+  - Requires ADMIN role, redirects SELLER/CUSTOMER to their dashboards
+- Clerk v7 compatibility: uses `userId` from `auth()` instead of `isAuthenticated` (which doesn't exist in v7)
+
+### Prisma Client Fix for Vercel
+- `prisma/schema.prisma` — changed generator from `prisma-client` with custom `output = "../lib/generated/prisma"` to `prisma-client-js` (default location)
+- `lib/prisma.ts` — import changed from `./generated/prisma/client` to `@prisma/client`
+- `prisma/seed.ts` — import changed from `../lib/generated/prisma/client` to `@prisma/client`
+- `next.config.ts` — removed `serverExternalPackages: ["@prisma/client"]` (not needed with default client location)
+- Root cause: custom output path caused "Query Engine not found" errors on Vercel's rhel-openssl-3.0.x runtime
+- Fix: default `@prisma/client` location is automatically handled by Vercel's build process
+
+### Comprehensive Error Handling (Seller Dashboard)
+- All 9 seller page components now have proper error states:
+  - `components/seller/pages/overview.tsx` — error state with reload button
+  - `components/seller/pages/products.tsx` — error state with reload button
+  - `components/seller/pages/orders.tsx` — error state with reload button
+  - `components/seller/pages/inventory.tsx` — error state in table row
+  - `components/seller/pages/analytics.tsx` — error state with reload button
+  - `components/seller/pages/payouts.tsx` — error state with reload button
+  - `components/seller/pages/customers.tsx` — error state with reload button
+  - `components/seller/pages/reviews.tsx` — error state with reload button
+  - `components/seller/pages/promotions.tsx` — error state with reload button
+- All 9 seller API routes now return structured error responses:
+  - `app/api/seller/overview/route.ts` — `{ success: false, error: "..." }` with console.error logging
+  - `app/api/seller/products/route.ts` — all methods (GET/POST/PATCH/DELETE)
+  - `app/api/seller/orders/route.ts` — GET and PATCH methods
+  - `app/api/seller/inventory/route.ts` — GET and PATCH methods
+  - `app/api/seller/analytics/route.ts` — GET method
+  - `app/api/seller/payouts/route.ts` — GET and POST methods, early return for empty products
+  - `app/api/seller/customers/route.ts` — GET method
+  - `app/api/seller/reviews/route.ts` — GET and POST methods
+  - `app/api/seller/promotions/route.ts` — all methods (GET/POST/PATCH/DELETE)
+- Client-side validation: checks for `d.success === false` before treating response as valid data
+- Prevents "This page couldn't load" crashes by showing actual error messages
+
 ## Build Verification
 
 - `npm run build` passes with zero errors
 - `npx tsc --noEmit` passes with zero errors
-- Dev server at localhost:3001 — all pages render correctly
-- `.env`: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...`, `CLERK_SECRET_KEY=sk_test_...` (test/dev keys, no `NEXT_PUBLIC_CLERK_PROXY_URL`)
+- Live at https://denimarketplace.com
+- `.env`: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...`, `CLERK_SECRET_KEY=sk_live_...` (live keys for denimmarketplace.com)
+- Vercel auto-deploys on push to main branch
 - `@clerk/nextjs` ^7.4.2
+- `@prisma/client` ^6.19.3 with default client location
 
 ## Next Steps
 
+- Create test users (admin@denimarketplace.com, seller@denimarketplace.com, buyer@denimarketplace.com) in live Clerk instance
 - Run QA tier on existing dashboards using the QA skill to baseline health scores
 - Verify role-mismatch enforcement end-to-end: Seller using Buyer tab → gets error banner pointing to Seller tab
 - Verify Google OAuth with role tabs: signing in via Google on Seller tab → redirects to Seller dashboard (or error if alternate role)
 - Existing user role selection flow unchanged (`/auth/choose-role` still works for users without `unsafeMetadata.role`)
 - Verify role-scoped proxy redirects: CUSTOMER visiting `/seller/overview` or `/admin/overview` → redirected to `/user/overview`
+- Add Stripe live keys for production payments
+- Set up Stripe webhooks for order status updates
 
 ## Open Questions
 
@@ -239,6 +308,8 @@ Update this file whenever the current phase, active feature, or implementation s
 
 - **Custom forms over Clerk's `<SignUp />` / `<SignIn />` components** — avoids Clerk UI CDN being blocked by browser extensions (the core issue was `boss-foal-21.clerk.accounts.dev` CDN for UI HTML/CSS)
 - **Role tabs on unified `/sign-up` and `/sign-in` pages** instead of separate routes per role
+- **Email-to-role enforcement** — specific emails (admin@, seller@, buyer@denimarketplace.com) are locked to their roles; auto-detected on blur and validated on submit
+- **Server-side role guards in dashboard layouts** — prevents cross-dashboard access even if client-side routing is bypassed
 - **`NEXT_PUBLIC_CLERK_PROXY_URL` removed** — auto-proxy broke local clerk-js loading; custom forms don't need Clerk UI CDN, only clerk-js which loads from CDN directly
 - **`unsafeMetadata` set directly in `signUp.password()` call** (TypeScript types accept it via `SignUpFutureAdditionalParams`)
 - **`AuthenticateWithRedirectCallback` uses `signInFallbackRedirectUrl` / `signUpFallbackRedirectUrl`** instead of `redirectUrl` (correct props per `HandleOAuthCallbackParams` type)
@@ -252,3 +323,5 @@ Update this file whenever the current phase, active feature, or implementation s
 - **Tailwind CSS v4** with `@theme inline` for token mapping; landing tokens separate from dashboard tokens
 - **`priority` prop avoided** — Next.js 16 deprecates it; `preload` used instead on LCP images
 - **Dual URL + context navigation** — `useRouter.push()` for actual page navigation, context `setPage` for sidebar active state; `[page]/page.tsx` syncs URL param → context via `useEffect`
+- **Default Prisma client location** — `@prisma/client` instead of custom output path; required for Vercel's rhel-openssl-3.0.x runtime compatibility
+- **Structured error responses** — all API routes return `{ success: false, error: "..." }` on failure with console.error logging; client components check for this pattern before rendering
