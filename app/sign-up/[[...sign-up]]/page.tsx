@@ -1,17 +1,50 @@
 "use client";
 
 import { useSignUp, useAuth } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 type Role = "CUSTOMER" | "SELLER" | "ADMIN";
 
-const roles: { key: Role; label: string; title: string; subtitle: string }[] = [
-  { key: "CUSTOMER", label: "Buyer", title: "Create your account", subtitle: "Join Deni and start ordering" },
-  { key: "SELLER", label: "Seller", title: "Become a seller", subtitle: "List your African food business on Deni" },
-  { key: "ADMIN", label: "Admin", title: "Admin access", subtitle: "Restricted to authorized administrators" },
-];
+const roleMeta: Record<Role, { label: string; title: string; subtitle: string; color: string; features: string[] }> = {
+  CUSTOMER: {
+    label: "Buyer",
+    title: "Create your account",
+    subtitle: "Join Deni and start ordering",
+    color: "var(--primary)",
+    features: [
+      "Browse products from trusted African food vendors",
+      "Place secure orders with Stripe-powered checkout",
+      "Track deliveries from dispatch to doorstep",
+      "Join a growing community of diaspora food lovers",
+    ],
+  },
+  SELLER: {
+    label: "Seller",
+    title: "Become a seller",
+    subtitle: "List your African food business on Deni",
+    color: "#2563eb",
+    features: [
+      "Reach thousands of diaspora food lovers",
+      "Manage your menu and pricing in real time",
+      "Receive orders and update availability instantly",
+      "Get paid securely through Stripe",
+    ],
+  },
+  ADMIN: {
+    label: "Admin",
+    title: "Admin access",
+    subtitle: "Restricted to authorized administrators",
+    color: "#7c3aed",
+    features: [
+      "Manage platform users and vendors",
+      "Oversee orders and dispute resolution",
+      "Access platform analytics and reports",
+      "Configure system settings and policies",
+    ],
+  },
+};
 
 const emailRoleMap: Record<string, Role> = {
   "admin@denimarketplace.com": "ADMIN",
@@ -19,45 +52,27 @@ const emailRoleMap: Record<string, Role> = {
   "buyer@denimarketplace.com": "CUSTOMER",
 };
 
-const features: Record<Role, string[]> = {
-  CUSTOMER: [
-    "Browse products from trusted African food vendors",
-    "Place secure orders with Stripe-powered checkout",
-    "Track deliveries from dispatch to doorstep",
-    "Join a growing community of diaspora food lovers",
-  ],
-  SELLER: [
-    "Reach thousands of diaspora food lovers",
-    "Manage your menu and pricing in real time",
-    "Receive orders and update availability instantly",
-    "Get paid securely through Stripe",
-  ],
-  ADMIN: [
-    "Manage platform users and vendors",
-    "Oversee orders and dispute resolution",
-    "Access platform analytics and reports",
-    "Configure system settings and policies",
-  ],
-};
-
-const tabColors: Record<Role, { bg: string; ring: string }> = {
-  CUSTOMER: { bg: "var(--primary)", ring: "var(--primary)" },
-  SELLER: { bg: "#2563eb", ring: "#2563eb" },
-  ADMIN: { bg: "#7c3aed", ring: "#7c3aed" },
-};
+function resolveRole(param: string | null): Role {
+  if (param === "seller" || param === "SELLER") return "SELLER";
+  if (param === "admin" || param === "ADMIN") return "ADMIN";
+  return "CUSTOMER";
+}
 
 export default function SignUpPage() {
   const { signUp, errors, fetchStatus } = useSignUp();
   const { isSignedIn } = useAuth();
   const router = useRouter();
-  const [role, setRole] = useState<Role>("CUSTOMER");
+  const searchParams = useSearchParams();
+  const [formError, setFormError] = useState<string | null>(null);
   const [step, setStep] = useState<"sign-up" | "verify">("sign-up");
+
+  const roleParam = searchParams.get("role");
+  const role = resolveRole(roleParam);
+  const meta = roleMeta[role];
 
   useEffect(() => {
     if (isSignedIn) router.push("/auth/callback");
   }, [isSignedIn, router]);
-
-  const [formError, setFormError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -72,8 +87,8 @@ export default function SignUpPage() {
     const roleToUse = enforcedRole || role;
 
     if (enforcedRole && enforcedRole !== role) {
-      const correctTab = roles.find((r) => r.key === enforcedRole)?.label;
-      setFormError(`This email must sign up via the "${correctTab}" tab.`);
+      const param = enforcedRole.toLowerCase();
+      router.push(`/sign-up?role=${param}`);
       return;
     }
 
@@ -154,14 +169,12 @@ export default function SignUpPage() {
 
   if (isSignedIn) return null;
 
-  const color = tabColors[role];
-
   return (
     <div className="min-h-screen flex" style={{ background: "var(--canvas)" }}>
       <div className="hidden lg:flex w-1/2 flex-col justify-center p-12 gap-12" style={{ background: "var(--ink)" }}>
         <div>
           <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-            <span style={{ width: 32, height: 32, borderRadius: "var(--radius-sm)", background: color.bg, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--on-primary)", fontWeight: 700, fontSize: 16 }}>N</span>
+            <span style={{ width: 32, height: 32, borderRadius: "var(--radius-sm)", background: meta.color, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--on-primary)", fontWeight: 700, fontSize: 16 }}>N</span>
             <span style={{ color: "var(--on-primary)", fontSize: 18, fontWeight: 600, letterSpacing: "-0.03em" }}>Deni</span>
           </Link>
           <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 14, marginTop: 12, marginBottom: 0 }}>
@@ -171,9 +184,9 @@ export default function SignUpPage() {
           </p>
         </div>
         <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 16 }}>
-          {features[role].map((f) => (
+          {meta.features.map((f) => (
             <li key={f} style={{ color: "rgba(255,255,255,0.8)", fontSize: 14, lineHeight: 1.5, paddingLeft: 20, position: "relative" }}>
-              <span style={{ position: "absolute", left: 0, top: 7, width: 6, height: 6, borderRadius: "50%", background: color.bg }} />
+              <span style={{ position: "absolute", left: 0, top: 7, width: 6, height: 6, borderRadius: "50%", background: meta.color }} />
               {f}
             </li>
           ))}
@@ -184,38 +197,19 @@ export default function SignUpPage() {
         <div style={{ width: "100%", maxWidth: 420 }}>
           <div className="lg:hidden mb-8">
             <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-              <span style={{ width: 28, height: 28, borderRadius: "var(--radius-xs)", background: color.bg, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--on-primary)", fontWeight: 700, fontSize: 14 }}>N</span>
+              <span style={{ width: 28, height: 28, borderRadius: "var(--radius-xs)", background: meta.color, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--on-primary)", fontWeight: 700, fontSize: 14 }}>N</span>
               <span style={{ color: "var(--ink)", fontSize: 16, fontWeight: 600, letterSpacing: "-0.03em" }}>Deni</span>
             </Link>
           </div>
 
           {step === "sign-up" && (
             <>
-              <div style={{ display: "flex", gap: 0, marginBottom: 24, borderRadius: "var(--radius-sm)", border: "1px solid var(--hairline)", overflow: "hidden" }}>
-                {roles.map((r) => (
-                  <button
-                    key={r.key}
-                    type="button"
-                    onClick={() => setRole(r.key)}
-                    style={{
-                      flex: 1, padding: "8px 0", fontSize: 13, fontWeight: role === r.key ? 600 : 500,
-                      border: "none", cursor: "pointer",
-                      background: role === r.key ? color.bg : "var(--surface-card)",
-                      color: role === r.key ? "var(--on-primary)" : "var(--body)",
-                      transition: "all var(--transition)",
-                    }}
-                  >
-                    {r.label}
-                  </button>
-                ))}
-              </div>
-
               <div style={{ marginBottom: 24 }}>
                 <h1 style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.03em", color: "var(--ink)", margin: 0 }}>
-                  {roles.find((r) => r.key === role)?.title}
+                  {meta.title}
                 </h1>
                 <p style={{ fontSize: 14, color: "var(--body)", marginTop: 4, marginBottom: 0 }}>
-                  {roles.find((r) => r.key === role)?.subtitle}
+                  {meta.subtitle}
                 </p>
               </div>
 
@@ -249,12 +243,6 @@ export default function SignUpPage() {
                   <label htmlFor="emailAddress" style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", display: "block", marginBottom: 4 }}>Email address</label>
                   <input
                     id="emailAddress" name="emailAddress" type="email" required
-                    onBlur={(e) => {
-                      const enforcedRole = emailRoleMap[e.target.value.toLowerCase()];
-                      if (enforcedRole && enforcedRole !== role) {
-                        setRole(enforcedRole);
-                      }
-                    }}
                     style={{ width: "100%", height: 40, borderRadius: "var(--radius-sm)", border: "1px solid var(--hairline)", fontSize: 13, padding: "0 12px", background: "var(--surface-card)", color: "var(--ink)" }}
                   />
                   {errors?.fields?.emailAddress && (
@@ -278,7 +266,7 @@ export default function SignUpPage() {
                   disabled={fetchStatus === "fetching"}
                   style={{
                     width: "100%", height: 40, borderRadius: 9999, border: "none",
-                    background: color.bg, color: "var(--on-primary)",
+                    background: meta.color, color: "var(--on-primary)",
                     fontSize: 14, fontWeight: 600, cursor: "pointer",
                     opacity: fetchStatus === "fetching" ? 0.6 : 1,
                   }}
@@ -286,15 +274,6 @@ export default function SignUpPage() {
                   {fetchStatus === "fetching" ? "Creating account..." : "Continue"}
                 </button>
               </form>
-
-              <p style={{ fontSize: 13, color: "var(--body)", textAlign: "center", marginTop: 16 }}>
-                Already have an account?{" "}
-                <Link href="/sign-in" style={{ color: "var(--primary)", fontWeight: 500, textDecoration: "none" }}>Sign in</Link>
-              </p>
-
-              <p style={{ fontSize: 11, color: "var(--muted)", textAlign: "center", marginTop: 12 }}>
-                Secured by Deni
-              </p>
 
               <div style={{ marginTop: 16, textAlign: "center" }}>
                 <Link href="/" style={{ fontSize: 13, color: "var(--body)", textDecoration: "none" }}>← Back to home</Link>
@@ -335,7 +314,7 @@ export default function SignUpPage() {
                   disabled={fetchStatus === "fetching"}
                   style={{
                     width: "100%", height: 40, borderRadius: 9999, border: "none",
-                    background: color.bg, color: "var(--on-primary)",
+                    background: meta.color, color: "var(--on-primary)",
                     fontSize: 14, fontWeight: 600, cursor: "pointer",
                     opacity: fetchStatus === "fetching" ? 0.6 : 1,
                   }}

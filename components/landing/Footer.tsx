@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 const shopLinks = [
   "Browse Products",
@@ -162,6 +163,20 @@ export function Footer() {
               Company
             </p>
             <LinkList links={companyLinks} />
+            <Link
+              href="/sign-in?role=admin"
+              style={{
+                fontSize: "15px",
+                fontWeight: 400,
+                lineHeight: "22.4px",
+                color: "var(--ink-landing)",
+                textDecoration: "none",
+                marginTop: "6px",
+                display: "inline-block",
+              }}
+            >
+              Admin
+            </Link>
           </div>
 
           {/* Column 4 - Vendors + Connect */}

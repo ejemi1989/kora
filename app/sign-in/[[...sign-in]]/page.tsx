@@ -7,11 +7,44 @@ import { useEffect, useRef, useState } from "react";
 
 type Role = "CUSTOMER" | "SELLER" | "ADMIN";
 
-const roles: { key: Role; label: string; title: string; subtitle: string }[] = [
-  { key: "CUSTOMER", label: "Buyer", title: "Welcome back", subtitle: "Sign in to your Deni account" },
-  { key: "SELLER", label: "Seller", title: "Seller portal", subtitle: "Sign in to manage your business" },
-  { key: "ADMIN", label: "Admin", title: "Admin panel", subtitle: "Authorized administrators only" },
-];
+const roleMeta: Record<Role, { label: string; title: string; subtitle: string; color: string; features: string[] }> = {
+  CUSTOMER: {
+    label: "Buyer",
+    title: "Welcome back",
+    subtitle: "Sign in to your Deni account",
+    color: "var(--primary)",
+    features: [
+      "Browse products from trusted African food vendors",
+      "Place secure orders with Stripe-powered checkout",
+      "Track deliveries from dispatch to doorstep",
+      "Join a growing community of diaspora food lovers",
+    ],
+  },
+  SELLER: {
+    label: "Seller",
+    title: "Seller portal",
+    subtitle: "Sign in to manage your business",
+    color: "#2563eb",
+    features: [
+      "Reach thousands of diaspora food lovers",
+      "Manage your menu and pricing in real time",
+      "Receive orders and update availability instantly",
+      "Get paid securely through Stripe",
+    ],
+  },
+  ADMIN: {
+    label: "Admin",
+    title: "Admin panel",
+    subtitle: "Authorized administrators only",
+    color: "#7c3aed",
+    features: [
+      "Manage platform users and vendors",
+      "Oversee orders and dispute resolution",
+      "Access platform analytics and reports",
+      "Configure system settings and policies",
+    ],
+  },
+};
 
 const emailRoleMap: Record<string, Role> = {
   "admin@denimarketplace.com": "ADMIN",
@@ -19,47 +52,28 @@ const emailRoleMap: Record<string, Role> = {
   "buyer@denimarketplace.com": "CUSTOMER",
 };
 
-const features: Record<Role, string[]> = {
-  CUSTOMER: [
-    "Browse products from trusted African food vendors",
-    "Place secure orders with Stripe-powered checkout",
-    "Track deliveries from dispatch to doorstep",
-    "Join a growing community of diaspora food lovers",
-  ],
-  SELLER: [
-    "Reach thousands of diaspora food lovers",
-    "Manage your menu and pricing in real time",
-    "Receive orders and update availability instantly",
-    "Get paid securely through Stripe",
-  ],
-  ADMIN: [
-    "Manage platform users and vendors",
-    "Oversee orders and dispute resolution",
-    "Access platform analytics and reports",
-    "Configure system settings and policies",
-  ],
-};
-
-const tabColors: Record<Role, string> = {
-  CUSTOMER: "var(--primary)",
-  SELLER: "#2563eb",
-  ADMIN: "#7c3aed",
-};
+function resolveRole(param: string | null): Role {
+  if (param === "seller" || param === "SELLER") return "SELLER";
+  if (param === "admin" || param === "ADMIN") return "ADMIN";
+  return "CUSTOMER";
+}
 
 export default function SignInPage() {
   const { signIn, errors, fetchStatus } = useSignIn();
   const { isSignedIn } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [role, setRole] = useState<Role>("CUSTOMER");
-  const [step, setStep] = useState<"sign-in" | "mfa">("sign-in");
   const [formError, setFormError] = useState<string | null>(null);
+  const [step, setStep] = useState<"sign-in" | "mfa">("sign-in");
 
   const navigatingRef = useRef(false);
 
   const urlError = searchParams.get("error");
   const urlExpected = searchParams.get("expected");
   const urlActual = searchParams.get("actual");
+  const roleParam = searchParams.get("role");
+  const role = resolveRole(roleParam);
+  const meta = roleMeta[role];
 
   useEffect(() => {
     if (isSignedIn && !navigatingRef.current) {
@@ -78,8 +92,8 @@ export default function SignInPage() {
 
     const enforcedRole = emailRoleMap[identifier.toLowerCase()];
     if (enforcedRole && enforcedRole !== role) {
-      const correctTab = roles.find((r) => r.key === enforcedRole)?.label;
-      setFormError(`This account must sign in via the "${correctTab}" tab.`);
+      const param = enforcedRole.toLowerCase();
+      router.push(`/sign-in?role=${param}`);
       return;
     }
 
@@ -88,10 +102,8 @@ export default function SignInPage() {
 
     const status = signIn.status;
     const factors = signIn.supportedSecondFactors;
-    console.log("Sign-in status:", status, "factors:", JSON.stringify(factors));
 
     if (status === "needs_second_factor") {
-      const factors = signIn.supportedSecondFactors;
       if (factors?.some((f) => f.strategy === "phone_code")) {
         const { error: mfaError } = await signIn.mfa.sendPhoneCode();
         if (mfaError) { setFormError(mfaError.message); return; }
@@ -164,14 +176,12 @@ export default function SignInPage() {
 
   if (isSignedIn) return null;
 
-  const color = tabColors[role];
-
   return (
     <div className="min-h-screen flex" style={{ background: "var(--canvas)" }}>
       <div className="hidden lg:flex w-1/2 flex-col justify-center p-12 gap-12" style={{ background: "var(--ink)" }}>
         <div>
           <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-            <span style={{ width: 32, height: 32, borderRadius: "var(--radius-sm)", background: color, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--on-primary)", fontWeight: 700, fontSize: 16 }}>N</span>
+            <span style={{ width: 32, height: 32, borderRadius: "var(--radius-sm)", background: meta.color, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--on-primary)", fontWeight: 700, fontSize: 16 }}>N</span>
             <span style={{ color: "var(--on-primary)", fontSize: 18, fontWeight: 600, letterSpacing: "-0.03em" }}>Deni</span>
           </Link>
           <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 14, marginTop: 12, marginBottom: 0 }}>
@@ -181,9 +191,9 @@ export default function SignInPage() {
           </p>
         </div>
         <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 16 }}>
-          {features[role].map((f) => (
+          {meta.features.map((f) => (
             <li key={f} style={{ color: "rgba(255,255,255,0.8)", fontSize: 14, lineHeight: 1.5, paddingLeft: 20, position: "relative" }}>
-              <span style={{ position: "absolute", left: 0, top: 7, width: 6, height: 6, borderRadius: "50%", background: color }} />
+              <span style={{ position: "absolute", left: 0, top: 7, width: 6, height: 6, borderRadius: "50%", background: meta.color }} />
               {f}
             </li>
           ))}
@@ -194,49 +204,27 @@ export default function SignInPage() {
         <div style={{ width: "100%", maxWidth: 420 }}>
           <div className="lg:hidden mb-8">
             <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-              <span style={{ width: 28, height: 28, borderRadius: "var(--radius-xs)", background: color, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--on-primary)", fontWeight: 700, fontSize: 14 }}>N</span>
+              <span style={{ width: 28, height: 28, borderRadius: "var(--radius-xs)", background: meta.color, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--on-primary)", fontWeight: 700, fontSize: 14 }}>N</span>
               <span style={{ color: "var(--ink)", fontSize: 16, fontWeight: 600, letterSpacing: "-0.03em" }}>Deni</span>
             </Link>
           </div>
 
           {step === "sign-in" && (
             <>
-              <div style={{ display: "flex", gap: 0, marginBottom: 24, borderRadius: "var(--radius-sm)", border: "1px solid var(--hairline)", overflow: "hidden" }}>
-                {roles.map((r) => (
-                  <button
-                    key={r.key}
-                    type="button"
-                    onClick={() => setRole(r.key)}
-                    style={{
-                      flex: 1, padding: "8px 0", fontSize: 13, fontWeight: role === r.key ? 600 : 500,
-                      border: "none", cursor: "pointer",
-                      background: role === r.key ? color : "var(--surface-card)",
-                      color: role === r.key ? "var(--on-primary)" : "var(--body)",
-                      transition: "all var(--transition)",
-                    }}
-                  >
-                    {r.label}
-                  </button>
-                ))}
-              </div>
-
               <div style={{ marginBottom: 24 }}>
                 <h1 style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.03em", color: "var(--ink)", margin: 0 }}>
-                  {roles.find((r) => r.key === role)?.title}
+                  {meta.title}
                 </h1>
                 <p style={{ fontSize: 14, color: "var(--body)", marginTop: 4, marginBottom: 0 }}>
-                  {roles.find((r) => r.key === role)?.subtitle}
+                  {meta.subtitle}
                 </p>
               </div>
 
-              {urlError === "role_mismatch" && (() => {
-                const labels: Record<string, string> = { CUSTOMER: "Buyer", SELLER: "Seller", ADMIN: "Admin" };
-                return (
-                  <p style={{ fontSize: 12, color: "var(--danger)", padding: "8px 12px", background: "var(--danger-bg)", borderRadius: "var(--radius-sm)" }}>
-                    This account is registered as <strong>{labels[urlActual || ""] || urlActual}</strong>. Please use the &ldquo;{labels[urlExpected || ""] || urlExpected}&rdquo; tab to sign in.
-                  </p>
-                );
-              })()}
+              {urlError === "role_mismatch" && (
+                <p style={{ fontSize: 12, color: "var(--danger)", padding: "8px 12px", background: "var(--danger-bg)", borderRadius: "var(--radius-sm)", marginBottom: 16 }}>
+                  This account is registered as <strong>{urlActual}</strong>. Please sign in with the correct role.
+                </p>
+              )}
 
               <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 {formError && (
@@ -268,12 +256,6 @@ export default function SignInPage() {
                   <label htmlFor="email" style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", display: "block", marginBottom: 4 }}>Email address</label>
                   <input
                     id="email" name="email" type="email" required
-                    onBlur={(e) => {
-                      const enforcedRole = emailRoleMap[e.target.value.toLowerCase()];
-                      if (enforcedRole && enforcedRole !== role) {
-                        setRole(enforcedRole);
-                      }
-                    }}
                     style={{ width: "100%", height: 40, borderRadius: "var(--radius-sm)", border: "1px solid var(--hairline)", fontSize: 13, padding: "0 12px", background: "var(--surface-card)", color: "var(--ink)" }}
                   />
                   {errors?.fields?.identifier && (
@@ -297,7 +279,7 @@ export default function SignInPage() {
                   disabled={fetchStatus === "fetching"}
                   style={{
                     width: "100%", height: 40, borderRadius: 9999, border: "none",
-                    background: color, color: "var(--on-primary)",
+                    background: meta.color, color: "var(--on-primary)",
                     fontSize: 14, fontWeight: 600, cursor: "pointer",
                     opacity: fetchStatus === "fetching" ? 0.6 : 1,
                   }}
@@ -305,15 +287,6 @@ export default function SignInPage() {
                   {fetchStatus === "fetching" ? "Signing in..." : "Continue"}
                 </button>
               </form>
-
-              <p style={{ fontSize: 13, color: "var(--body)", textAlign: "center", marginTop: 16 }}>
-                Don&apos;t have an account?{" "}
-                <Link href="/sign-up" style={{ color: "var(--primary)", fontWeight: 500, textDecoration: "none" }}>Sign up</Link>
-              </p>
-
-              <p style={{ fontSize: 11, color: "var(--muted)", textAlign: "center", marginTop: 12 }}>
-                Secured by Deni
-              </p>
 
               <div style={{ marginTop: 16, textAlign: "center" }}>
                 <Link href="/" style={{ fontSize: 13, color: "var(--body)", textDecoration: "none" }}>← Back to home</Link>
@@ -359,7 +332,7 @@ export default function SignInPage() {
                   disabled={fetchStatus === "fetching"}
                   style={{
                     width: "100%", height: 40, borderRadius: 9999, border: "none",
-                    background: color, color: "var(--on-primary)",
+                    background: meta.color, color: "var(--on-primary)",
                     fontSize: 14, fontWeight: 600, cursor: "pointer",
                     opacity: fetchStatus === "fetching" ? 0.6 : 1,
                   }}

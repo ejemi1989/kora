@@ -12,6 +12,7 @@ export const translations: Record<Language, TranslationMap> = {
   en: {
     "nav.shops": "Shops",
     "nav.how-it-works": "How it works",
+    "nav.seller": "Sell on Deni",
     "nav.login": "Login",
     "nav.start-free": "Start for free",
 
@@ -117,6 +118,7 @@ export const translations: Record<Language, TranslationMap> = {
   pcm: {
     "nav.shops": "Shops",
     "nav.how-it-works": "How e take work",
+    "nav.seller": "Sell on Deni",
     "nav.login": "Login",
     "nav.start-free": "Start for free",
 
@@ -221,6 +223,7 @@ export const translations: Record<Language, TranslationMap> = {
   sw: {
     "nav.shops": "Maduka",
     "nav.how-it-works": "Jinsi Inavyofanya Kazi",
+    "nav.seller": "Uza kwenye Deni",
     "nav.login": "Ingia",
     "nav.start-free": "Anza Bure",
 
