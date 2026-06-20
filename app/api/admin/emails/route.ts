@@ -1,17 +1,22 @@
 import { NextResponse } from "next/server";
 import { sendEmail, listEmails, isEmailConfigured } from "@/lib/email";
-import { serverError } from "@/lib/validation";
 
 export async function GET() {
   try {
     if (!isEmailConfigured()) {
       return NextResponse.json({ configured: false, emails: [] });
     }
-    const data = await listEmails();
+    const data = await listEmails().catch((err) => {
+      throw new Error(err instanceof Error ? err.message : "Failed to fetch emails");
+    });
     const emails = Array.isArray(data) ? data : (data as { data?: unknown[] })?.data || [];
     return NextResponse.json({ configured: true, emails });
-  } catch {
-    return serverError("Failed to fetch emails");
+  } catch (err) {
+    return NextResponse.json({
+      configured: isEmailConfigured(),
+      emails: [],
+      error: err instanceof Error ? err.message : "Failed to fetch emails",
+    });
   }
 }
 

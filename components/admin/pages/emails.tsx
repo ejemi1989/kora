@@ -17,6 +17,7 @@ export function EmailsPage() {
   const [syncing, setSyncing] = useState(false);
   const [emails, setEmails] = useState<EmailRecord[]>([]);
   const [configured, setConfigured] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const [sendOpen, setSendOpen] = useState(false);
   const [sending, setSending] = useState(false);
 
@@ -26,10 +27,13 @@ export function EmailsPage() {
     fetch("/api/admin/emails")
       .then((r) => r.json())
       .then((data) => {
-        setConfigured(data.configured);
-        setEmails(data.emails || []);
+        if (data.configured !== undefined) {
+          setConfigured(data.configured);
+          setEmails(data.emails || []);
+        }
+        if (data.error) setErrorMsg(data.error);
       })
-      .catch(() => {})
+      .catch(() => setErrorMsg("Failed to connect to email service"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -112,8 +116,10 @@ export function EmailsPage() {
       {!configured ? (
         <div style={{ background: "#fff", borderRadius: 8, boxShadow: "0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)", padding: 32, textAlign: "center" }}>
           <div style={{ fontSize: 32, marginBottom: 12 }}>&#9993;</div>
-          <div style={{ fontSize: 14, fontWeight: 500, color: "var(--muted)", marginBottom: 4 }}>Email not configured</div>
-          <p style={{ fontSize: 12, color: "var(--ash)", margin: 0 }}>Set RESEND_API_KEY in your environment variables to enable email sending.</p>
+          <div style={{ fontSize: 14, fontWeight: 500, color: "var(--muted)", marginBottom: 4 }}>{errorMsg || "Email not configured"}</div>
+          <p style={{ fontSize: 12, color: "var(--ash)", margin: 0 }}>
+            {errorMsg ? "Check your Resend API key and domain setup." : "Set RESEND_API_KEY in your environment variables to enable email sending."}
+          </p>
         </div>
       ) : sendOpen ? (
         <div style={{ background: "#fff", borderRadius: 8, boxShadow: "0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)", padding: 20, maxWidth: 600 }}>
