@@ -203,3 +203,15 @@ model WishlistItem {
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])
 }
+
+model ReceivedEmail {
+  id        String   @id @default(uuid())
+  from      String
+  to        String
+  subject   String
+  html      String?
+  text      String?
+  createdAt DateTime @default(now())
+  read      Boolean  @default(false)
+}
+
