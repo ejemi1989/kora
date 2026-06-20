@@ -13,14 +13,18 @@ export function isConfigured(): boolean {
   return Boolean(RESEND_API_KEY);
 }
 
+const FROM = "Deni Marketplace <info@denimarketplace.com>";
+const REPLY_TO = "info@denimarketplace.com";
+
 // --- Core send ---
 
 async function send(to: string[], subject: string, html: string) {
   const { data, error } = await client().emails.send({
-    from: "Deni Marketplace <info@denimarketplace.com>",
+    from: FROM,
     to,
     subject,
     html,
+    replyTo: REPLY_TO,
   } as Parameters<Resend["emails"]["send"]>[0]);
   if (error) throw new Error(error.message);
   return data;

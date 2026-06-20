@@ -211,10 +211,16 @@ export function EmailsPage() {
             </div>
             <div style={{ background: "#fff", borderRadius: 8, boxShadow: "0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)", padding: 16 }}>
               <h3 style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--ink)", margin: "0 0 12px" }}>Resend Platform</h3>
-              <p style={{ fontSize: 12, color: "var(--muted)", margin: "0 0 12px", lineHeight: 1.5 }}>Manage domains, API keys, and view full analytics on the Resend dashboard.</p>
-              <a href="https://resend.com" target="_blank" rel="noopener noreferrer"
+              <p style={{ fontSize: 12, color: "var(--muted)", margin: "0 0 12px", lineHeight: 1.5 }}>
+                All emails sent from here appear at <strong>resend.com/emails</strong> with delivery status, opens, and clicks. Replies go to <strong>info@denimarketplace.com</strong>.
+              </p>
+              <a href="https://resend.com/emails" target="_blank" rel="noopener noreferrer"
+                style={{ display: "inline-block", padding: "6px 14px", fontSize: 12, fontWeight: 500, borderRadius: 6, border: "1px solid var(--hairline)", color: "var(--body)", textDecoration: "none", marginRight: 8 }}>
+                View Sent Emails &rarr;
+              </a>
+              <a href="https://resend.com/domains" target="_blank" rel="noopener noreferrer"
                 style={{ display: "inline-block", padding: "6px 14px", fontSize: 12, fontWeight: 500, borderRadius: 6, border: "1px solid var(--hairline)", color: "var(--body)", textDecoration: "none" }}>
-                Open Resend Dashboard &rarr;
+                Manage Domain &rarr;
               </a>
             </div>
           </div>
