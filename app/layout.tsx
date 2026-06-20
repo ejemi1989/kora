@@ -2,7 +2,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { LanguageProvider } from "@/lib/i18n/language-context";
-import { CurrencyProvider } from "@/lib/hooks/use-currency";
+import { CurrencyProvider } from "@/lib/hooks/currency-context";
 import "./globals.css";
 
 const inter = Inter({
