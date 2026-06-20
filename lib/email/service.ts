@@ -127,3 +127,28 @@ export async function createSegment(name: string) {
   if (error) throw new Error(error.message);
   return data as { id: string };
 }
+
+// --- Email logs ---
+
+export async function listSentEmails() {
+  const { data, error } = await client().emails.list();
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function getSentEmail(emailId: string) {
+  const { data, error } = await client().emails.get(emailId);
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+// --- Stats ---
+
+export async function getEmailStats() {
+  const sent = await listSentEmails().catch(() => []);
+  const sentList = Array.isArray(sent) ? sent : (sent as { data?: unknown[] })?.data || [];
+  return {
+    totalSent: sentList.length,
+    sender: "info@denimarketplace.com",
+  };
+}

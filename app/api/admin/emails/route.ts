@@ -1,14 +1,40 @@
 import { NextResponse } from "next/server";
-import { isEmailConfigured, sendToAllUsers } from "@/lib/email";
+import { isEmailConfigured, sendToAllUsers, listSentEmails, getEmailStats } from "@/lib/email";
 
 export async function GET() {
   try {
+    if (!isEmailConfigured()) {
+      return NextResponse.json({
+        configured: false,
+        sender: "info@denimarketplace.com",
+        emails: [],
+        stats: { totalSent: 0 },
+      });
+    }
+
+    const [sentEmails, stats] = await Promise.all([
+      listSentEmails().catch(() => []),
+      getEmailStats().catch(() => ({ totalSent: 0, sender: "info@denimarketplace.com" })),
+    ]);
+
+    const emailList = Array.isArray(sentEmails)
+      ? sentEmails.slice(0, 50)
+      : ((sentEmails as { data?: unknown[] })?.data || []).slice(0, 50);
+
+    return NextResponse.json({
+      configured: true,
+      sender: "info@denimarketplace.com",
+      emails: emailList,
+      stats,
+    });
+  } catch {
     return NextResponse.json({
       configured: isEmailConfigured(),
       sender: "info@denimarketplace.com",
+      emails: [],
+      stats: { totalSent: 0 },
+      error: "Failed to load emails",
     });
-  } catch {
-    return NextResponse.json({ configured: false, error: "Failed to check email status" });
   }
 }
 

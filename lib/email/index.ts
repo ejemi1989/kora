@@ -10,4 +10,7 @@ export {
   listContacts,
   listSegments,
   createSegment,
+  listSentEmails,
+  getSentEmail,
+  getEmailStats,
 } from "./service";
