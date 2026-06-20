@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { clerkClient } from "@clerk/nextjs/server";
-import { createContact, listContacts, isEmailConfigured } from "@/lib/email";
+import {
+  createContact,
+  listContacts,
+  listAudiences,
+  createAudience,
+  isEmailConfigured,
+} from "@/lib/email";
 import { serverError } from "@/lib/validation";
 
 export async function POST() {
@@ -10,6 +16,14 @@ export async function POST() {
         { error: "Email not configured. Set MATON_API_KEY." },
         { status: 400 },
       );
+    }
+
+    const audiences = await listAudiences().catch(() => ({ data: [] }));
+    let audienceId = (audiences.data || [])[0]?.id || "";
+
+    if (!audienceId) {
+      const created = await createAudience("Deni Marketplace Users");
+      audienceId = created.id;
     }
 
     const client = await clerkClient();
@@ -34,7 +48,7 @@ export async function POST() {
       offset += limit;
     }
 
-    const existingContacts = await listContacts().catch(() => ({ data: [] }));
+    const existingContacts = await listContacts(audienceId).catch(() => ({ data: [] }));
     const existingEmails = new Set(
       (existingContacts.data || []).map((c: { email: string }) => c.email),
     );
@@ -49,6 +63,7 @@ export async function POST() {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
+          audienceId,
         });
         results.push({ email: user.email, status: "created", id: contact.id });
       } catch (err) {
@@ -61,6 +76,8 @@ export async function POST() {
     }
 
     return NextResponse.json({
+      audienceId,
+      audienceName: "Deni Marketplace Users",
       total: allUsers.length,
       synced: results.filter((r) => r.status === "created").length,
       skipped: allUsers.length - toSync.length,

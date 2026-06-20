@@ -100,19 +100,23 @@ export async function createContact(params: {
   email: string;
   firstName?: string;
   lastName?: string;
+  audienceId?: string;
 }) {
   const apiKey = getApiKey();
+  const body: Record<string, unknown> = {
+    email: params.email,
+    first_name: params.firstName || "",
+    last_name: params.lastName || "",
+  };
+  if (params.audienceId) body.audience_id = params.audienceId;
+
   const res = await fetch(`${MATON_GATEWAY}/contacts`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      email: params.email,
-      first_name: params.firstName || "",
-      last_name: params.lastName || "",
-    }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
     const body = await res.text();
@@ -121,11 +125,45 @@ export async function createContact(params: {
   return res.json() as Promise<{ id: string }>;
 }
 
-export async function listContacts() {
+export async function listContacts(audienceId?: string) {
   const apiKey = getApiKey();
-  const res = await fetch(`${MATON_GATEWAY}/contacts`, {
+  const url = audienceId
+    ? `${MATON_GATEWAY}/contacts?audience_id=${audienceId}`
+    : `${MATON_GATEWAY}/contacts`;
+  const res = await fetch(url, {
     headers: { Authorization: `Bearer ${apiKey}` },
   });
   if (!res.ok) throw new Error(`Resend error ${res.status}`);
   return res.json();
+}
+
+// --- Audiences ---
+
+export async function listAudiences() {
+  const apiKey = getApiKey();
+  const res = await fetch(`${MATON_GATEWAY}/audiences`, {
+    headers: { Authorization: `Bearer ${apiKey}` },
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Resend audiences error ${res.status}: ${body}`);
+  }
+  return res.json();
+}
+
+export async function createAudience(name: string) {
+  const apiKey = getApiKey();
+  const res = await fetch(`${MATON_GATEWAY}/audiences`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ name }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Resend create audience error ${res.status}: ${body}`);
+  }
+  return res.json() as Promise<{ id: string }>;
 }
