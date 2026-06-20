@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@/components/user/user-context";
+import { useCurrency } from "@/lib/hooks/use-currency";
 import { PRODUCTS, TRACKING_EVENTS } from "@/lib/data/user";
 import { ChevronIcon } from "@/components/user/icons";
 import { useSearchParams } from "next/navigation";
@@ -30,6 +31,7 @@ export function OrdersPage() {
   const [filter, setFilter] = useState("All");
   const [apiOrders, setApiOrders] = useState<ApiOrder[]>([]);
   const { addToCart, showToast } = useUser();
+  const { format } = useCurrency();
   const searchParams = useSearchParams();
 
   const fetchOrders = useCallback(() => {
@@ -113,7 +115,7 @@ export function OrdersPage() {
                 <div style={{ fontSize: 12, color: "var(--muted)" }}>{itemNames.join(", ")}</div>
               </div>
             </div>
-            <div style={{ fontSize: 18, fontWeight: 600, color: "var(--primary)" }}>${order.total.toFixed(2)}</div>
+            <div style={{ fontSize: 18, fontWeight: 600, color: "var(--primary)" }}>{format(order.total)}</div>
             <div style={{ fontSize: 11, color: "var(--ash)", marginTop: 2 }}>{order.items.length} item{order.items.length > 1 ? "s" : ""}</div>
           </div>
 
@@ -196,7 +198,7 @@ export function OrdersPage() {
               </div>
               <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: 999, fontSize: 10, fontWeight: 500, background: bad.bg, color: bad.color }}>{bad.label}</span>
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>${order.total.toFixed(2)}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{format(order.total)}</div>
                 <div style={{ fontSize: 10, color: "var(--ash)" }}>{new Date(order.createdAt).toLocaleDateString()}</div>
               </div>
             </div>

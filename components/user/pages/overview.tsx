@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useUser } from "@/components/user/user-context";
+import { useCurrency } from "@/lib/hooks/use-currency";
 import { useRouter } from "next/navigation";
 
 interface ApiOrderItem {
@@ -31,6 +32,7 @@ const stepLabels: Record<string, string> = {
 
 export function OverviewPage() {
   const { setPage, cartItems, addToCart, showToast, wishlist } = useUser();
+  const { format } = useCurrency();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
@@ -89,7 +91,7 @@ export function OverviewPage() {
           { icon: "\uD83D\uDCE6", label: "Active Orders", value: String(activeOrders.length), delta: activeOrders.length > 0 ? `${activeOrders.length} order${activeOrders.length > 1 ? "s" : ""} in progress` : "No active orders" },
           { icon: "\uD83D\uDE9A", label: "Out for Delivery", value: String(outForDelivery.length), delta: outForDelivery.length > 0 ? "On the way \u2191" : "None" },
           { icon: "\uD83D\uDCCB", label: "Total Orders", value: String(paidOrders.length), delta: paidOrders.length > 0 ? `${paidOrders.length} placed` : "" },
-          { icon: "\uD83D\uDCB0", label: "Total Spent", value: `$${totalSpentThisMonth.toFixed(2)}`, delta: totalSpentThisMonth > 0 ? "This month" : "" },
+          { icon: "\uD83D\uDCB0", label: "Total Spent", value: format(totalSpentThisMonth), delta: totalSpentThisMonth > 0 ? "This month" : "" },
         ].map((s) => (
           <div key={s.label} style={{ background: "#fff", borderRadius: 8, padding: "14px 16px", boxShadow: "0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)" }}>
             <div style={{ fontSize: 20, marginBottom: 4 }}>{s.icon}</div>
@@ -133,7 +135,7 @@ export function OverviewPage() {
                       <div style={{ fontSize: 11, color: "var(--muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{productNames}</div>
                     </div>
                     <div style={{ textAlign: "right", flexShrink: 0 }}>
-                      <div style={{ fontWeight: 600 }}>${order.total.toFixed(2)}</div>
+                      <div style={{ fontWeight: 600 }}>{format(order.total)}</div>
                       <div style={{ fontSize: 10, color: "var(--ash)" }}>{new Date(order.createdAt).toLocaleDateString()}</div>
                     </div>
                   </div>
@@ -235,7 +237,7 @@ export function OverviewPage() {
                 {cartItems.slice(0, 3).map((item) => (
                   <div key={item.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid var(--hairline)", fontSize: 13, color: "var(--body)" }}>
                     <span>{item.emoji} {item.name} &times;{item.qty}</span>
-                    <span style={{ fontWeight: 500 }}>${(item.unitPrice * item.qty).toFixed(2)}</span>
+                    <span style={{ fontWeight: 500 }}>{format(item.unitPrice * item.qty)}</span>
                   </div>
                 ))}
                 <div style={{ padding: "10px 0" }}>

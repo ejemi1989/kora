@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
 import { formatPrice, formatPriceCompact, type CurrencyLike } from "@/lib/format-currency";
 
 export interface CurrencyOption {
@@ -12,7 +12,25 @@ export interface CurrencyOption {
 
 const LS_KEY = "deni_currency";
 
-export function useCurrency() {
+interface CurrencyContextValue {
+  currencies: CurrencyOption[];
+  selected: CurrencyOption | null;
+  select: (code: string) => void;
+  loading: boolean;
+  format: (amount: number) => string;
+  formatCompact: (amount: number) => string;
+}
+
+const CurrencyContext = createContext<CurrencyContextValue>({
+  currencies: [],
+  selected: null,
+  select: () => {},
+  loading: true,
+  format: (amount: number) => String(amount),
+  formatCompact: (amount: number) => String(amount),
+});
+
+export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [currencies, setCurrencies] = useState<CurrencyOption[]>([]);
   const [selected, setSelected] = useState<CurrencyOption | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,5 +80,13 @@ export function useCurrency() {
     [selected],
   );
 
-  return { currencies, selected, select, loading, format, formatCompact };
+  return (
+    <CurrencyContext.Provider value={{ currencies, selected, select, loading, format, formatCompact }}>
+      {children}
+    </CurrencyContext.Provider>
+  );
+}
+
+export function useCurrency() {
+  return useContext(CurrencyContext);
 }

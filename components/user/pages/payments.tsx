@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useUser } from "@/components/user/user-context";
+import { useCurrency } from "@/lib/hooks/use-currency";
 import { ChevronIcon, PlusIcon } from "@/components/user/icons";
 
 interface ApiPayment {
@@ -40,6 +41,7 @@ interface Transaction {
 
 export function PaymentsPage() {
   const { paymentMethods, setPaymentMethods, showToast } = useUser();
+  const { format } = useCurrency();
   const [txnView, setTxnView] = useState<number | null>(null);
   const [addPay, setAddPay] = useState(false);
   const [payStep, setPayStep] = useState(0);
@@ -96,7 +98,7 @@ export function PaymentsPage() {
         </button>
         <div style={{ background: "#fff", borderRadius: 8, boxShadow: "0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)", padding: 20, maxWidth: 480 }}>
           <div style={{ fontSize: 40, marginBottom: 8 }}>{txn.type === "credit" ? "\u2B07\uFE0F" : "\u2B06\uFE0F"}</div>
-          <div style={{ fontSize: 16, fontWeight: 600, color: "var(--ink)", marginBottom: 4 }}>${txn.amount.toFixed(2)}</div>
+          <div style={{ fontSize: 16, fontWeight: 600, color: "var(--ink)", marginBottom: 4 }}>{format(txn.amount)}</div>
           <div style={{ fontSize: 13, color: "var(--body)", marginBottom: 8 }}>{txn.name}</div>
           <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: 999, fontSize: 10, fontWeight: 500, background: "var(--success-bg)", color: "var(--success)", marginBottom: 16, textTransform: "capitalize" }}>{txn.type}</span>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 12px", fontSize: 13 }}>
@@ -245,7 +247,7 @@ export function PaymentsPage() {
                   <div style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--ash)" }}>{txn.ref}</div>
                 </div>
                 <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: txn.type === "credit" ? "var(--success)" : "var(--ink)" }}>${txn.amount.toFixed(2)}</div>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: txn.type === "credit" ? "var(--success)" : "var(--ink)" }}>{format(txn.amount)}</div>
                   <div style={{ fontSize: 10, color: "var(--ash)" }}>{txn.date}</div>
                 </div>
               </div>

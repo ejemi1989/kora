@@ -2,6 +2,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { LanguageProvider } from "@/lib/i18n/language-context";
+import { CurrencyProvider } from "@/lib/hooks/use-currency";
 import "./globals.css";
 
 const inter = Inter({
@@ -32,6 +33,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <LanguageProvider>
+        <CurrencyProvider>
         <ClerkProvider
           appearance={{
             variables: {
@@ -66,6 +68,7 @@ export default function RootLayout({
         >
           {children}
         </ClerkProvider>
+        </CurrencyProvider>
         </LanguageProvider>
       </body>
     </html>
