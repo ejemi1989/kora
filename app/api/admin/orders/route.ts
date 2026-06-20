@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { serverError, notFound } from "@/lib/validation";
+import { formatPrice } from "@/lib/format-currency";
 
 export async function GET() {
   try {
@@ -27,7 +28,7 @@ export async function GET() {
         id: o.id.slice(0, 8),
         customer: o.user.name,
         items: o.items.reduce((sum, i) => sum + i.quantity, 0),
-        total: `₦${o.total.toLocaleString()}`,
+        total: formatPrice(o.total),
         payment: payment?.method || "N/A",
         date: o.createdAt.toISOString().split("T")[0],
         status: statusLabels[o.status] || "pending",

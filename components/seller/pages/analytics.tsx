@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { ChevronIcon } from "@/components/user/icons";
+import { useCurrency } from "@/lib/hooks/use-currency";
 
 interface BarMonth {
   month: string;
@@ -36,6 +37,7 @@ interface AnalyticsData {
 
 export function AnalyticsPage() {
   const { isSignedIn } = useUser();
+  const { format } = useCurrency();
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -129,7 +131,7 @@ export function AnalyticsPage() {
         <>
           <div className="s-mini-stats">
             <div className="s-mini-stat">
-              <div className="val">₦{data.totalRevenue.toLocaleString()}</div>
+              <div className="val">{format(data.totalRevenue)}</div>
               <div className="lbl">Annual Revenue</div>
             </div>
             <div className="s-mini-stat">
@@ -137,7 +139,7 @@ export function AnalyticsPage() {
               <div className="lbl">Total Orders</div>
             </div>
             <div className="s-mini-stat">
-              <div className="val">₦{data.avgOrderValue.toLocaleString()}</div>
+              <div className="val">{format(data.avgOrderValue)}</div>
               <div className="lbl">Avg Order Value</div>
             </div>
             <div className="s-mini-stat">
@@ -191,7 +193,7 @@ export function AnalyticsPage() {
                   {data.categoryPerformance.map((c) => (
                     <tr key={c.category}>
                       <td>{c.category}</td>
-                      <td style={{ fontWeight: 500 }}>₦{c.revenue.toLocaleString()}</td>
+                      <td style={{ fontWeight: 500 }}>{format(c.revenue)}</td>
                       <td style={{ color: "var(--muted-text)" }}>{c.orders} orders</td>
                       <td style={{ textAlign: "right" }}><span className="s-pill s-pill-up">{c.growth}</span></td>
                     </tr>

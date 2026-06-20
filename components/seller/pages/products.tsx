@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useSeller } from "@/components/seller/seller-context";
 import { SearchIcon, PlusIcon, XIcon } from "@/components/user/icons";
+import { useCurrency } from "@/lib/hooks/use-currency";
 
 interface Product {
   id: string;
@@ -98,7 +99,7 @@ function ProductForm({
       </div>
       <div className="s-fg"><label>Product Name</label><input className="s-fi" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Fresh Palm Oil" /></div>
       <div className="s-fr">
-        <div className="s-fg"><label>Price (₦)</label><input className="s-fi" type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0" /></div>
+        <div className="s-fg"><label>Price (£)</label><input className="s-fi" type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0" /></div>
         <div className="s-fg"><label>Stock Quantity</label><input className="s-fi" type="number" value={stock} onChange={(e) => setStock(e.target.value)} placeholder="0" /></div>
       </div>
       <div className="s-fg"><label>Category</label>
@@ -130,6 +131,7 @@ function ProductForm({
 export function ProductsPage() {
   const { showToast, openModal, closeModal } = useSeller();
   const { isSignedIn } = useUser();
+  const { format } = useCurrency();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -340,7 +342,7 @@ export function ProductsPage() {
                   </td>
                   <td style={{ color: "var(--muted-text)", fontSize: 12 }}>{p.unit}</td>
                   <td style={{ color: "var(--muted-text)" }}>{p.category}</td>
-                  <td style={{ fontWeight: 500 }}>₦{p.price.toLocaleString()}</td>
+                  <td style={{ fontWeight: 500 }}>{format(p.price)}</td>
                   <td>{p.stock}</td>
                   <td><span className={`s-badge ${statusBadges[p.status]}`}>{p.status.replace(/_/g, " ")}</span></td>
                   <td>

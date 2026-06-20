@@ -13,7 +13,7 @@ export function SettingsPage() {
   const [bankName, setBankName] = useState("GTBank");
   const [accountNumber, setAccountNumber] = useState("0123456789");
   const [accountName, setAccountName] = useState("Deni Ventures");
-  const [autoWithdraw, setAutoWithdraw] = useState("₦100,000");
+  const [autoWithdraw, setAutoWithdraw] = useState("£100,000");
   const [payoutSchedule, setPayoutSchedule] = useState("Weekly (every Monday)");
 
   function handleSaveStore(e: React.FormEvent) {
@@ -106,9 +106,9 @@ export function SettingsPage() {
             <div className="s-fg">
               <label>Auto Withdraw Threshold</label>
               <select className="s-fi" value={autoWithdraw} onChange={(e) => setAutoWithdraw(e.target.value)}>
-                <option>₦50,000</option>
-                <option>₦100,000</option>
-                <option>₦200,000</option>
+                <option>£50,000</option>
+                <option>£100,000</option>
+                <option>£200,000</option>
               </select>
             </div>
             <div className="s-fg">

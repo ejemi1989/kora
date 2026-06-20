@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { serverError } from "@/lib/validation";
+import { formatPrice } from "@/lib/format-currency";
 
 export async function GET() {
   try {
@@ -49,8 +50,8 @@ export async function GET() {
     const repeatDelta = prevRepeatRate > 0 ? repeatRate - prevRepeatRate : 0;
 
     const mini = [
-      { label: "GMV", value: `₦${(totalRevenue._sum.amount || 0).toLocaleString()}`, delta: `${gmvDelta >= 0 ? "↑" : "↓"} ${Math.abs(gmvDelta).toFixed(1)}%`, color: gmvDelta >= 0 ? "var(--success)" : "var(--danger)", deltaUp: gmvDelta >= 0 },
-      { label: "AOV", value: `₦${aov.toFixed(0)}`, delta: `${aovDelta >= 0 ? "↑" : "↓"} ${Math.abs(aovDelta).toFixed(1)}%`, color: "var(--success)", deltaUp: aovDelta >= 0 },
+      { label: "GMV", value: formatPrice(totalRevenue._sum.amount || 0), delta: `${gmvDelta >= 0 ? "↑" : "↓"} ${Math.abs(gmvDelta).toFixed(1)}%`, color: gmvDelta >= 0 ? "var(--success)" : "var(--danger)", deltaUp: gmvDelta >= 0 },
+      { label: "AOV", value: formatPrice(aov), delta: `${aovDelta >= 0 ? "↑" : "↓"} ${Math.abs(aovDelta).toFixed(1)}%`, color: "var(--success)", deltaUp: aovDelta >= 0 },
       { label: "Conversion", value: `${conversion.toFixed(1)}%`, delta: `${convDelta >= 0 ? "↑" : "↓"} ${Math.abs(convDelta).toFixed(1)}%`, color: "var(--body)", deltaUp: convDelta >= 0 },
       { label: "Repeat Rate", value: `${repeatRate.toFixed(1)}%`, delta: `${repeatDelta >= 0 ? "↑" : "↓"} ${Math.abs(repeatDelta).toFixed(1)}%`, color: "var(--success)", deltaUp: repeatDelta >= 0 },
     ];
@@ -65,7 +66,7 @@ export async function GET() {
         const items = await prisma.orderItem.findMany({ where: { productId: { in: productIds } } });
         const revenue = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
         const orderCount = [...new Set(items.map((i) => i.orderId))].length;
-        return { category: c.category, orders: orderCount, revenue: `₦${revenue.toLocaleString()}` };
+        return { category: c.category, orders: orderCount, revenue: formatPrice(revenue) };
       })
     );
 

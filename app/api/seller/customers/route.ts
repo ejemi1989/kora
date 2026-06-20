@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { serverError } from "@/lib/validation";
+import { formatPrice } from "@/lib/format-currency";
 
 export async function GET() {
   try {
@@ -78,7 +79,7 @@ export async function GET() {
       entry.history.push({
         order: firstItem.order.id.slice(0, 8),
         product: items.map((i) => i.product.name).join(", "),
-        amount: `₦${total.toLocaleString()}`,
+        amount: formatPrice(total),
         status: firstItem.order.status.charAt(0) + firstItem.order.status.slice(1).toLowerCase(),
         statusClass: `badge-${firstItem.order.status.toLowerCase()}`,
         date: firstItem.order.createdAt.toISOString().slice(0, 10),

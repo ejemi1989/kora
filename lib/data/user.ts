@@ -90,7 +90,7 @@ export const NOTIFICATIONS: UserNotification[] = [
   { id: 3, title: "Flash Sale: 20% off Grains", description: "Rice, beans, yam flour — stock up and save", time: "1 day ago", read: false },
   { id: 4, title: "Order NP-3840 Packed", description: "Your order is being prepared at the warehouse", time: "1 day ago", read: false },
   { id: 5, title: "New: Chef's Special Box", description: "Curated ingredients for Processed Egusi + Cassava Flour", time: "3 days ago", read: true },
-  { id: 6, title: "Referral Bonus Earned", description: "You earned ₦1,500 — Tunde signed up with your link", time: "5 days ago", read: true },
+  { id: 6, title: "Referral Bonus Earned", description: "You earned £1,500 — Tunde signed up with your link", time: "5 days ago", read: true },
 ];
 
 export const WISHLIST_INITIAL = [

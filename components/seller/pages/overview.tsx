@@ -5,6 +5,7 @@ import { useUser } from "@clerk/nextjs";
 import { useSeller } from "@/components/seller/seller-context";
 import { useRouter } from "next/navigation";
 import { ChevronIcon } from "@/components/user/icons";
+import { useCurrency } from "@/lib/hooks/use-currency";
 
 interface Stat {
   label: string; value: string; delta: string; deltaUp: boolean;
@@ -41,6 +42,7 @@ const orderPills: Record<string, string> = {
 export function OverviewPage() {
   const { setPage } = useSeller();
   const { isSignedIn } = useUser();
+  const { format } = useCurrency();
   const router = useRouter();
   const [data, setData] = useState<OverviewData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -193,7 +195,7 @@ export function OverviewPage() {
                     <td><span className="mono">{o.id}</span></td>
                     <td>{o.customer}</td>
                     <td><span className={`s-pill ${orderPills[o.status]}`}>{o.status}</span></td>
-                    <td style={{ textAlign: "right", fontWeight: 500 }}>₦{o.total.toLocaleString()}</td>
+                    <td style={{ textAlign: "right", fontWeight: 500 }}>{format(o.total)}</td>
                   </tr>
                 ))}
               </tbody>

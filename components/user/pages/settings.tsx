@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useUser as useClerkUser } from "@clerk/nextjs";
 import { useUser } from "@/components/user/user-context";
 
 export function SettingsPage() {
   const { showToast } = useUser();
+  const { user: clerkUser, isLoaded } = useClerkUser();
   const [pwErr, setPwErr] = useState("");
   const [pwOk, setPwOk] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
@@ -63,15 +65,15 @@ export function SettingsPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div>
               <label style={{ display: "block", fontSize: 12, fontWeight: 450, color: "var(--body)", marginBottom: 4 }}>Full Name</label>
-              <input type="text" defaultValue="Amara Okafor" style={{ width: "100%", height: 38, padding: "0 12px", borderRadius: 6, border: "1px solid var(--hairline)", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+              <input type="text" defaultValue={clerkUser?.fullName || clerkUser?.username || ""} style={{ width: "100%", height: 38, padding: "0 12px", borderRadius: 6, border: "1px solid var(--hairline)", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
             </div>
             <div>
               <label style={{ display: "block", fontSize: 12, fontWeight: 450, color: "var(--body)", marginBottom: 4 }}>Email</label>
-              <input type="email" defaultValue="amara.o@naijaplate.com" style={{ width: "100%", height: 38, padding: "0 12px", borderRadius: 6, border: "1px solid var(--hairline)", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+              <input type="email" defaultValue={clerkUser?.primaryEmailAddress?.emailAddress || ""} style={{ width: "100%", height: 38, padding: "0 12px", borderRadius: 6, border: "1px solid var(--hairline)", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
             </div>
             <div>
               <label style={{ display: "block", fontSize: 12, fontWeight: 450, color: "var(--body)", marginBottom: 4 }}>Phone</label>
-              <input type="text" defaultValue="+234 803 456 7890" style={{ width: "100%", height: 38, padding: "0 12px", borderRadius: 6, border: "1px solid var(--hairline)", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+              <input type="text" defaultValue={clerkUser?.primaryPhoneNumber?.phoneNumber || ""} placeholder="+234 800 000 0000" style={{ width: "100%", height: 38, padding: "0 12px", borderRadius: 6, border: "1px solid var(--hairline)", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
             </div>
             <button onClick={handleProfileSave} disabled={profileSaving} style={{ padding: "8px 20px", fontSize: 13, fontWeight: 500, borderRadius: 6, border: "none", background: profileSaving ? "var(--surface-soft)" : "var(--primary)", color: "#fff", cursor: profileSaving ? "default" : "pointer", opacity: profileSaving ? 0.7 : 1, alignSelf: "flex-start" }}>
               {profileSaving ? "Saving..." : "Save Changes"}

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { serverError } from "@/lib/validation";
+import { formatPrice } from "@/lib/format-currency";
 
 export async function GET() {
   try {
@@ -27,7 +28,7 @@ export async function GET() {
       const discountLabel =
         p.discountType === "percentage"
           ? `${p.discountValue}% off`
-          : `₦${p.discountValue.toLocaleString()} off`;
+          : `${formatPrice(p.discountValue)} off`;
 
       return {
         code: p.code,

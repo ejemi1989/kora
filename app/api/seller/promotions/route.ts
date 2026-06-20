@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { serverError } from "@/lib/validation";
+import { formatPrice } from "@/lib/format-currency";
 
 function formatDate(date: Date | null | undefined) {
   if (!date) return "Unlimited";
@@ -24,7 +25,7 @@ export async function GET() {
       const discountLabel =
         p.discountType === "percentage"
           ? `${p.discountValue}% off`
-          : `₦${p.discountValue.toLocaleString()} off`;
+          : `${formatPrice(p.discountValue)} off`;
 
       return {
         id: p.id,
@@ -76,7 +77,7 @@ export async function POST(request: Request) {
       data: {
         sellerId: userId,
         code: code.trim().toUpperCase(),
-        discountType: discountType === "Fixed Amount (₦)" ? "fixed" : "percentage",
+        discountType: discountType === "Fixed Amount (£)" ? "fixed" : "percentage",
         discountValue: parseFloat(discountValue),
         applicableTo: applicableTo === "All Products" ? "all" : applicableTo,
         minOrder: parseFloat(minOrder || "0"),
@@ -89,7 +90,7 @@ export async function POST(request: Request) {
     const discountLabel =
       promo.discountType === "percentage"
         ? `${promo.discountValue}% off`
-        : `₦${promo.discountValue.toLocaleString()} off`;
+        : `${formatPrice(promo.discountValue)} off`;
 
     return NextResponse.json({
       id: promo.id,
@@ -141,7 +142,7 @@ export async function PATCH(request: Request) {
 
     if (fields.code !== undefined) updateData.code = fields.code.trim().toUpperCase();
     if (fields.discountType !== undefined) {
-      updateData.discountType = fields.discountType === "Fixed Amount (₦)" ? "fixed" : "percentage";
+      updateData.discountType = fields.discountType === "Fixed Amount (£)" ? "fixed" : "percentage";
     }
     if (fields.discountValue !== undefined) updateData.discountValue = parseFloat(fields.discountValue);
     if (fields.applicableTo !== undefined) {
@@ -161,7 +162,7 @@ export async function PATCH(request: Request) {
     const discountLabel =
       updated.discountType === "percentage"
         ? `${updated.discountValue}% off`
-        : `₦${updated.discountValue.toLocaleString()} off`;
+        : `${formatPrice(updated.discountValue)} off`;
 
     return NextResponse.json({
       id: updated.id,

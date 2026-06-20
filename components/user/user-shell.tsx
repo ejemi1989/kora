@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { UserButton } from "@clerk/nextjs";
+import { UserButton, useUser as useClerkUser } from "@clerk/nextjs";
 import { useUser } from "@/components/user/user-context";
 import { useCurrency } from "@/lib/hooks/use-currency";
 import {
@@ -28,6 +28,7 @@ export function UserShell({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
   const { page, setPage, sidebar, setSidebar, cartCount, notifs, notifOpen, setNotifOpen, setNotifs, setPage: navigate, toasts } = useUser();
+  const { user: clerkUser, isLoaded: clerkLoaded } = useClerkUser();
   const { currencies, selected, select, loading } = useCurrency();
   const router = useRouter();
   const unread = notifs.filter((n) => !n.read).length;
@@ -125,10 +126,16 @@ export function UserShell({ children }: { children: ReactNode }) {
           ))}
         </nav>
         <div style={{ padding: "12px 16px", borderTop: "1px solid var(--hairline)", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }} onClick={() => { setPage("settings" as any); router.push("/user/settings"); }}>
-          <div style={{ width: 30, height: 30, borderRadius: "999px", background: "linear-gradient(135deg, var(--primary), var(--primary-deep))", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 600 }}>AO</div>
+          <div style={{ width: 30, height: 30, borderRadius: "999px", background: "linear-gradient(135deg, var(--primary), var(--primary-deep))", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 600 }}>
+            {clerkLoaded ? ((clerkUser?.firstName?.[0] || "") + (clerkUser?.lastName?.[0] || "") || clerkUser?.username?.[0]?.toUpperCase() || "?") : "..."}
+          </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 12, fontWeight: 500, color: "var(--ink)" }}>Amara Okafor</div>
-            <div style={{ fontSize: 10, color: "var(--ash)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>amara.o@naijaplate.com</div>
+            <div style={{ fontSize: 12, fontWeight: 500, color: "var(--ink)" }}>
+              {clerkLoaded ? (clerkUser?.fullName || clerkUser?.username || "User") : "..."}
+            </div>
+            <div style={{ fontSize: 10, color: "var(--ash)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {clerkLoaded ? (clerkUser?.primaryEmailAddress?.emailAddress || "") : "..."}
+            </div>
           </div>
         </div>
       </aside>

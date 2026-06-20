@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useUser } from "@/components/user/user-context";
 import { PRODUCTS, CATEGORIES } from "@/lib/data/user";
 import { SearchIcon, StarIcon } from "@/components/user/icons";
+import { useCurrency } from "@/lib/hooks/use-currency";
 
 interface PromoBanner {
   code: string;
@@ -15,6 +16,7 @@ interface PromoBanner {
 
 export function ShopPage() {
   const { cartItems, addToCart, showToast } = useUser();
+  const { format } = useCurrency();
   const [cat, setCat] = useState("All");
   const [q, setQ] = useState("");
   const [loadingId, setLoadingId] = useState<number | null>(null);
@@ -71,7 +73,7 @@ export function ShopPage() {
             <div key={p.code} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: 8, background: "var(--primary-bg)", border: "1px solid var(--primary)", fontSize: 12 }}>
               <span style={{ fontWeight: 700, color: "var(--primary)", fontFamily: "var(--font-mono)" }}>{p.code}</span>
               <span style={{ color: "var(--body)" }}>{p.discount}</span>
-              {p.minOrder > 0 && <span style={{ color: "var(--muted-text)", fontSize: 11 }}>Min ₦{p.minOrder.toLocaleString()}</span>}
+              {p.minOrder > 0 && <span style={{ color: "var(--muted-text)", fontSize: 11 }}>Min {format(p.minOrder)}</span>}
               <span style={{ color: "var(--muted-text)", fontSize: 11 }}>{p.ends !== "Unlimited" ? `Ends ${p.ends}` : "No expiry"}</span>
             </div>
           ))}
@@ -128,8 +130,8 @@ export function ShopPage() {
                     <span>{product.weight}kg</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 8 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--primary)" }}>{'\u20A6'}{product.price.toFixed(2)}</span>
-                    {product.origPrice && <span style={{ fontSize: 11, color: "var(--stone)", textDecoration: "line-through" }}>{'\u20A6'}{product.origPrice.toFixed(2)}</span>}
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--primary)" }}>{format(product.price)}</span>
+                    {product.origPrice && <span style={{ fontSize: 11, color: "var(--stone)", textDecoration: "line-through" }}>{format(product.origPrice)}</span>}
                   </div>
                   <button
                     onClick={() => handleAdd(product)}

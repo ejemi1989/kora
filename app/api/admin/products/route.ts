@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, serverError } from "@/lib/validation";
+import { formatPrice } from "@/lib/format-currency";
 
 export async function GET() {
   const auth = await requireAdmin();
@@ -17,7 +18,7 @@ export async function GET() {
       name: p.name,
       seller: p.sellerId.slice(0, 8),
       category: p.category,
-      price: `₦${p.price.toLocaleString()}`,
+      price: formatPrice(p.price),
       stock: p.stock,
       sales: p.orderItems.reduce((sum, oi) => sum + oi.quantity, 0),
       createdAt: p.createdAt.toISOString().split("T")[0],

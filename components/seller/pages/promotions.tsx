@@ -43,7 +43,7 @@ function PromotionForm({
   onCancel: () => void;
 }) {
   const [code, setCode] = useState(editing?.code || "");
-  const [discountType, setDiscountType] = useState(editing?.discountType === "fixed" ? "Fixed Amount (₦)" : "Percentage (%)");
+  const [discountType, setDiscountType] = useState(editing?.discountType === "fixed" ? "Fixed Amount (£)" : "Percentage (%)");
   const [discountValue, setDiscountValue] = useState(editing?.discountValue?.toString() || "");
   const [startDate, setStartDate] = useState(editing?.startDate || "");
   const [endDate, setEndDate] = useState(editing?.endDate || "");
@@ -57,7 +57,7 @@ function PromotionForm({
         <div className="s-fg"><label>Discount Type</label>
           <select className="s-fi" value={discountType} onChange={(e) => setDiscountType(e.target.value)}>
             <option>Percentage (%)</option>
-            <option>Fixed Amount (₦)</option>
+            <option>Fixed Amount (£)</option>
           </select>
         </div>
         <div className="s-fg"><label>Value</label><input className="s-fi" type="number" value={discountValue} onChange={(e) => setDiscountValue(e.target.value)} placeholder="0" /></div>
@@ -73,7 +73,7 @@ function PromotionForm({
           <option>Select individually…</option>
         </select>
       </div>
-      <div className="s-fg"><label>Minimum Order (₦)</label><input className="s-fi" type="number" value={minOrder} onChange={(e) => setMinOrder(e.target.value)} placeholder="0 (no minimum)" /></div>
+      <div className="s-fg"><label>Minimum Order (£)</label><input className="s-fi" type="number" value={minOrder} onChange={(e) => setMinOrder(e.target.value)} placeholder="0 (no minimum)" /></div>
       <div className="s-modal-actions">
         <button className="s-btn s-btn-s" onClick={onCancel}>Cancel</button>
         <button className="s-btn s-btn-p" onClick={() => onSave({ code, discountType, discountValue, startDate, endDate, applicableTo, minOrder })}>

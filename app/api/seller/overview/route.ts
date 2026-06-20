@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { serverError } from "@/lib/validation";
+import { formatPrice } from "@/lib/format-currency";
 
 export async function GET() {
   try {
@@ -132,7 +133,7 @@ export async function GET() {
       stats: [
         {
           label: "Total Revenue",
-          value: `₦${totalRevenue.toLocaleString()}`,
+          value: formatPrice(totalRevenue),
           delta: "↑ Real-time",
           deltaUp: true,
         },

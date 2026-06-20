@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { formatPrice, formatPriceCompact, type CurrencyLike } from "@/lib/format-currency";
 
 export interface CurrencyOption {
   code: string;
@@ -25,7 +26,11 @@ export function useCurrency() {
           setCurrencies(data);
           const saved = localStorage.getItem(LS_KEY);
           const match = saved ? data.find((c) => c.code === saved) : null;
-          setSelected(match || data[0] || null);
+          const preferred = match || data[0] || null;
+          setSelected(preferred);
+          if (!saved && preferred) {
+            localStorage.setItem(LS_KEY, preferred.code);
+          }
         }
       } catch {
         // fallback — no currencies configured yet
@@ -44,5 +49,15 @@ export function useCurrency() {
     }
   }, [currencies]);
 
-  return { currencies, selected, select, loading };
+  const format = useCallback(
+    (amount: number) => formatPrice(amount, selected as CurrencyLike | null),
+    [selected],
+  );
+
+  const formatCompact = useCallback(
+    (amount: number) => formatPriceCompact(amount, selected as CurrencyLike | null),
+    [selected],
+  );
+
+  return { currencies, selected, select, loading, format, formatCompact };
 }

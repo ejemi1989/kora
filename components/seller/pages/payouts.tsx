@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useSeller } from "@/components/seller/seller-context";
+import { useCurrency } from "@/lib/hooks/use-currency";
 
 interface PayoutEntry {
   id: string;
@@ -28,6 +29,7 @@ const payoutBadges: Record<string, string> = {
 export function PayoutsPage() {
   const { showToast } = useSeller();
   const { isSignedIn } = useUser();
+  const { format } = useCurrency();
   const [data, setData] = useState<PayoutData | null>(null);
   const [loading, setLoading] = useState(true);
   const [withdrawAmt, setWithdrawAmt] = useState("");
@@ -81,7 +83,7 @@ export function PayoutsPage() {
             }
           : prev
       );
-      showToast(`₦${amt.toLocaleString()} withdrawal request submitted!`, "success");
+      showToast(`${format(amt)} withdrawal request submitted!`, "success");
       setWithdrawAmt("");
     } else {
       const err = await res.json();
@@ -156,19 +158,19 @@ export function PayoutsPage() {
           <div className="s-stats-grid">
             <div className="s-stat-card">
               <div className="s-stat-label">Total Earnings</div>
-              <div className="s-stat-value">₦{data.totalEarnings.toLocaleString()}</div>
+              <div className="s-stat-value">{format(data.totalEarnings)}</div>
             </div>
             <div className="s-stat-card">
               <div className="s-stat-label">Available for Withdrawal</div>
-              <div className="s-stat-value">₦{data.available.toLocaleString()}</div>
+              <div className="s-stat-value">{format(data.available)}</div>
             </div>
             <div className="s-stat-card">
               <div className="s-stat-label">Pending Clearance</div>
-              <div className="s-stat-value">₦{data.pendingClearance.toLocaleString()}</div>
+              <div className="s-stat-value">{format(data.pendingClearance)}</div>
             </div>
             <div className="s-stat-card">
               <div className="s-stat-label">This Month</div>
-              <div className="s-stat-value">₦{data.thisMonth.toLocaleString()}</div>
+              <div className="s-stat-value">{format(data.thisMonth)}</div>
             </div>
           </div>
 
@@ -177,11 +179,11 @@ export function PayoutsPage() {
               <div className="s-card-h"><h3>Withdraw Funds</h3></div>
               <div className="s-card-b">
                 <div className="s-fg">
-                  <label>Amount (₦)</label>
+                  <label>Amount (£)</label>
                   <input className="s-fi" type="number" placeholder="Enter amount..." value={withdrawAmt} onChange={(e) => setWithdrawAmt(e.target.value)} />
                 </div>
                 <div style={{ fontSize: 11, color: "var(--muted-text)", marginBottom: 12 }}>
-                  Available balance: ₦{data.available.toLocaleString()} · Min withdrawal: ₦5,000
+                  Available balance: {format(data.available)} · Min withdrawal: {format(5000)}
                 </div>
                 <button className="s-btn s-btn-p" onClick={handleWithdraw}>Withdraw Funds</button>
               </div>
@@ -207,7 +209,7 @@ export function PayoutsPage() {
                         <tr key={p.id}>
                           <td><span className="mono">{p.id.slice(0, 8)}</span></td>
                           <td>{p.date}</td>
-                          <td style={{ fontWeight: 500 }}>₦{p.amount.toLocaleString()}</td>
+                          <td style={{ fontWeight: 500 }}>{format(p.amount)}</td>
                           <td><span className={`s-badge ${payoutBadges[p.status]}`}>{p.status}</span></td>
                         </tr>
                       ))}

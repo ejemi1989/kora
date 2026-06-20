@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, serverError } from "@/lib/validation";
+import { formatPrice } from "@/lib/format-currency";
 
 export async function GET() {
   const auth = await requireAdmin();
@@ -22,7 +23,7 @@ export async function GET() {
           business: `Seller ${s.sellerId.slice(0, 8)}`,
           category: categories[0] || "General",
           products: s._count.id,
-          revenue: `₦${revenue.toLocaleString()}`,
+          revenue: formatPrice(revenue),
         };
       })
     );

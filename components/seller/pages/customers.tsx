@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useSeller } from "@/components/seller/seller-context";
 import { SearchIcon } from "@/components/user/icons";
+import { useCurrency } from "@/lib/hooks/use-currency";
 
 interface CustomerHistoryEntry {
   order: string;
@@ -38,6 +39,7 @@ const statusBadge: Record<string, string> = {
 export function CustomersPage() {
   const { openModal, closeModal } = useSeller();
   const { isSignedIn } = useUser();
+  const { format } = useCurrency();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,7 +86,7 @@ export function CustomersPage() {
             <div className="lbl">Orders</div>
           </div>
           <div className="s-mini-stat">
-            <div className="val">₦{c.spent.toLocaleString()}</div>
+            <div className="val">{format(c.spent)}</div>
             <div className="lbl">Total Spent</div>
           </div>
           <div className="s-mini-stat">
@@ -199,7 +201,7 @@ export function CustomersPage() {
               </div>
               <div className="s-cust-stats">
                 <div className="val">{c.orders} orders</div>
-                <div className="lbl">₦{c.spent.toLocaleString()}</div>
+                <div className="lbl">{format(c.spent)}</div>
               </div>
             </div>
           ))}

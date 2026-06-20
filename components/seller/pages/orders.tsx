@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useSeller } from "@/components/seller/seller-context";
 import { SearchIcon } from "@/components/user/icons";
+import { useCurrency } from "@/lib/hooks/use-currency";
 
 interface Order {
   id: string;
@@ -29,6 +30,7 @@ const badgeClass: Record<string, string> = {
 export function OrdersPage() {
   const { showToast } = useSeller();
   const { isSignedIn } = useUser();
+  const { format } = useCurrency();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -215,7 +217,7 @@ export function OrdersPage() {
                 <td>{o.customer}</td>
                 <td>{o.items}</td>
                 <td style={{ color: "var(--muted-text)" }}>{o.product}</td>
-                <td style={{ fontWeight: 500 }}>₦{o.total.toLocaleString()}</td>
+                <td style={{ fontWeight: 500 }}>{format(o.total)}</td>
                 <td style={{ color: "var(--muted-text)" }}>{o.date}</td>
                 <td>
                   <TrackingCell order={o} onUpdate={updateTracking} />

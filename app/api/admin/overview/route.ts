@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { serverError } from "@/lib/validation";
+import { formatPrice } from "@/lib/format-currency";
 
 export async function GET() {
   try {
@@ -44,7 +45,7 @@ export async function GET() {
       id: o.id.slice(0, 8),
       customer: o.user.name,
       status: o.status.toLowerCase(),
-      amount: `₦${o.total.toLocaleString()}`,
+      amount: formatPrice(o.total),
     }));
 
     const topSellersData = await prisma.product.groupBy({
@@ -59,7 +60,7 @@ export async function GET() {
         const items = await prisma.orderItem.findMany({ where: { productId: { in: productIds } } });
         const revenue = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
         const orderIds = [...new Set(items.map((i) => i.orderId))];
-        return { seller: s.sellerId.slice(0, 8), revenue: `₦${revenue.toLocaleString()}`, orders: orderIds.length };
+        return { seller: s.sellerId.slice(0, 8), revenue: formatPrice(revenue), orders: orderIds.length };
       })
     );
     const prevRevenue = await prisma.payment.aggregate({
@@ -86,7 +87,7 @@ export async function GET() {
     return NextResponse.json({
       stats: [
         { label: "Total Users", value: totalUsers.toLocaleString(), delta: `↑ ${((totalUsers > 0 ? 12.4 : 0)).toFixed(1)}% this month`, deltaUp: true },
-        { label: "Revenue (30d)", value: `₦${(revenue30d._sum.amount || 0).toLocaleString()}`, delta: `↑ ${((((revenue30d._sum.amount || 0) - (prevRevenue._sum.amount || 0)) / (prevRevenue._sum.amount || 1) * 100)).toFixed(1)}% this month`, deltaUp: (revenue30d._sum.amount || 0) >= (prevRevenue._sum.amount || 0) },
+        { label: "Revenue (30d)", value: formatPrice(revenue30d._sum.amount || 0), delta: `↑ ${((((revenue30d._sum.amount || 0) - (prevRevenue._sum.amount || 0)) / (prevRevenue._sum.amount || 1) * 100)).toFixed(1)}% this month`, deltaUp: (revenue30d._sum.amount || 0) >= (prevRevenue._sum.amount || 0) },
         { label: "Orders (30d)", value: orders30d.toLocaleString(), delta: `↑ ${((orders30d - (prevOrders || 0)) / (prevOrders || 1) * 100).toFixed(1)}% this month`, deltaUp: orders30d >= prevOrders },
         { label: "Active Sellers", value: sellersAgg.length.toLocaleString(), delta: `${sellerDelta >= 0 ? "↑" : "↓"} ${Math.abs(sellerDelta).toFixed(1)}% this month`, deltaUp: sellerDelta >= 0 },
       ],

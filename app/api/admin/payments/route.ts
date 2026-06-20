@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { serverError } from "@/lib/validation";
+import { formatPrice } from "@/lib/format-currency";
 
 export async function GET() {
   try {
@@ -14,16 +15,16 @@ export async function GET() {
     const avgTicket = successfulCount > 0 ? totalVolume / successfulCount : 0;
 
     const stats = [
-      { label: "Total Volume", value: `₦${totalVolume.toLocaleString()}` },
+      { label: "Total Volume", value: formatPrice(totalVolume) },
       { label: "Transactions", value: payments.length.toLocaleString() },
-      { label: "Avg Ticket", value: `₦${avgTicket.toLocaleString()}` },
+      { label: "Avg Ticket", value: formatPrice(avgTicket) },
     ];
 
     const transactions = payments.map((p) => ({
       id: p.id.slice(0, 8),
       customer: p.order.user.name,
       method: p.method || "N/A",
-      amount: `₦${p.amount.toLocaleString()}`,
+      amount: formatPrice(p.amount),
       date: p.createdAt.toISOString().split("T")[0],
       status: (p.status === "SUCCESS" ? "completed" : p.status === "FAILED" ? "pending" : "refunded") as "completed" | "pending" | "refunded",
     }));

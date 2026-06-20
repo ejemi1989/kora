@@ -58,7 +58,7 @@ export async function POST(request: Request) {
 
     const lineItems = items.map((item: { name: string; unitPrice: number; qty: number; description?: string }) => ({
       price_data: {
-        currency: "usd",
+        currency: "gbp",
         product_data: {
           name: item.name,
           description: item.description || "",
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
     if (delivery > 0) {
       lineItems.push({
         price_data: {
-          currency: "usd",
+          currency: "gbp",
           product_data: { name: "Delivery fee" },
           unit_amount: Math.round(delivery * 100),
         },
