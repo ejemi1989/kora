@@ -1,6 +1,8 @@
 import { auth, currentUser, clerkClient } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
+import { sendEmail, isEmailConfigured } from "@/lib/email"
+import { welcomeEmail } from "@/lib/email-templates"
 
 const dashboardMap: Record<string, string> = {
   ADMIN: "/admin/overview",
@@ -25,6 +27,15 @@ async function syncUserToDB(clerkUserId: string, email: string, name: string | n
       role,
     },
   });
+}
+
+function sendWelcomeEmail(customerName: string, email: string) {
+  if (!isEmailConfigured()) return;
+  const { from, subject, html } = welcomeEmail({
+    customerName,
+    shopUrl: `${process.env.NEXT_PUBLIC_APP_URL || "https://denimarketplace.com"}/user/shop`,
+  });
+  sendEmail({ from, to: [email], subject, html }).catch(() => {});
 }
 
 export default async function AuthCallbackPage({
@@ -53,6 +64,7 @@ export default async function AuthCallbackPage({
       })
     }
     await syncUserToDB(clerkUser.id, userEmail || "", `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim(), enforcedRole)
+    if (userEmail) sendWelcomeEmail(clerkUser.fullName || clerkUser.username || "Friend", userEmail)
     redirect(dashboardMap[enforcedRole])
   }
 
@@ -70,6 +82,7 @@ export default async function AuthCallbackPage({
       })
     }
     await syncUserToDB(clerkUser.id, clerkUser.emailAddresses[0]?.emailAddress || "", `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim(), roleToUse)
+    if (userEmail) sendWelcomeEmail(clerkUser.fullName || clerkUser.username || "Friend", userEmail)
     redirect(dashboardMap[roleToUse])
   }
 

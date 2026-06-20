@@ -15,6 +15,7 @@ import { ContentPage } from "@/components/admin/pages/content";
 import { CurrenciesPage } from "@/components/admin/pages/currencies";
 import { SettingsPage } from "@/components/admin/pages/settings";
 import { NotificationsPage } from "@/components/admin/pages/notifications";
+import { EmailsPage } from "@/components/admin/pages/emails";
 
 const pages: Record<string, React.FC> = {
   overview: OverviewPage,
@@ -29,6 +30,7 @@ const pages: Record<string, React.FC> = {
   currencies: CurrenciesPage,
   settings: SettingsPage,
   notifications: NotificationsPage,
+  emails: EmailsPage,
 };
 
 export default function AdminPage({ params }: { params: Promise<{ page: string }> }) {

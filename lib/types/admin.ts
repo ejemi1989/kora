@@ -10,6 +10,7 @@ export type AdminPageId =
   | "analytics"
   | "content"
   | "currencies"
+  | "emails"
   | "settings";
 
 export interface AdminStat {

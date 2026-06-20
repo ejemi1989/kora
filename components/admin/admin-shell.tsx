@@ -8,7 +8,7 @@ import type { AdminPageId } from "@/lib/types/admin";
 import {
   HomeIcon, BellIcon, UsersIcon, StoreIcon, PackageIcon, ListIcon,
   CardIcon, ShieldIcon, BarChartIcon, FileIcon, SettingsIcon, DollarIcon,
-  MenuIcon, XIcon, SearchIcon,
+  MenuIcon, XIcon, SearchIcon, MailIcon,
 } from "@/components/user/icons";
 
 const navGroups: { label?: string; items: { id: string; label: string; icon: ReactNode }[] }[] = [
@@ -40,6 +40,7 @@ const navGroups: { label?: string; items: { id: string; label: string; icon: Rea
       { id: "analytics", label: "Analytics", icon: <BarChartIcon size={16} /> },
       { id: "content", label: "Content", icon: <FileIcon size={16} /> },
       { id: "currencies", label: "Currencies", icon: <DollarIcon size={16} /> },
+      { id: "emails", label: "Emails", icon: <MailIcon size={16} /> },
       { id: "settings", label: "Settings", icon: <SettingsIcon size={16} /> },
     ],
   },
@@ -59,7 +60,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
     overview: "Overview", notifications: "Notifications", users: "Users",
     sellers: "Sellers", products: "Products", orders: "Orders",
     payments: "Payments", disputes: "Disputes", analytics: "Analytics",
-    content: "Content", currencies: "Currencies", settings: "Settings",
+    content: "Content", currencies: "Currencies", emails: "Emails", settings: "Settings",
   };
 
   const toastColors: Record<string, string> = {

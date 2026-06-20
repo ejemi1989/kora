@@ -129,3 +129,7 @@ export function TagIcon(props: IconProps) {
 export function DollarIcon(props: IconProps) {
   return <Icon {...props}><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /></Icon>;
 }
+
+export function MailIcon(props: IconProps) {
+  return <Icon {...props}><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M22 7l-10 7L2 7" /></Icon>;
+}
