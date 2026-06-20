@@ -1,5 +1,6 @@
 import { auth, currentUser, clerkClient } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
+import { prisma } from "@/lib/prisma"
 
 const dashboardMap: Record<string, string> = {
   ADMIN: "/admin/overview",
@@ -11,6 +12,19 @@ const emailRoleMap: Record<string, string> = {
   "admin@denimarketplace.com": "ADMIN",
   "seller@denimarketplace.com": "SELLER",
   "buyer@denimarketplace.com": "CUSTOMER",
+}
+
+async function syncUserToDB(clerkUserId: string, email: string, name: string | null, role: string) {
+  await prisma.user.upsert({
+    where: { id: clerkUserId },
+    update: { email, name: name || email.split("@")[0], role },
+    create: {
+      id: clerkUserId,
+      email,
+      name: name || email.split("@")[0],
+      role,
+    },
+  });
 }
 
 export default async function AuthCallbackPage({
@@ -38,6 +52,7 @@ export default async function AuthCallbackPage({
         unsafeMetadata: { role: enforcedRole },
       })
     }
+    await syncUserToDB(clerkUser.id, userEmail || "", `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim(), enforcedRole)
     redirect(dashboardMap[enforcedRole])
   }
 
@@ -54,6 +69,7 @@ export default async function AuthCallbackPage({
         unsafeMetadata: { role: intendedRole },
       })
     }
+    await syncUserToDB(clerkUser.id, clerkUser.emailAddresses[0]?.emailAddress || "", `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim(), roleToUse)
     redirect(dashboardMap[roleToUse])
   }
 
