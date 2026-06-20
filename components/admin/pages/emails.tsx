@@ -79,7 +79,7 @@ export function EmailsPage() {
       const res = await fetch("/api/admin/emails/sync-contacts", { method: "POST" });
       const data = await res.json();
       if (res.ok) {
-        showToast(`Synced ${data.synced} contacts to "${data.audienceName}" (${data.skipped} skipped, ${data.failed} failed)`);
+        showToast(`Synced ${data.synced} contacts to "${data.segmentName}" (${data.skipped} skipped, ${data.failed} failed)`);
       } else {
         showToast(data.error || "Sync failed", "danger");
       }

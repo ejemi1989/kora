@@ -56,38 +56,42 @@ export async function createContact(params: {
   email: string;
   firstName?: string;
   lastName?: string;
-  audienceId: string;
+  segmentId?: string;
 }) {
   const client = getClient();
-  const { data, error } = await client.contacts.create({
+  const payload: Record<string, unknown> = {
     email: params.email,
     firstName: params.firstName,
     lastName: params.lastName,
-    audienceId: params.audienceId,
-  });
+  };
+  if (params.segmentId) {
+    payload.segments = [{ id: params.segmentId }];
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await client.contacts.create(payload as any);
   if (error) throw new Error(error.message);
   return data as { id: string };
 }
 
-export async function listContacts(audienceId: string) {
+export async function listContacts() {
   const client = getClient();
-  const { data, error } = await client.contacts.list({ audienceId });
+  const { data, error } = await client.contacts.list();
   if (error) throw new Error(error.message);
   return data;
 }
 
-// --- Audiences ---
+// --- Segments (formerly Audiences) ---
 
-export async function listAudiences() {
+export async function listSegments() {
   const client = getClient();
-  const { data, error } = await client.audiences.list();
+  const { data, error } = await client.segments.list();
   if (error) throw new Error(error.message);
   return data;
 }
 
-export async function createAudience(name: string) {
+export async function createSegment(name: string) {
   const client = getClient();
-  const { data, error } = await client.audiences.create({ name });
+  const { data, error } = await client.segments.create({ name });
   if (error) throw new Error(error.message);
   return data as { id: string };
 }

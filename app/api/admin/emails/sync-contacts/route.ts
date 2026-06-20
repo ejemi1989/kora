@@ -3,8 +3,8 @@ import { clerkClient } from "@clerk/nextjs/server";
 import {
   createContact,
   listContacts,
-  listAudiences,
-  createAudience,
+  listSegments,
+  createSegment,
   isEmailConfigured,
 } from "@/lib/email";
 import { serverError } from "@/lib/validation";
@@ -18,13 +18,13 @@ export async function POST() {
       );
     }
 
-    const audienceData = await listAudiences().catch(() => []);
-    const audienceList = Array.isArray(audienceData) ? audienceData : ((audienceData as { data?: Array<{ id: string }> })?.data || []);
-    let audienceId = audienceList[0]?.id || "";
+    const segmentData = await listSegments().catch(() => []);
+    const segmentList = Array.isArray(segmentData) ? segmentData : ((segmentData as { data?: Array<{ id: string }> })?.data || []);
+    let segmentId = segmentList[0]?.id || "";
 
-    if (!audienceId) {
-      const created = await createAudience("Deni Marketplace Users");
-      audienceId = created.id;
+    if (!segmentId) {
+      const created = await createSegment("Deni Marketplace Users");
+      segmentId = created.id;
     }
 
     const client = await clerkClient();
@@ -49,7 +49,7 @@ export async function POST() {
       offset += limit;
     }
 
-    const contactData = await listContacts(audienceId).catch(() => []);
+    const contactData = await listContacts().catch(() => []);
     const contactList = Array.isArray(contactData) ? contactData : ((contactData as { data?: Array<{ email: string }> })?.data || []);
     const existingEmails = new Set(
       contactList.map((c: { email: string }) => c.email),
@@ -65,7 +65,7 @@ export async function POST() {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
-          audienceId,
+          segmentId,
         });
         results.push({ email: user.email, status: "created", id: contact.id });
       } catch (err) {
@@ -78,8 +78,8 @@ export async function POST() {
     }
 
     return NextResponse.json({
-      audienceId,
-      audienceName: "Deni Marketplace Users",
+      segmentId,
+      segmentName: "Deni Marketplace Users",
       total: allUsers.length,
       synced: results.filter((r) => r.status === "created").length,
       skipped: allUsers.length - toSync.length,
