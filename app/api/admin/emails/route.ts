@@ -8,7 +8,8 @@ export async function GET() {
       return NextResponse.json({ configured: false, emails: [] });
     }
     const data = await listEmails();
-    return NextResponse.json({ configured: true, emails: data.data || [] });
+    const emails = Array.isArray(data) ? data : (data as { data?: unknown[] })?.data || [];
+    return NextResponse.json({ configured: true, emails });
   } catch {
     return serverError("Failed to fetch emails");
   }
@@ -20,7 +21,7 @@ export async function POST(req: Request) {
 
     if (!isEmailConfigured()) {
       return NextResponse.json(
-        { error: "Email is not configured. Set MATON_API_KEY in environment variables." },
+        { error: "Email is not configured. Set RESEND_API_KEY in environment variables." },
         { status: 400 },
       );
     }
@@ -33,7 +34,7 @@ export async function POST(req: Request) {
       text: body.text,
       cc: body.cc,
       bcc: body.bcc,
-      reply_to: body.reply_to,
+      replyTo: body.replyTo,
     });
 
     return NextResponse.json(result);

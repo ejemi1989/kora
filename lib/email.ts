@@ -1,97 +1,53 @@
-const MATON_GATEWAY = "https://gateway.maton.ai/resend";
-const MATON_API_KEY = process.env.MATON_API_KEY;
+import { Resend } from "resend";
 
-interface SendEmailParams {
-  from: string;
-  to: string[];
-  subject: string;
-  html?: string;
-  text?: string;
-  cc?: string[];
-  bcc?: string[];
-  reply_to?: string[];
-  attachments?: { filename: string; content: string; content_type?: string }[];
-  tags?: { name: string; value: string }[];
-  scheduled_at?: string;
-}
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
-interface EmailResponse {
-  id: string;
-}
-
-interface EmailError {
-  error: string;
-}
-
-function getApiKey(): string {
-  if (!MATON_API_KEY) {
-    throw new Error("MATON_API_KEY environment variable is not set");
+function getClient(): Resend {
+  if (!RESEND_API_KEY) {
+    throw new Error("RESEND_API_KEY environment variable is not set");
   }
-  return MATON_API_KEY;
-}
-
-export async function sendEmail(params: SendEmailParams): Promise<EmailResponse> {
-  const apiKey = getApiKey();
-
-  const res = await fetch(`${MATON_GATEWAY}/emails`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(params),
-  });
-
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Resend error ${res.status}: ${body}`);
-  }
-
-  return res.json();
-}
-
-export async function sendBatchEmails(
-  emails: SendEmailParams[],
-): Promise<EmailResponse[]> {
-  const apiKey = getApiKey();
-
-  const res = await fetch(`${MATON_GATEWAY}/emails/batch`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(emails),
-  });
-
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Resend batch error ${res.status}: ${body}`);
-  }
-
-  return res.json();
-}
-
-export async function getEmail(emailId: string) {
-  const apiKey = getApiKey();
-  const res = await fetch(`${MATON_GATEWAY}/emails/${emailId}`, {
-    headers: { Authorization: `Bearer ${apiKey}` },
-  });
-  if (!res.ok) throw new Error(`Resend error ${res.status}`);
-  return res.json();
-}
-
-export async function listEmails() {
-  const apiKey = getApiKey();
-  const res = await fetch(`${MATON_GATEWAY}/emails`, {
-    headers: { Authorization: `Bearer ${apiKey}` },
-  });
-  if (!res.ok) throw new Error(`Resend error ${res.status}`);
-  return res.json();
+  return new Resend(RESEND_API_KEY);
 }
 
 export function isEmailConfigured(): boolean {
-  return Boolean(MATON_API_KEY);
+  return Boolean(RESEND_API_KEY);
+}
+
+// --- Emails ---
+
+export async function sendEmail(params: {
+  from: string;
+  to: string | string[];
+  subject: string;
+  html: string;
+  text?: string;
+  cc?: string | string[];
+  bcc?: string | string[];
+  replyTo?: string | string[];
+  attachments?: { filename: string; content: string | Buffer }[];
+  tags?: { name: string; value: string }[];
+  scheduledAt?: string;
+  headers?: Record<string, string>;
+}) {
+  const client = getClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await client.emails.send(params as any);
+  if (error) throw new Error(error.message);
+  return data as { id: string };
+}
+
+export async function getEmail(emailId: string) {
+  const client = getClient();
+  const { data, error } = await client.emails.get(emailId);
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function listEmails() {
+  const client = getClient();
+  const { data, error } = await client.emails.list();
+  if (error) throw new Error(error.message);
+  return data;
 }
 
 // --- Contacts ---
@@ -100,70 +56,38 @@ export async function createContact(params: {
   email: string;
   firstName?: string;
   lastName?: string;
-  audienceId?: string;
+  audienceId: string;
 }) {
-  const apiKey = getApiKey();
-  const body: Record<string, unknown> = {
+  const client = getClient();
+  const { data, error } = await client.contacts.create({
     email: params.email,
-    first_name: params.firstName || "",
-    last_name: params.lastName || "",
-  };
-  if (params.audienceId) body.audience_id = params.audienceId;
-
-  const res = await fetch(`${MATON_GATEWAY}/contacts`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
+    firstName: params.firstName,
+    lastName: params.lastName,
+    audienceId: params.audienceId,
   });
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Resend contact error ${res.status}: ${body}`);
-  }
-  return res.json() as Promise<{ id: string }>;
+  if (error) throw new Error(error.message);
+  return data as { id: string };
 }
 
-export async function listContacts(audienceId?: string) {
-  const apiKey = getApiKey();
-  const url = audienceId
-    ? `${MATON_GATEWAY}/contacts?audience_id=${audienceId}`
-    : `${MATON_GATEWAY}/contacts`;
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${apiKey}` },
-  });
-  if (!res.ok) throw new Error(`Resend error ${res.status}`);
-  return res.json();
+export async function listContacts(audienceId: string) {
+  const client = getClient();
+  const { data, error } = await client.contacts.list({ audienceId });
+  if (error) throw new Error(error.message);
+  return data;
 }
 
 // --- Audiences ---
 
 export async function listAudiences() {
-  const apiKey = getApiKey();
-  const res = await fetch(`${MATON_GATEWAY}/audiences`, {
-    headers: { Authorization: `Bearer ${apiKey}` },
-  });
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Resend audiences error ${res.status}: ${body}`);
-  }
-  return res.json();
+  const client = getClient();
+  const { data, error } = await client.audiences.list();
+  if (error) throw new Error(error.message);
+  return data;
 }
 
 export async function createAudience(name: string) {
-  const apiKey = getApiKey();
-  const res = await fetch(`${MATON_GATEWAY}/audiences`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ name }),
-  });
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Resend create audience error ${res.status}: ${body}`);
-  }
-  return res.json() as Promise<{ id: string }>;
+  const client = getClient();
+  const { data, error } = await client.audiences.create({ name });
+  if (error) throw new Error(error.message);
+  return data as { id: string };
 }

@@ -113,7 +113,7 @@ export function EmailsPage() {
         <div style={{ background: "#fff", borderRadius: 8, boxShadow: "0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)", padding: 32, textAlign: "center" }}>
           <div style={{ fontSize: 32, marginBottom: 12 }}>&#9993;</div>
           <div style={{ fontSize: 14, fontWeight: 500, color: "var(--muted)", marginBottom: 4 }}>Email not configured</div>
-          <p style={{ fontSize: 12, color: "var(--ash)", margin: 0 }}>Set MATON_API_KEY in your environment variables to enable email sending.</p>
+          <p style={{ fontSize: 12, color: "var(--ash)", margin: 0 }}>Set RESEND_API_KEY in your environment variables to enable email sending.</p>
         </div>
       ) : sendOpen ? (
         <div style={{ background: "#fff", borderRadius: 8, boxShadow: "0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)", padding: 20, maxWidth: 600 }}>

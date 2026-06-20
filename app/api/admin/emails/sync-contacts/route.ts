@@ -13,13 +13,14 @@ export async function POST() {
   try {
     if (!isEmailConfigured()) {
       return NextResponse.json(
-        { error: "Email not configured. Set MATON_API_KEY." },
+        { error: "Email not configured. Set RESEND_API_KEY." },
         { status: 400 },
       );
     }
 
-    const audiences = await listAudiences().catch(() => ({ data: [] }));
-    let audienceId = (audiences.data || [])[0]?.id || "";
+    const audienceData = await listAudiences().catch(() => []);
+    const audienceList = Array.isArray(audienceData) ? audienceData : ((audienceData as { data?: Array<{ id: string }> })?.data || []);
+    let audienceId = audienceList[0]?.id || "";
 
     if (!audienceId) {
       const created = await createAudience("Deni Marketplace Users");
@@ -48,9 +49,10 @@ export async function POST() {
       offset += limit;
     }
 
-    const existingContacts = await listContacts(audienceId).catch(() => ({ data: [] }));
+    const contactData = await listContacts(audienceId).catch(() => []);
+    const contactList = Array.isArray(contactData) ? contactData : ((contactData as { data?: Array<{ email: string }> })?.data || []);
     const existingEmails = new Set(
-      (existingContacts.data || []).map((c: { email: string }) => c.email),
+      contactList.map((c: { email: string }) => c.email),
     );
 
     const toSync = allUsers.filter((u) => !existingEmails.has(u.email));
