@@ -93,3 +93,39 @@ export async function listEmails() {
 export function isEmailConfigured(): boolean {
   return Boolean(MATON_API_KEY);
 }
+
+// --- Contacts ---
+
+export async function createContact(params: {
+  email: string;
+  firstName?: string;
+  lastName?: string;
+}) {
+  const apiKey = getApiKey();
+  const res = await fetch(`${MATON_GATEWAY}/contacts`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email: params.email,
+      first_name: params.firstName || "",
+      last_name: params.lastName || "",
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Resend contact error ${res.status}: ${body}`);
+  }
+  return res.json() as Promise<{ id: string }>;
+}
+
+export async function listContacts() {
+  const apiKey = getApiKey();
+  const res = await fetch(`${MATON_GATEWAY}/contacts`, {
+    headers: { Authorization: `Bearer ${apiKey}` },
+  });
+  if (!res.ok) throw new Error(`Resend error ${res.status}`);
+  return res.json();
+}

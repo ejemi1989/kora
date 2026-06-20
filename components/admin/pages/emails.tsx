@@ -14,6 +14,7 @@ interface EmailRecord {
 export function EmailsPage() {
   const { showToast } = useAdmin();
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const [emails, setEmails] = useState<EmailRecord[]>([]);
   const [configured, setConfigured] = useState(false);
   const [sendOpen, setSendOpen] = useState(false);
@@ -68,17 +69,43 @@ export function EmailsPage() {
     }
   }
 
+  async function handleSync() {
+    setSyncing(true);
+    try {
+      const res = await fetch("/api/admin/emails/sync-contacts", { method: "POST" });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(`Synced ${data.synced} contacts (${data.skipped} skipped, ${data.failed} failed)`);
+      } else {
+        showToast(data.error || "Sync failed", "danger");
+      }
+    } catch {
+      showToast("Sync failed", "danger");
+    } finally {
+      setSyncing(false);
+    }
+  }
+
   return (
     <div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
         <h1 style={{ fontSize: 20, fontWeight: 600, letterSpacing: "-0.03em", color: "var(--ink)", margin: 0 }}>Emails</h1>
         {configured && (
-          <button
-            onClick={() => setSendOpen(true)}
-            style={{ padding: "6px 14px", fontSize: 12, fontWeight: 500, borderRadius: 6, border: "none", background: "var(--primary)", color: "#fff", cursor: "pointer" }}
-          >
-            Send Email
-          </button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              style={{ padding: "6px 14px", fontSize: 12, fontWeight: 500, borderRadius: 6, border: "1px solid var(--hairline)", background: "#fff", color: "var(--body)", cursor: syncing ? "default" : "pointer", opacity: syncing ? 0.6 : 1 }}
+            >
+              {syncing ? "Syncing..." : "Sync Contacts"}
+            </button>
+            <button
+              onClick={() => setSendOpen(true)}
+              style={{ padding: "6px 14px", fontSize: 12, fontWeight: 500, borderRadius: 6, border: "none", background: "var(--primary)", color: "#fff", cursor: "pointer" }}
+            >
+              Send Email
+            </button>
+          </div>
         )}
       </div>
 
