@@ -1,51 +1,42 @@
 import { NextResponse } from "next/server";
-import { sendEmail, listEmails, isEmailConfigured } from "@/lib/email";
+import { isEmailConfigured, sendToAllUsers } from "@/lib/email";
 
 export async function GET() {
   try {
-    if (!isEmailConfigured()) {
-      return NextResponse.json({ configured: false, emails: [] });
-    }
-    const data = await listEmails().catch((err) => {
-      throw new Error(err instanceof Error ? err.message : "Failed to fetch emails");
-    });
-    const emails = Array.isArray(data) ? data : (data as { data?: unknown[] })?.data || [];
-    return NextResponse.json({ configured: true, emails });
-  } catch (err) {
     return NextResponse.json({
       configured: isEmailConfigured(),
-      emails: [],
-      error: err instanceof Error ? err.message : "Failed to fetch emails",
+      sender: "info@denimarketplace.com",
     });
+  } catch {
+    return NextResponse.json({ configured: false, error: "Failed to check email status" });
   }
 }
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-
     if (!isEmailConfigured()) {
       return NextResponse.json(
-        { error: "Email is not configured. Set RESEND_API_KEY in environment variables." },
+        { error: "RESEND_API_KEY not configured." },
         { status: 400 },
       );
     }
 
-    const result = await sendEmail({
-      from: body.from,
-      to: body.to,
-      subject: body.subject,
-      html: body.html,
-      text: body.text,
-      cc: body.cc,
-      bcc: body.bcc,
-      replyTo: body.replyTo,
-    });
+    const body = await req.json();
+    const { subject, html } = body;
 
-    return NextResponse.json(result);
+    if (!subject || !html) {
+      return NextResponse.json({ error: "Subject and HTML content are required" }, { status: 400 });
+    }
+
+    const results = await sendToAllUsers({ subject, html, excludeTest: true });
+
+    const sent = results.filter((r: { status: string }) => r.status === "sent").length;
+    const failed = results.filter((r: { status: string }) => r.status === "failed").length;
+
+    return NextResponse.json({ sent, failed, total: results.length });
   } catch (err) {
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to send email" },
+      { error: err instanceof Error ? err.message : "Failed to broadcast" },
       { status: 500 },
     );
   }

@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import Stripe from "stripe";
-import { sendEmail } from "@/lib/email";
-import { orderConfirmationEmail } from "@/lib/email-templates";
+import { sendOrderConfirmed } from "@/lib/email";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -79,29 +78,13 @@ export async function POST(request: Request) {
       }),
     ]);
 
-    try {
-      const customerEmail = session.customer_details?.email;
-      const customerName = session.customer_details?.name || "Customer";
-      const totalAmount = `\u20A6${((session.amount_total || 0) / 100).toFixed(2)}`;
+    const email = session.customer_details?.email;
+    const name = session.customer_details?.name || "Customer";
+    const total = `₦${((session.amount_total || 0) / 100).toFixed(2)}`;
 
-      if (customerEmail) {
-        const { from, subject, html } = orderConfirmationEmail({
-          customerName,
-          orderId,
-          items: ["Your order items"],
-          total: totalAmount,
-          trackingUrl: `${process.env.NEXT_PUBLIC_APP_URL || "https://denimarketplace.com"}/user/tracking`,
-        });
-
-        await sendEmail({
-          from,
-          to: [customerEmail],
-          subject,
-          html,
-        }).catch((err) => console.error("Failed to send order confirmation email:", err));
-      }
-    } catch (err) {
-      console.error("Email sending failed:", err);
+    if (email) {
+      sendOrderConfirmed(email, name, orderId, ["Your order items"], total)
+        .catch((err) => console.error("Order confirmation email failed:", err));
     }
   }
 
