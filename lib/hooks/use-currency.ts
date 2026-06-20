@@ -26,7 +26,10 @@ export function useCurrency() {
           setCurrencies(data);
           const saved = localStorage.getItem(LS_KEY);
           const match = saved ? data.find((c) => c.code === saved) : null;
-          const preferred = match || data[0] || null;
+          const preferred = match
+            || data.find((c) => c.code === "GBP")
+            || data[0]
+            || null;
           setSelected(preferred);
           if (!saved && preferred) {
             localStorage.setItem(LS_KEY, preferred.code);
