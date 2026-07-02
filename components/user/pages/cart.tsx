@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 type CheckoutStep = "review" | "address" | "payment" | "confirm";
 
 export function CartPage() {
-  const { cartItems, setCartItems, addresses, paymentMethods, showToast } = useUser();
+  const { cartItems, setCartItems, addresses, setAddresses, paymentMethods, showToast } = useUser();
   const { format } = useCurrency();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
@@ -20,6 +20,9 @@ export function CartPage() {
   const [step, setStep] = useState(0);
   const [selectedAddr, setSelectedAddr] = useState<UserAddress | null>(null);
   const [selectedPay, setSelectedPay] = useState<PaymentMethod | null>(null);
+  const [showAddrForm, setShowAddrForm] = useState(false);
+  const [addrForm, setAddrForm] = useState({ tag: "Home", name: "", phone: "", address: "" });
+  const [savingAddr, setSavingAddr] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [recentOrders, setRecentOrders] = useState<{ id: string; status: string; createdAt: string }[]>([]);
 
@@ -171,17 +174,64 @@ export function CartPage() {
             )}
             {step === 1 && (
               <div>
-                <h3 style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--ink)", margin: "0 0 12px" }}>Select Address</h3>
-                {addresses.map((addr) => (
-                  <div key={addr.id} onClick={() => setSelectedAddr(addr)} style={{ padding: "12px", borderRadius: 6, border: selectedAddr?.id === addr.id ? "1px solid var(--primary)" : "1px solid var(--hairline)", cursor: "pointer", marginBottom: 8, background: selectedAddr?.id === addr.id ? "var(--primary-bg)" : "#fff" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                      <span style={{ fontSize: 12, fontWeight: 500, color: "var(--ink)" }}>{addr.name}</span>
-                      <span style={{ padding: "1px 6px", borderRadius: 4, fontSize: 9, fontWeight: 500, background: "var(--surface-soft)", color: "var(--muted)" }}>{addr.tag}</span>
-                      {addr.isDefault && <span style={{ padding: "1px 6px", borderRadius: 4, fontSize: 9, fontWeight: 500, background: "var(--primary-bg)", color: "var(--primary)" }}>Default</span>}
+                <h3 style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--ink)", margin: "0 0 12px" }}>Delivery Address</h3>
+
+                {showAddrForm || addresses.length === 0 ? (
+                  <div>
+                    <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+                      {["Home", "Office", "Parents"].map((tag) => (
+                        <button key={tag} onClick={() => setAddrForm((prev) => ({ ...prev, tag }))} style={{ padding: "5px 14px", fontSize: 12, borderRadius: 999, border: "none", background: addrForm.tag === tag ? "var(--primary)" : "var(--surface-soft)", color: addrForm.tag === tag ? "#fff" : "var(--body)", cursor: "pointer", fontWeight: 500 }}>
+                          {tag}
+                        </button>
+                      ))}
                     </div>
-                    <div style={{ fontSize: 12, color: "var(--muted)" }}>{addr.address}</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      <input type="text" placeholder="Full Name" value={addrForm.name} onChange={(e) => setAddrForm((prev) => ({ ...prev, name: e.target.value }))} style={{ width: "100%", height: 38, padding: "0 12px", borderRadius: 6, border: "1px solid var(--hairline)", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+                      <input type="text" placeholder="Phone Number" value={addrForm.phone} onChange={(e) => setAddrForm((prev) => ({ ...prev, phone: e.target.value }))} style={{ width: "100%", height: 38, padding: "0 12px", borderRadius: 6, border: "1px solid var(--hairline)", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+                      <textarea placeholder="Delivery Address (street, city, state, postal code)" value={addrForm.address} onChange={(e) => setAddrForm((prev) => ({ ...prev, address: e.target.value }))} style={{ width: "100%", minHeight: 64, padding: 8, borderRadius: 6, border: "1px solid var(--hairline)", fontSize: 13, outline: "none", resize: "vertical", boxSizing: "border-box" }} />
+                    </div>
+                    <button onClick={() => {
+                      if (!addrForm.name || !addrForm.address) { showToast("Please fill in name and address"); return; }
+                      setSavingAddr(true);
+                      setTimeout(() => {
+                        const newId = Math.max(...addresses.map((a) => a.id), 0) + 1;
+                        const newAddr: UserAddress = { id: newId, tag: addrForm.tag, name: addrForm.name, address: addrForm.address, phone: addrForm.phone, isDefault: addresses.length === 0 };
+                        setAddresses((prev) => {
+                          const updated = addresses.length === 0 ? [newAddr] : [...prev, newAddr];
+                          return updated;
+                        });
+                        setSelectedAddr(newAddr);
+                        setShowAddrForm(false);
+                        setAddrForm({ tag: "Home", name: "", phone: "", address: "" });
+                        setSavingAddr(false);
+                        showToast("Address saved");
+                      }, 600);
+                    }} disabled={savingAddr} style={{ width: "100%", padding: "8px 0", marginTop: 12, fontSize: 13, fontWeight: 500, borderRadius: 6, border: "none", background: savingAddr ? "var(--surface-soft)" : "var(--primary)", color: "#fff", cursor: savingAddr ? "default" : "pointer", opacity: savingAddr ? 0.7 : 1 }}>
+                      {savingAddr ? "Saving..." : "Save & Continue"}
+                    </button>
+                    {addresses.length > 0 && (
+                      <button onClick={() => setShowAddrForm(false)} style={{ background: "none", border: "none", color: "var(--muted)", fontSize: 12, cursor: "pointer", marginTop: 6, padding: 0 }}>
+                        Choose saved address instead
+                      </button>
+                    )}
                   </div>
-                ))}
+                ) : (
+                  <div>
+                    {addresses.map((addr) => (
+                      <div key={addr.id} onClick={() => setSelectedAddr(addr)} style={{ padding: "12px", borderRadius: 6, border: selectedAddr?.id === addr.id ? "1px solid var(--primary)" : "1px solid var(--hairline)", cursor: "pointer", marginBottom: 8, background: selectedAddr?.id === addr.id ? "var(--primary-bg)" : "#fff" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                          <span style={{ fontSize: 12, fontWeight: 500, color: "var(--ink)" }}>{addr.name}</span>
+                          <span style={{ padding: "1px 6px", borderRadius: 4, fontSize: 9, fontWeight: 500, background: "var(--surface-soft)", color: "var(--muted)" }}>{addr.tag}</span>
+                          {addr.isDefault && <span style={{ padding: "1px 6px", borderRadius: 4, fontSize: 9, fontWeight: 500, background: "var(--primary-bg)", color: "var(--primary)" }}>Default</span>}
+                        </div>
+                        <div style={{ fontSize: 12, color: "var(--muted)" }}>{addr.address}</div>
+                      </div>
+                    ))}
+                    <button onClick={() => setShowAddrForm(true)} style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "var(--primary)", fontSize: 12, fontWeight: 500, cursor: "pointer", padding: "6px 0" }}>
+                      + Add new address
+                    </button>
+                  </div>
+                )}
               </div>
             )}
             {step === 2 && (
