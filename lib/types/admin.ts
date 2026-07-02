@@ -9,6 +9,7 @@ export type AdminPageId =
   | "disputes"
   | "analytics"
   | "content"
+  | "blog"
   | "currencies"
   | "emails"
   | "settings";

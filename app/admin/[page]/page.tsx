@@ -11,6 +11,7 @@ import { OrdersPage } from "@/components/admin/pages/orders";
 import { PaymentsPage } from "@/components/admin/pages/payments";
 import { DisputesPage } from "@/components/admin/pages/disputes";
 import { AnalyticsPage } from "@/components/admin/pages/analytics";
+import { BlogPage } from "@/components/admin/pages/blog";
 import { ContentPage } from "@/components/admin/pages/content";
 import { CurrenciesPage } from "@/components/admin/pages/currencies";
 import { SettingsPage } from "@/components/admin/pages/settings";
@@ -26,6 +27,7 @@ const pages: Record<string, React.FC> = {
   payments: PaymentsPage,
   disputes: DisputesPage,
   analytics: AnalyticsPage,
+  blog: BlogPage,
   content: ContentPage,
   currencies: CurrenciesPage,
   settings: SettingsPage,

@@ -38,6 +38,7 @@ const navGroups: { label?: string; items: { id: string; label: string; icon: Rea
     label: "Platform",
     items: [
       { id: "analytics", label: "Analytics", icon: <BarChartIcon size={16} /> },
+      { id: "blog", label: "Blog", icon: <FileIcon size={16} /> },
       { id: "content", label: "Content", icon: <FileIcon size={16} /> },
       { id: "currencies", label: "Currencies", icon: <DollarIcon size={16} /> },
       { id: "emails", label: "Emails", icon: <MailIcon size={16} /> },

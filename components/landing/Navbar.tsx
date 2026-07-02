@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useUser, UserButton } from "@clerk/nextjs";
 import { useLanguage } from "@/lib/i18n/language-context";
 
-const navLinks = ["Home", "Shops", "How it works", "Seller"] as const;
+const navLinks = ["Home", "Blog", "Shops", "How it works", "Seller"] as const;
 
 export function Navbar() {
   const { t, lang, setLang, languages } = useLanguage();
@@ -14,7 +14,7 @@ export function Navbar() {
   const [open, setOpen] = useState(false);
 
   const hrefFor = (label: string) =>
-    label === "Home" ? "/" : label === "Shops" ? "/shops" : label === "Seller" ? "/sign-in?role=seller" : "/how-it-works";
+    label === "Home" ? "/" : label === "Blog" ? "/blog" : label === "Shops" ? "/shops" : label === "Seller" ? "/sign-in?role=seller" : "/how-it-works";
 
   return (
     <nav
@@ -53,11 +53,13 @@ export function Navbar() {
             >
               {label === "Home"
                 ? "Home"
-                : label === "Shops"
-                  ? t("nav.shops")
-                  : label === "Seller"
-                    ? t("nav.seller")
-                    : t("nav.how-it-works")}
+                : label === "Blog"
+                  ? "Blog"
+                  : label === "Shops"
+                    ? t("nav.shops")
+                    : label === "Seller"
+                      ? t("nav.seller")
+                      : t("nav.how-it-works")}
             </Link>
           ))}
         </div>
