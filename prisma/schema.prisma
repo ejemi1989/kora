@@ -217,6 +217,13 @@ model BlogPost {
   updatedAt DateTime @updatedAt
 }
 
+model BlogImage {
+  id        String   @id @default(uuid())
+  data      String
+  mimeType  String
+  createdAt DateTime @default(now())
+}
+
 model ReceivedEmail {
   id        String   @id @default(uuid())
   from      String

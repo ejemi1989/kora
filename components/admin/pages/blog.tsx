@@ -212,6 +212,23 @@ function BlogEditor({
     }));
   }
 
+  async function handleUpload(file: File, target: "cover" | "content") {
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const res = await fetch("/api/admin/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (data.url) {
+        if (target === "cover") {
+          set("coverImage", data.url);
+        } else {
+          const imgTag = `<img src="${data.url}" alt="" style="max-width:100%;border-radius:8px;margin:16px 0" />`;
+          set("content", f.content + (f.content ? "\n\n" : "") + imgTag);
+        }
+      }
+    } catch {}
+  }
+
   return (
     <div className="editor-overlay" onClick={onClose}>
       <div className="editor-modal" onClick={(e) => e.stopPropagation()}>
@@ -233,8 +250,19 @@ function BlogEditor({
             <input value={f.author} onChange={(e) => set("author", e.target.value)} placeholder="Author name" />
           </div>
           <div className="field">
-            <label>Cover Image URL</label>
-            <input value={f.coverImage} onChange={(e) => set("coverImage", e.target.value)} placeholder="https://..." />
+            <label>Cover Image</label>
+            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+              <input value={f.coverImage} onChange={(e) => set("coverImage", e.target.value)} placeholder="Paste URL or upload" style={{ flex: 1 }} />
+              <label style={{ padding:"6px 10px", borderRadius:4, background:"var(--surface-soft)", color:"var(--body)", fontSize:11, cursor:"pointer", whiteSpace:"nowrap", border:"1px solid var(--hairline)" }}>
+                Upload
+                <input type="file" accept="image/*" style={{ display:"none" }} onChange={(e) => { const f2 = e.target.files?.[0]; if (f2) handleUpload(f2, "cover"); }} />
+              </label>
+            </div>
+            {f.coverImage && (
+              <div style={{ marginTop:6, borderRadius:6, overflow:"hidden", maxHeight:120, background:"var(--surface-soft)" }}>
+                <img src={f.coverImage} alt="" style={{ width:"100%", height:100, objectFit:"cover" }} />
+              </div>
+            )}
           </div>
           <div className="field">
             <label>Excerpt</label>
@@ -247,6 +275,13 @@ function BlogEditor({
           </div>
           <div className="field">
             <label>Content (HTML or Markdown)</label>
+            <div style={{ marginBottom:6 }}>
+              <label style={{ padding:"5px 10px", borderRadius:4, background:"var(--surface-soft)", color:"var(--body)", fontSize:11, cursor:"pointer", border:"1px solid var(--hairline)", display:"inline-flex", alignItems:"center", gap:4 }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={12} height={12}><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" /></svg>
+                Insert Image
+                <input type="file" accept="image/*" style={{ display:"none" }} onChange={(e) => { const f2 = e.target.files?.[0]; if (f2) handleUpload(f2, "content"); }} />
+              </label>
+            </div>
             <textarea
               value={f.content}
               onChange={(e) => set("content", e.target.value)}
