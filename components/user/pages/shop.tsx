@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useUser } from "@/components/user/user-context";
-import { PRODUCTS, CATEGORIES } from "@/lib/data/user";
 import { SearchIcon, StarIcon } from "@/components/user/icons";
 import { useCurrency } from "@/lib/hooks/use-currency";
+import type { UserProduct } from "@/lib/types/user";
 
 interface PromoBanner {
   code: string;
@@ -14,13 +14,39 @@ interface PromoBanner {
   ends: string;
 }
 
+const categoryEmoji: Record<string, string> = {
+  "Grains & Rice": "\uD83C\uDF3E",
+  "Fish & Meat": "\uD83D\uDC1F",
+  "Spices & Seasonings": "\uD83E\uDDE2",
+  "Oils & Fats": "\uD83E\uDED2",
+};
+
+function getEmoji(category: string) {
+  return categoryEmoji[category] || "\uD83D\uDCE6";
+}
+
+function dbProductToUserProduct(p: Record<string, unknown>): UserProduct {
+  return {
+    id: p.id as string,
+    name: p.name as string,
+    category: p.category as string,
+    price: p.price as number,
+    weight: 1,
+    rating: (p.rating as number) || 0,
+    description: p.description as string,
+    emoji: getEmoji(p.category as string),
+  };
+}
+
 export function ShopPage() {
   const { cartItems, addToCart, showToast } = useUser();
   const { format } = useCurrency();
   const [cat, setCat] = useState("All");
   const [q, setQ] = useState("");
-  const [loadingId, setLoadingId] = useState<number | null>(null);
+  const [loadingId, setLoadingId] = useState<string | number | null>(null);
   const [promos, setPromos] = useState<PromoBanner[]>([]);
+  const [products, setProducts] = useState<UserProduct[]>([]);
+  const [categories, setCategories] = useState<string[]>(["All"]);
 
   useEffect(() => {
     fetch("/api/promotions")
@@ -29,13 +55,27 @@ export function ShopPage() {
       .catch(() => {});
   }, []);
 
-  const filtered = PRODUCTS.filter((p) => {
+  useEffect(() => {
+    fetch("/api/products")
+      .then((r) => r.json())
+      .then((d) => {
+        if (Array.isArray(d)) {
+          const mapped = d.map(dbProductToUserProduct);
+          setProducts(mapped);
+          const cats = Array.from(new Set(mapped.map((p) => p.category)));
+          setCategories(["All", ...cats.sort()]);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const filtered = products.filter((p) => {
     if (cat !== "All" && p.category !== cat) return false;
     if (q && !p.name.toLowerCase().includes(q.toLowerCase())) return false;
     return true;
   });
 
-  function handleAdd(product: typeof PRODUCTS[number]) {
+  function handleAdd(product: UserProduct) {
     setLoadingId(product.id);
     const existing = cartItems.find((i) => i.id === product.id);
     setTimeout(() => {
@@ -81,7 +121,7 @@ export function ShopPage() {
       )}
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 20 }}>
-        {CATEGORIES.map((c) => (
+        {categories.map((c) => (
           <button
             key={c}
             onClick={() => setCat(c)}
@@ -98,7 +138,7 @@ export function ShopPage() {
 
       {filtered.length === 0 ? (
         <div style={{ textAlign: "center", padding: "48px 20px" }}>
-          <div style={{ fontSize: 36, color: "var(--stone)", marginBottom: 8 }}>\uD83D\uDD0D</div>
+          <div style={{ fontSize: 36, color: "var(--stone)", marginBottom: 8 }}>🔍</div>
           <h3 style={{ fontSize: 14, fontWeight: 500, color: "var(--muted)", margin: "0 0 4px" }}>No products found</h3>
           <p style={{ fontSize: 12, color: "var(--ash)", margin: 0 }}>Try adjusting your search or category</p>
         </div>
@@ -114,12 +154,6 @@ export function ShopPage() {
                 onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)"; e.currentTarget.style.transform = "none"; }}
               >
                 <div style={{ height: 110, background: "var(--surface-soft)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, position: "relative" }}>
-                  {product.tag && (
-                    <span style={{ position: "absolute", top: 6, left: 6, padding: "2px 6px", borderRadius: 4, fontSize: 9, fontWeight: 600, textTransform: "uppercase",
-                      background: product.tag === "popular" ? "var(--primary-bg)" : product.tag === "new" ? "var(--success-bg)" : "var(--warning-bg)",
-                      color: product.tag === "popular" ? "var(--primary)" : product.tag === "new" ? "var(--success)" : "var(--warning)",
-                    }}>{product.tag === "sale" ? "Sale" : product.tag}</span>
-                  )}
                   {product.emoji}
                 </div>
                 <div style={{ padding: "10px" }}>
@@ -131,7 +165,6 @@ export function ShopPage() {
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 8 }}>
                     <span style={{ fontSize: 13, fontWeight: 600, color: "var(--primary)" }}>{format(product.price)}</span>
-                    {product.origPrice && <span style={{ fontSize: 11, color: "var(--stone)", textDecoration: "line-through" }}>{format(product.origPrice)}</span>}
                   </div>
                   <button
                     onClick={() => handleAdd(product)}

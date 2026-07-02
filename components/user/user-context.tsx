@@ -5,7 +5,7 @@ import type { CartItem, UserNotification, PageId, UserAddress, PaymentMethod } f
 import { calcTotal } from "@/lib/data/user";
 
 export interface WishlistItem {
-  id: number;
+  id: string | number;
   name: string;
   price: number;
   emoji?: string;
@@ -38,7 +38,7 @@ interface UserContextValue {
   setWishlist: React.Dispatch<React.SetStateAction<WishlistItem[]>>;
   cartCount: number;
   cartTotal: number;
-  addToCart: (product: { id: number; name: string; price: number; description?: string; emoji?: string; weight?: number }) => void;
+  addToCart: (product: { id: string | number; name: string; price: number; description?: string; emoji?: string; weight?: number }) => void;
 }
 
 const UserContext = createContext<UserContextValue | null>(null);
@@ -121,7 +121,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const cartCount = cartItems.reduce((sum, i) => sum + i.qty, 0);
   const cartTotal = calcTotal(cartItems);
 
-  const addToCart = useCallback((product: { id: number; name: string; price: number; description?: string; emoji?: string; weight?: number }) => {
+  const addToCart = useCallback((product: { id: string | number; name: string; price: number; description?: string; emoji?: string; weight?: number }) => {
     setCartItems((prev) => {
       const existing = prev.find((i) => i.id === product.id);
       if (existing) {

@@ -13,12 +13,12 @@ export function WishlistPage() {
   useEffect(() => { setMounted(true); }, []);
   const router = useRouter();
 
-  function handleRemove(id: number) {
+  function handleRemove(id: string | number) {
     setWishlist((prev) => prev.filter((i) => i.id !== id));
     showToast("Removed");
   }
 
-  function handleAddToCart(id: number, name: string, price: number, emoji?: string) {
+  function handleAddToCart(id: string | number, name: string, price: number, emoji?: string) {
     addToCart({ id, name, price, emoji });
     showToast("Added to cart");
   }

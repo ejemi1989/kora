@@ -63,7 +63,7 @@ export async function POST(request: Request) {
         category: category || "Spices & Seasonings",
         unit: unit || "1kg",
         images: imageUrl ? [imageUrl] : [],
-        status: "DRAFT",
+        status: "ACTIVE",
       },
     });
 

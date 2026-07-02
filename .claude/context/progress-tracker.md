@@ -291,12 +291,12 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Steps
 
+- Configure Google OAuth credentials in Clerk Dashboard (Client ID + Client Secret from Google Cloud Console)
+- Set up production Clerk instance (currently using dev instance with live domain)
 - Create test users (admin@denimarketplace.com, seller@denimarketplace.com, buyer@denimarketplace.com) in live Clerk instance
 - Run QA tier on existing dashboards using the QA skill to baseline health scores
-- Verify role-mismatch enforcement end-to-end: Seller using Buyer tab → gets error banner pointing to Seller tab
-- Verify Google OAuth with role tabs: signing in via Google on Seller tab → redirects to Seller dashboard (or error if alternate role)
-- Existing user role selection flow unchanged (`/auth/choose-role` still works for users without `unsafeMetadata.role`)
-- Verify role-scoped proxy redirects: CUSTOMER visiting `/seller/overview` or `/admin/overview` → redirected to `/user/overview`
+- Verify role-mismatch enforcement end-to-end
+- Verify Google OAuth with role tabs after credentials are configured
 - Add Stripe live keys for production payments
 - Set up Stripe webhooks for order status updates
 
@@ -325,3 +325,21 @@ Update this file whenever the current phase, active feature, or implementation s
 - **Dual URL + context navigation** — `useRouter.push()` for actual page navigation, context `setPage` for sidebar active state; `[page]/page.tsx` syncs URL param → context via `useEffect`
 - **Default Prisma client location** — `@prisma/client` instead of custom output path; required for Vercel's rhel-openssl-3.0.x runtime compatibility
 - **Structured error responses** — all API routes return `{ success: false, error: "..." }` on failure with console.error logging; client components check for this pattern before rendering
+
+### Forgot Password Flow
+- `app/forgot-password/page.tsx` — 3-step forgot password using Clerk v7 `SignInFutureResource.resetPasswordEmailCode` API:
+  - Step 1: Enter email → `signIn.create({ identifier })` → `signIn.resetPasswordEmailCode.sendCode()`
+  - Step 2: Enter 6-digit code → `signIn.resetPasswordEmailCode.verifyCode({ code })` → status becomes `needs_new_password`
+  - Step 3: Enter new password + confirm → `signIn.resetPasswordEmailCode.submitPassword({ password })` → auto-signs in and redirects to `/auth/callback`
+  - "Resend code", "Back to email", "Back to sign in" links
+- `proxy.ts` — added `/forgot-password(.*)` to `isPublicRoute`
+- `app/sign-in/[[...sign-in]]/page.tsx` — added "Forgot password?" link next to password label
+
+### Google OAuth Configuration
+- **Issue:** Google OAuth shows "access blocked" on denimarketplace.com
+- **Root cause:** `connection_oauth_google` has `enabled: true` but `client_id: ""` and `client_secret: ""` — no credentials configured in Clerk Dashboard
+- **Fix:** Add custom Google OAuth credentials (Client ID + Client Secret) in Clerk Dashboard → SSO Connections → Google → Use custom credentials
+
+### Build & Deploy
+- `vercel --prod` — build passes with zero errors; TypeScript, Turbopack, 46 pages all green
+- `git push origin main` — forgot password page, Clerk v7 API fix, Vercel redeploy
