@@ -24,7 +24,7 @@ export function CartPage() {
   const [addrForm, setAddrForm] = useState({ tag: "Home", name: "", phone: "", address: "" });
   const [savingAddr, setSavingAddr] = useState(false);
   const [showPayForm, setShowPayForm] = useState(false);
-  const [payForm, setPayForm] = useState({ type: "Mobile" as PaymentMethod["type"], name: "", details: "" });
+  const [payForm, setPayForm] = useState({ type: "Card" as PaymentMethod["type"], name: "", details: "" });
   const [savingPay, setSavingPay] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [recentOrders, setRecentOrders] = useState<{ id: string; status: string; createdAt: string }[]>([]);
@@ -244,15 +244,15 @@ export function CartPage() {
                 {showPayForm || paymentMethods.length === 0 ? (
                   <div>
                     <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
-                      {(["Mobile", "Card", "Bank"] as const).map((type) => (
+                      {(["Card", "Bank"] as const).map((type) => (
                         <button key={type} onClick={() => setPayForm((prev) => ({ ...prev, type }))} style={{ padding: "5px 14px", fontSize: 12, borderRadius: 999, border: "none", background: payForm.type === type ? "var(--primary)" : "var(--surface-soft)", color: payForm.type === type ? "#fff" : "var(--body)", cursor: "pointer", fontWeight: 500 }}>
-                          {type === "Mobile" ? "\uD83D\uDCF1 Mobile" : type === "Card" ? "\uD83D\uDCB3 Card" : "\uD83C\uDFE6 Bank"}
+                          {type === "Card" ? "\uD83D\uDCB3 Card" : "\uD83C\uDFE6 Bank"}
                         </button>
                       ))}
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                      <input type="text" placeholder={payForm.type === "Mobile" ? "Provider (e.g. MTN, Orange)" : payForm.type === "Card" ? "Card name (e.g. Visa, Mastercard)" : "Bank name"} value={payForm.name} onChange={(e) => setPayForm((prev) => ({ ...prev, name: e.target.value }))} style={{ width: "100%", height: 38, padding: "0 12px", borderRadius: 6, border: "1px solid var(--hairline)", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
-                      <input type="text" placeholder={payForm.type === "Mobile" ? "Phone number" : payForm.type === "Card" ? "Card number" : "Account number"} value={payForm.details} onChange={(e) => setPayForm((prev) => ({ ...prev, details: e.target.value }))} style={{ width: "100%", height: 38, padding: "0 12px", borderRadius: 6, border: "1px solid var(--hairline)", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+                      <input type="text" placeholder={payForm.type === "Card" ? "Card name (e.g. Visa, Mastercard)" : "Bank name"} value={payForm.name} onChange={(e) => setPayForm((prev) => ({ ...prev, name: e.target.value }))} style={{ width: "100%", height: 38, padding: "0 12px", borderRadius: 6, border: "1px solid var(--hairline)", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+                      <input type="text" placeholder={payForm.type === "Card" ? "Card number" : "Account number"} value={payForm.details} onChange={(e) => setPayForm((prev) => ({ ...prev, details: e.target.value }))} style={{ width: "100%", height: 38, padding: "0 12px", borderRadius: 6, border: "1px solid var(--hairline)", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
                     </div>
                     <button onClick={() => {
                       if (!payForm.name || !payForm.details) { showToast("Please fill in all payment fields"); return; }
@@ -262,7 +262,7 @@ export function CartPage() {
                         setPaymentMethods((prev) => [...prev, newPay]);
                         setSelectedPay(newPay);
                         setShowPayForm(false);
-                        setPayForm({ type: "Mobile", name: "", details: "" });
+                        setPayForm({ type: "Card", name: "", details: "" });
                         setSavingPay(false);
                         showToast("Payment method saved");
                       }, 600);
