@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 type CheckoutStep = "review" | "address" | "payment" | "confirm";
 
 export function CartPage() {
-  const { cartItems, setCartItems, addresses, setAddresses, paymentMethods, showToast } = useUser();
+  const { cartItems, setCartItems, addresses, setAddresses, paymentMethods, setPaymentMethods, showToast } = useUser();
   const { format } = useCurrency();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
@@ -23,6 +23,9 @@ export function CartPage() {
   const [showAddrForm, setShowAddrForm] = useState(false);
   const [addrForm, setAddrForm] = useState({ tag: "Home", name: "", phone: "", address: "" });
   const [savingAddr, setSavingAddr] = useState(false);
+  const [showPayForm, setShowPayForm] = useState(false);
+  const [payForm, setPayForm] = useState({ type: "Mobile" as PaymentMethod["type"], name: "", details: "" });
+  const [savingPay, setSavingPay] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [recentOrders, setRecentOrders] = useState<{ id: string; status: string; createdAt: string }[]>([]);
 
@@ -236,15 +239,57 @@ export function CartPage() {
             )}
             {step === 2 && (
               <div>
-                <h3 style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--ink)", margin: "0 0 12px" }}>Select Payment</h3>
-                {paymentMethods.map((pm) => (
-                  <div key={pm.name} onClick={() => setSelectedPay(pm)} style={{ padding: "12px", borderRadius: 6, border: selectedPay?.name === pm.name ? "1px solid var(--primary)" : "1px solid var(--hairline)", cursor: "pointer", marginBottom: 8, background: selectedPay?.name === pm.name ? "var(--primary-bg)" : "#fff" }}>
-                    <div style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", marginBottom: 2 }}>
-                      {pm.type === "Card" ? "\uD83D\uDCB3" : pm.type === "Mobile" ? "\uD83D\uDCF1" : "\uD83C\uDFE6"} {pm.name}
+                <h3 style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--ink)", margin: "0 0 12px" }}>Payment Method</h3>
+
+                {showPayForm || paymentMethods.length === 0 ? (
+                  <div>
+                    <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+                      {(["Mobile", "Card", "Bank"] as const).map((type) => (
+                        <button key={type} onClick={() => setPayForm((prev) => ({ ...prev, type }))} style={{ padding: "5px 14px", fontSize: 12, borderRadius: 999, border: "none", background: payForm.type === type ? "var(--primary)" : "var(--surface-soft)", color: payForm.type === type ? "#fff" : "var(--body)", cursor: "pointer", fontWeight: 500 }}>
+                          {type === "Mobile" ? "\uD83D\uDCF1 Mobile" : type === "Card" ? "\uD83D\uDCB3 Card" : "\uD83C\uDFE6 Bank"}
+                        </button>
+                      ))}
                     </div>
-                    <div style={{ fontSize: 12, color: "var(--muted)" }}>{pm.details}</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      <input type="text" placeholder={payForm.type === "Mobile" ? "Provider (e.g. MTN, Orange)" : payForm.type === "Card" ? "Card name (e.g. Visa, Mastercard)" : "Bank name"} value={payForm.name} onChange={(e) => setPayForm((prev) => ({ ...prev, name: e.target.value }))} style={{ width: "100%", height: 38, padding: "0 12px", borderRadius: 6, border: "1px solid var(--hairline)", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+                      <input type="text" placeholder={payForm.type === "Mobile" ? "Phone number" : payForm.type === "Card" ? "Card number" : "Account number"} value={payForm.details} onChange={(e) => setPayForm((prev) => ({ ...prev, details: e.target.value }))} style={{ width: "100%", height: 38, padding: "0 12px", borderRadius: 6, border: "1px solid var(--hairline)", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+                    </div>
+                    <button onClick={() => {
+                      if (!payForm.name || !payForm.details) { showToast("Please fill in all payment fields"); return; }
+                      setSavingPay(true);
+                      setTimeout(() => {
+                        const newPay: PaymentMethod = { name: payForm.name, details: payForm.details, type: payForm.type, isDefault: paymentMethods.length === 0 };
+                        setPaymentMethods((prev) => [...prev, newPay]);
+                        setSelectedPay(newPay);
+                        setShowPayForm(false);
+                        setPayForm({ type: "Mobile", name: "", details: "" });
+                        setSavingPay(false);
+                        showToast("Payment method saved");
+                      }, 600);
+                    }} disabled={savingPay} style={{ width: "100%", padding: "8px 0", marginTop: 12, fontSize: 13, fontWeight: 500, borderRadius: 6, border: "none", background: savingPay ? "var(--surface-soft)" : "var(--primary)", color: "#fff", cursor: savingPay ? "default" : "pointer", opacity: savingPay ? 0.7 : 1 }}>
+                      {savingPay ? "Saving..." : "Save & Continue"}
+                    </button>
+                    {paymentMethods.length > 0 && (
+                      <button onClick={() => setShowPayForm(false)} style={{ background: "none", border: "none", color: "var(--muted)", fontSize: 12, cursor: "pointer", marginTop: 6, padding: 0 }}>
+                        Choose saved payment instead
+                      </button>
+                    )}
                   </div>
-                ))}
+                ) : (
+                  <div>
+                    {paymentMethods.map((pm) => (
+                      <div key={pm.name} onClick={() => setSelectedPay(pm)} style={{ padding: "12px", borderRadius: 6, border: selectedPay?.name === pm.name ? "1px solid var(--primary)" : "1px solid var(--hairline)", cursor: "pointer", marginBottom: 8, background: selectedPay?.name === pm.name ? "var(--primary-bg)" : "#fff" }}>
+                        <div style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", marginBottom: 2 }}>
+                          {pm.type === "Card" ? "\uD83D\uDCB3" : pm.type === "Mobile" ? "\uD83D\uDCF1" : "\uD83C\uDFE6"} {pm.name}
+                        </div>
+                        <div style={{ fontSize: 12, color: "var(--muted)" }}>{pm.details}</div>
+                      </div>
+                    ))}
+                    <button onClick={() => setShowPayForm(true)} style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "var(--primary)", fontSize: 12, fontWeight: 500, cursor: "pointer", padding: "6px 0" }}>
+                      + Add new payment method
+                    </button>
+                  </div>
+                )}
               </div>
             )}
             {step === 3 && (
