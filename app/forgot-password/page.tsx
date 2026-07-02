@@ -19,11 +19,11 @@ export default function ForgotPasswordPage() {
     const formData = new FormData(e.currentTarget);
     const emailAddress = formData.get("email") as string;
 
-    const { error } = await signIn.create({
-      strategy: "reset_password_email_code",
-      identifier: emailAddress,
-    });
+    const { error } = await signIn.create({ identifier: emailAddress });
     if (error) { setFormError(error.message); return; }
+
+    const { error: sendError } = await signIn.resetPasswordEmailCode.sendCode();
+    if (sendError) { setFormError(sendError.message); return; }
 
     setStep("code");
   };
@@ -36,10 +36,7 @@ export default function ForgotPasswordPage() {
     const formData = new FormData(e.currentTarget);
     const code = formData.get("code") as string;
 
-    const { error } = await signIn.attemptFirstFactor({
-      strategy: "reset_password_email_code",
-      code,
-    });
+    const { error } = await signIn.resetPasswordEmailCode.verifyCode({ code });
     if (error) { setFormError(error.message); return; }
 
     if (signIn.status === "needs_new_password") {
@@ -63,7 +60,10 @@ export default function ForgotPasswordPage() {
       return;
     }
 
-    const { error } = await signIn.resetPassword({ password });
+    const { error } = await signIn.resetPasswordEmailCode.submitPassword({
+      password,
+      signOutOfOtherSessions: true,
+    });
     if (error) { setFormError(error.message); return; }
 
     if (signIn.status === "complete") {
@@ -76,12 +76,7 @@ export default function ForgotPasswordPage() {
   const handleResendCode = async () => {
     setFormError(null);
     if (!signIn) return;
-    const email = (document.getElementById("email") as HTMLInputElement)?.value;
-    if (!email) { setFormError("Email not found. Please start over."); return; }
-    const { error } = await signIn.create({
-      strategy: "reset_password_email_code",
-      identifier: email,
-    });
+    const { error } = await signIn.resetPasswordEmailCode.sendCode();
     if (error) setFormError(error.message);
   };
 
