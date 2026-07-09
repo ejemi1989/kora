@@ -199,6 +199,7 @@ function BlogEditor({
     author: post?.author || "",
     published: post?.published ?? false,
   });
+  const [uploading, setUploading] = useState(false);
 
   function set<K extends keyof typeof f>(k: K, v: (typeof f)[K]) {
     setF((prev) => ({ ...prev, [k]: v }));
@@ -213,20 +214,36 @@ function BlogEditor({
   }
 
   async function handleUpload(file: File, target: "cover" | "content") {
+    if (file.size > 5 * 1024 * 1024) {
+      alert("File too large. Maximum size is 5MB.");
+      return;
+    }
+    setUploading(true);
     const formData = new FormData();
     formData.append("file", file);
     try {
       const res = await fetch("/api/admin/upload", { method: "POST", body: formData });
       const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || "Upload failed");
+        return;
+      }
       if (data.url) {
         if (target === "cover") {
           set("coverImage", data.url);
         } else {
           const imgTag = `<img src="${data.url}" alt="" style="max-width:100%;border-radius:8px;margin:16px 0" />`;
-          set("content", f.content + (f.content ? "\n\n" : "") + imgTag);
+          setF((prev) => ({
+            ...prev,
+            content: prev.content + (prev.content ? "\n\n" : "") + imgTag,
+          }));
         }
       }
-    } catch {}
+    } catch {
+      alert("Upload failed. Check your connection and try again.");
+    } finally {
+      setUploading(false);
+    }
   }
 
   return (
@@ -253,9 +270,9 @@ function BlogEditor({
             <label>Cover Image</label>
             <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
               <input value={f.coverImage} onChange={(e) => set("coverImage", e.target.value)} placeholder="Paste URL or upload" style={{ flex: 1 }} />
-              <label style={{ padding:"6px 10px", borderRadius:4, background:"var(--surface-soft)", color:"var(--body)", fontSize:11, cursor:"pointer", whiteSpace:"nowrap", border:"1px solid var(--hairline)" }}>
-                Upload
-                <input type="file" accept="image/*" style={{ display:"none" }} onChange={(e) => { const f2 = e.target.files?.[0]; if (f2) handleUpload(f2, "cover"); }} />
+              <label style={{ padding:"6px 10px", borderRadius:4, background:"var(--surface-soft)", color: uploading ? "var(--muted-text)" : "var(--body)", fontSize:11, cursor: uploading ? "not-allowed" : "pointer", whiteSpace:"nowrap", border:"1px solid var(--hairline)", opacity: uploading ? 0.6 : 1 }}>
+                {uploading ? "Uploading..." : "Upload"}
+                <input type="file" accept="image/*" style={{ display:"none" }} disabled={uploading} onChange={(e) => { const f2 = e.target.files?.[0]; if (f2) handleUpload(f2, "cover"); e.target.value = ""; }} />
               </label>
             </div>
             {f.coverImage && (
@@ -276,10 +293,10 @@ function BlogEditor({
           <div className="field">
             <label>Content (HTML or Markdown)</label>
             <div style={{ marginBottom:6 }}>
-              <label style={{ padding:"5px 10px", borderRadius:4, background:"var(--surface-soft)", color:"var(--body)", fontSize:11, cursor:"pointer", border:"1px solid var(--hairline)", display:"inline-flex", alignItems:"center", gap:4 }}>
+              <label style={{ padding:"5px 10px", borderRadius:4, background:"var(--surface-soft)", color: uploading ? "var(--muted-text)" : "var(--body)", fontSize:11, cursor: uploading ? "not-allowed" : "pointer", border:"1px solid var(--hairline)", display:"inline-flex", alignItems:"center", gap:4, opacity: uploading ? 0.6 : 1 }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={12} height={12}><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" /></svg>
-                Insert Image
-                <input type="file" accept="image/*" style={{ display:"none" }} onChange={(e) => { const f2 = e.target.files?.[0]; if (f2) handleUpload(f2, "content"); }} />
+                {uploading ? "Uploading..." : "Insert Image"}
+                <input type="file" accept="image/*" style={{ display:"none" }} disabled={uploading} onChange={(e) => { const f2 = e.target.files?.[0]; if (f2) handleUpload(f2, "content"); e.target.value = ""; }} />
               </label>
             </div>
             <textarea
