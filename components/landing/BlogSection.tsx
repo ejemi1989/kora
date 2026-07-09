@@ -20,6 +20,7 @@ export async function BlogSection() {
 
   return (
     <section style={{ padding: "64px var(--pad)", background: "#fff", borderTop: "1px solid var(--line)" }}>
+      <style>{`.blog-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }`}</style>
       <div className="mx-auto" style={{ maxWidth: "var(--max)" }}>
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 24 }}>
           <div>
@@ -34,9 +35,7 @@ export async function BlogSection() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
           {posts.map((post) => (
             <Link key={post.slug} href={`/blog/${post.slug}`} style={{ textDecoration: "none" }}>
-              <article style={{ border: "1px solid var(--line)", borderRadius: 10, overflow: "hidden", background: "#fff", transition: "box-shadow 150ms" }}
-                onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.08)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "none"; }}
+              <article className="blog-card" style={{ border: "1px solid var(--line)", borderRadius: 10, overflow: "hidden", background: "#fff", transition: "box-shadow 150ms" }}
               >
                 {post.coverImage ? (
                   <div style={{ aspectRatio: "16/9", overflow: "hidden", background: "var(--surface-soft)" }}>

@@ -16,6 +16,7 @@ export default async function BlogListing() {
 
   return (
     <>
+      <style>{`.blog-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }`}</style>
       <Navbar />
       <main>
         <section style={{ padding: "60px var(--pad) 40px", background: "#fff", borderBottom: "1px solid var(--line)" }}>
@@ -38,27 +39,7 @@ export default async function BlogListing() {
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 24 }}>
                 {posts.map((post) => (
-                  <Link key={post.id} href={`/blog/${post.slug}`} style={{ textDecoration: "none" }}>
-                    <article style={{ border: "1px solid var(--line)", borderRadius: 12, overflow: "hidden", background: "#fff", transition: "box-shadow 150ms" }}
-                      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.08)"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "none"; }}
-                    >
-                      {post.coverImage && (
-                        <div style={{ aspectRatio: "16/9", overflow: "hidden", background: "var(--surface-soft)" }}>
-                          <img src={post.coverImage} alt={post.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                        </div>
-                      )}
-                      <div style={{ padding: 20 }}>
-                        <h2 style={{ fontSize: 17, fontWeight: 600, color: "var(--ink-landing)", margin: "0 0 6px", lineHeight: 1.4 }}>{post.title}</h2>
-                        <p style={{ fontSize: 13.5, color: "var(--body-landing)", margin: "0 0 12px", lineHeight: 1.5 }}>{post.excerpt}</p>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--muted-landing)" }}>
-                          <span>{post.author}</span>
-                          <span>·</span>
-                          <time>{new Date(post.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</time>
-                        </div>
-                      </div>
-                    </article>
-                  </Link>
+                  <BlogCard key={post.id} post={post} />
                 ))}
               </div>
             )}
@@ -67,5 +48,31 @@ export default async function BlogListing() {
       </main>
       <Footer />
     </>
+  );
+}
+
+function BlogCard({ post }: { post: { id: string; title: string; slug: string; excerpt: string; coverImage: string | null; author: string; createdAt: Date } }) {
+  return (
+    <Link href={`/blog/${post.slug}`} style={{ textDecoration: "none" }}>
+      <article
+        className="blog-card"
+        style={{ border: "1px solid var(--line)", borderRadius: 12, overflow: "hidden", background: "#fff", transition: "box-shadow 150ms" }}
+      >
+        {post.coverImage && (
+          <div style={{ aspectRatio: "16/9", overflow: "hidden", background: "var(--surface-soft)" }}>
+            <img src={post.coverImage} alt={post.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          </div>
+        )}
+        <div style={{ padding: 20 }}>
+          <h2 style={{ fontSize: 17, fontWeight: 600, color: "var(--ink-landing)", margin: "0 0 6px", lineHeight: 1.4 }}>{post.title}</h2>
+          <p style={{ fontSize: 13.5, color: "var(--body-landing)", margin: "0 0 12px", lineHeight: 1.5 }}>{post.excerpt}</p>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--muted-landing)" }}>
+            <span>{post.author}</span>
+            <span>·</span>
+            <time>{new Date(post.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</time>
+          </div>
+        </div>
+      </article>
+    </Link>
   );
 }
