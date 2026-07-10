@@ -35,7 +35,7 @@ export default async function BlogListing() {
       `}</style>
       <Navbar />
       <main style={{ background: "#fff", minHeight: "100vh" }}>
-        <div style={{ maxWidth: 1080, margin: "0 auto", padding: "0 var(--pad)" }}>
+        <div style={{ maxWidth: "100%", paddingLeft: "var(--pad)", paddingRight: "var(--pad)" }}>
           <div style={{ padding: "48px 0 0" }}>
             <h1 style={{ fontSize: 14, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--pr)", margin: "0 0 4px" }}>Deni Blog</h1>
             <p style={{ fontSize: 15, color: "var(--muted-text)", margin: "0 0 40px" }}>Stories, guides, and insights about African food and culture</p>
