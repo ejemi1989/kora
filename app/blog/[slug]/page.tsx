@@ -85,7 +85,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             </div>
           )}
 
-          <div style={{ maxWidth: 680, margin: "0 auto", padding: "40px var(--pad) 0" }}>
+          <div style={{ padding: "40px var(--pad) 0" }}>
             <Link
               href="/blog"
               style={{
@@ -161,8 +161,6 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           <div
             className="post-content"
             style={{
-              maxWidth: 680,
-              margin: "0 auto",
               padding: "0 var(--pad) 48px",
               fontSize: 17,
               lineHeight: 1.75,
@@ -173,7 +171,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           </div>
 
           <div style={{ borderTop: "1px solid var(--hairline)" }}>
-            <div style={{ maxWidth: 680, margin: "0 auto", padding: "40px var(--pad) 60px" }}>
+            <div style={{ padding: "40px var(--pad) 60px" }}>
               <div style={{
                 display: "flex",
                 alignItems: "center",
@@ -208,7 +206,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
           {related.length > 0 && (
             <div style={{ background: "var(--surface-soft)", borderTop: "1px solid var(--hairline)" }}>
-              <div style={{ maxWidth: 1080, margin: "0 auto", padding: "48px var(--pad) 56px" }}>
+              <div style={{ padding: "48px var(--pad) 56px" }}>
                 <h3 style={{ fontSize: 14, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--muted-text)", margin: "0 0 24px" }}>Continue reading</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
                   {related.map((r) => (
