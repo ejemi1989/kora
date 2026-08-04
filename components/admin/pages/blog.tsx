@@ -197,7 +197,7 @@ function BlogEditor({
     content: post?.content || "",
     coverImage: post?.coverImage || "",
     author: post?.author || "",
-    published: post?.published ?? false,
+    published: post?.published ?? true,
   });
   const [uploading, setUploading] = useState(false);
 

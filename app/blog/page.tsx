@@ -3,6 +3,8 @@ import { Navbar } from "@/components/landing/Navbar";
 import { Footer } from "@/components/landing/Footer";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Blog — Deni",
   description: "Tips, guides, and stories about African food, culture, and buying from the diaspora.",

@@ -5,13 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
-export async function generateStaticParams() {
-  const posts = await prisma.blogPost.findMany({
-    where: { published: true },
-    select: { slug: true },
-  });
-  return posts.map((p) => ({ slug: p.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
